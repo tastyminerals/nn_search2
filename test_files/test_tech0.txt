@@ -1,0 +1,232 @@
+Review: With the iPhone 5S, Apple lays groundwork for a brighter future
+Every year since 2008, Apple has released new flagship iPhones in a predictable cadence: on even years we get a new external design; on odd years we get a refinement of the previous year's design with upgraded insides and new hardware features. Apple continues to issue updates in this comfortable, almost leisurely stride even as the Android vendors are releasing new high-end, tentpole products every six months or so.
+
+This year is no exception. Apple's iPhone 5S is a tweaked version of the iPhone 5 that retains the same screen and physical dimensions of its predecessor. It swaps out the A6 chip for the faster A7 and adds some features that its predecessors aren't privy to. But the 5S also arrives alongside the iPhone 5C and iOS 7, and taken together the three new products are the biggest overhaul the iPhone line has gotten in years.
+
+Our review will take a dive into the most important new features of the 5S, comparing them not just to the iPhone 5 (and thus, the 5C) but also to the iPhone 4Ss that many will be looking to upgrade. Is the phone significant enough that you should run out and get it, or should you wait for the inevitable iPhone 6?
+Body, build quality, and screen
+Enlarge / The black iPhone 5 (left) compared to the much lighter "space gray" iPhone 5S (right).
+Andrew CunninghamSpecs at a glance: Apple iPhone 5S
+Screen	1136×640 4-inch (326PPI) touchscreen
+OS	iOS 7
+CPU	1.3GHz Apple A7
+RAM	1GB DDR3
+GPU	"Apple A7 GPU" (likely an Imagination Technologies 6-series variant)
+Storage	16, 32, or 64GB NAND flash
+Networking	802.11a/b/g/n, Bluetooth 4.0
+Ports	Lightning connector, headphone jack
+Size	4.87" × 2.31" × 0.30" (123.8 × 58.6 × 7.6 mm)
+Weight	3.95oz (112 g)
+Battery	1560mAh
+Starting price	$199 with two-year contract, $649 unlocked
+Other perks	Charger, earbuds, Lightning cable
+
+
+The short version: The 5S is a whole lot like an iPhone 5.
+
+The long version: This is always the shortest part of the "S" phone reviews. In terms of weight and physical dimensions, the iPhone 5S is every bit the equal of the iPhone 5. It's 0.30 inches thick and weighs 3.95 ounces, which makes it thinner and lighter than many competing (albeit larger-screened) Android phones and also the iPhone 4S models that at least a few people will be upgrading from. What looked sort of awkward and tall last year (at least when compared to previous iPhones) now looks completely familiar.
+
+There are a handful of ways to tell a 5S from a 5 at a glance. One is the new Home button, which has been changed to accommodate the fingerprint sensor. Another is the oval cutout to the right of the upgraded camera that shows off the dual-LED flash. If you happen to actually get your hands on one, you may notice that it feels substantially faster than the iPhone 5 as well (and the 5 is definitely not slow).
+
+If you're looking for something even more obvious, you can look for the new colors the 5S comes in. The silver-and-white option from last year is still around, but the black model has been replaced with a new, lighter model that Apple calls "space gray." This new color uses aluminum with a lighter anodization than the old black model. While it's difficult to say for sure, it seems like the new color will display scratches and scuffs less readily than the old black model did. And of course there's the gold model, which as we know can prompt people to get a little crazy.
+Enlarge / The power button on top of the 5S.
+Andrew Cunningham
+Enlarge / The round volume buttons and mute switch on the left side.
+Andrew Cunningham
+Enlarge / The headphone jack, speaker grilles, and Lightning port on the bottom of the phone.
+Andrew Cunningham
+Enlarge / The SIM tray on the right side.
+Andrew Cunningham
+Enlarge / The iPhone 5C, iPhone 5S, and fifth-generation iPod touch stacked on top of one another.
+Andrew Cunningham
+
+Having the same body as last year's phone means it shares the same screen as well, which is a blessing and a curse. The good part is that the 1136×640 326 PPI screen still looks pretty good, especially with the lighter design of iOS 7. The bad part is that the screen has been surpassed in size and density by other phones within its price range. Even if you don't care much for truly big phones like the Galaxy S 4 and HTC One, phones like the Moto X have shown that it's possible to squeeze a larger screen into a body that isn't uncomfortable to hold. Rumors that Apple is testing different screen sizes crop up regularly--if you were hoping for a larger iPhone, you're just going to have to cross your fingers and look toward next year. If you enjoy that the iPhone is a premium device that maintains a relatively small screen size, the 5S will keep you happy.
+Enlarge / The 5S looks stunted next to the expansive HTC One (center) and Samsung Galaxy S 4 (right). The size you prefer is exactly that--your preference.
+
+The look-and-feel of the phone remains the same as last year, but the fingerprint scanner, the camera, and the new internals are the real reason to upgrade. We'll spend the remainder of the review on these new aspects, but if you want to read more about how this phone looks and feels (and how it compares to older models like the iPhone 4 or 4S) our original iPhone 5 review will give you the gist of it.
+Scanning fingerprints (and other things) with Touch ID
+Enlarge / The iPhone 5S' fingerprint sensor is embedded in the phone's Home button, which loses the rounded square imprint present on other Home buttons but is otherwise clickable just as it is on any other iOS device.
+Andrew Cunningham
+
+The short version: Touch ID isn't perfect, but it ought to prompt most iPhone users to practice better security.
+
+The long version: Even more than the camera or the A7 chip, the iPhone 5S' fingerprint reader is one of the strongest arguments in favor of the new phone. I unlock my phone dozens of times in a normal day, and anything that makes it easier or quicker to do without substantially reducing my security could easily save me a couple of hours in a given month (though definitions of what constitutes a substantial reduction of security will vary from person to person).
+
+To use the feature, you must first register each individual finger you'd like to use in the phone's settings, found in the same place where you can set and change your passcode in other iOS devices. The software will walk you through the registration process, which asks that you rest your finger on the sensor repeatedly until it has completed a satisfactory scan of your fingerprint. Once scanned, you can delete and rename your different fingers within the software--if you get mixed up, hold your finger down on the sensor and the listing for that finger will flash briefly to indicate that it recognizes you. You can register up to five different fingers with the software. I find that registering both thumbs and the index finger on my dominant hand covers me in most circumstances, but some recommend using a less-common finger like your pinky or ring finger to reduce the chance of someone opening the phone up with a lifted fingerprint.
+Enlarge / You can register up to five fingers with Touch ID. 
+
+These fingerprints are stored in something Apple refers to as a "secure enclave" on board the phone's A7 chip. While Apple doesn't usually like to divulge the specifics of such things, some intelligent speculation says that the "secure enclave" is an implementation of ARM's TrustZone technology. TrustZone as described by ARM calls for separate "Secure" and "Normal" worlds with a barrier between the two that keeps (potentially malicious) user applications from accessing the secure data.
+
+At this moment, Touch ID can only be used to unlock the 5S and authenticate App Store and iTunes Store purchases. Apple has provided no API that allows third-party applications access to this data. This is probably for the best, and we honestly don't see Apple opening this up any time soon--remember, this is the same Apple that has yet to issue an API for the two-year-old Siri. Apple won't even let third-party apps use its speedy JavaScript renderer in the name of security. It's fun to speculate about what developers could do with Touch ID if they were allowed access to it, but don't hold your breath.
+
+What you register with the software doesn't have to be a finger, strictly speaking. I was able to register my pinkie toe and the heel of my right palm (though my tongue wouldn't register no matter how hard I tried). TechCrunch was able to register a cat's paw (my own cat refused to cooperate). Senior Reviews Editor Lee Hutchinson documented his Touch ID adventures in the video below. He was also able to register a toe as well as his own nose but not a tomato. Many parts of the body can apparently be registered, provided they're large enough to touch the detection ring that surrounds the Home button and triggers the sensor--I'll leave you to figure out how big that makes Lee's nose.
+
+Lee also demonstrates the sensor's "sub-epidermal" scanning by registering a banana peel but demonstrating that the phone would only scan the peel and unlock his 5S if his finger was behind it. "More to the point, it would only unlock if the same finger was behind it in roughly the same orientation that it was registered," he noted.
+Senior Review Editor Lee Hutchinson goes nuts on the iPhone 5S' fingerprint scanner.
+
+No matter what I registered, the software remained reassuringly free of false positives. While every now and again one of my fingers would fail to unlock the phone on the first attempt, I would say that 19 out of 20 times the feature works exactly as advertised. So far the only known exploit of the software requires the attacker to create what is essentially an exact replica of your finger, so for now the technology is as secure as any biometric authentication can be. A thief can get into your house with a replica of your house key; it doesn't mean you shouldn't lock your door, but it does mean you should perhaps consider multiple locks. That's something Apple's implementation doesn't let you do just yet.
+
+Before we go celebrating the "death of passwords," it's extremely important to talk about the nuances of how Touch ID works. First, you must have a passcode of some sort set to use Touch ID. If you don't use a passcode, the Touch ID options remain grayed out and inaccessible. This is because using Touch ID does not disable or in any way supersede the standard "slide to unlock" function. Even with Touch ID enabled, you can still slide over and put in your passcode just like always. This means that if you already protect your phone with a passcode, Touch ID doesn't make your phone more secure in and of itself. It offers an easier, alternative way to unlock your device, but it doesn't offer a second layer of security or any sort of two-factor authentication option.
+
+For my part, what Touch ID did do was make me more comfortable with using a complex passcode to protect my phone. I protected my previous iPhones with a standard four-digit passcode and by turning the "wipe phone after 10 unsuccessful unlock attempts" option on (which we recommended if you're using a simple passcode, since otherwise a determined attacker will eventually be able to input the correct code from one of the 10,000 possible combinations). Previously, a complex passcode was too inconvenient for me to bother with, since it made quickly unlocking my phone too difficult. Now, Touch ID makes it so that you only need to input that passcode in a limited number of scenarios--if your phone has just rebooted, if you haven't unlocked your phone in 48 hours, or if you're trying to change your phone's security settings.
+
+The feature really seems to be aimed at the half of iOS 7 users that Apple's Phil Schiller says don't protect their phones with any kind of passcode. The emphasis placed on Touch ID during the phone's first-time setup process and in Apple's promotional materials will hopefully convince some of those people to begin taking any measures at all to protect their devices, and some security is always preferable to no security. For users like me who are already using simple passcodes, Touch ID makes it easier to justify using a complex passcode. Touch ID doesn't increase security all by itself, but it should encourage people to make use of the security options that exist in iOS.
+
+Camera performance
+Enlarge / The iPhone 5S' improved camera and dual-LED flash.
+Andrew Cunningham
+
+The short version: The iPhone 5S' camera is a subtle upgrade over the camera in the 5 and 5C. It generally captures sharper pictures with less noise, and low-light performance is improved, though it can't come near the Lumia 1020's low-light shooting. Burst Mode and Slo-Mo video are entertaining distractions, and the former enables faster HDR shooting.
+
+The long version: Apple is sticking with an 8MP camera for the third year in a row, but megapixels are much like MHz in that by themselves they don't tell you a whole lot about image quality. Among the many small tweaks Apple has made to its camera hardware this year, two are particularly significant: first, the imaging sensor has increased in size by 15 percent, meaning that more light can hit the sensor at once. It's using that increased sensor size to make its pixels larger (1.5µm, up from 1.4µm), meaning that each pixel in the 3264×2448 image created by the 5S will actually contain more image data than the same pixel in a 3264×2448 image made by an iPhone 4S or iPhone 5.
+
+The second upgrade is the camera's larger f/2.2 aperture, up from f/2.4 in the iPhone 5 and 4S. This will narrow your depth of field ever so slightly compared to the older shooters (i.e., less of your photograph may be in focus at once depending on how near or far away your subject is), but it will also increase the amount of light that can hit the sensor. Both the larger pixels and the larger aperture should improve low-light shooting without negatively impacting most other kinds of shots.
+
+What the 5S doesn't have that competing cameras are beginning to implement is true optical image stabilization (OIS), something that is included in the HTC One, LG's G2, and several of the Lumia phones. That feature requires extra hardware that isn't easy to fit into a phone this thin. Apple has attempted to compensate for this in software with its "auto-image stabilization" feature, which takes multiple pictures when you tap the shutter button and combines the sharpest parts of each into a composite photo. Neither OIS nor Apple's software approximation of the feature is going to rid your photo library of blurry action shots, but they each seem to combat the motion of the camera as you tap the shutter button equally well.
+
+Apple's OIS equivalent requires a camera that can take photos very quickly, and that's where Burst Mode comes in. The feature, invoked by holding down on the shutter button, takes 10 photos a second until you take your finger off the button. The software groups all photos taken during a Burst Mode session into one group within the Photos app to prevent it from spamming your camera roll with near-identical shots. You can dive in and pick the ones you'd like to keep to break them out from the group. Apple has an algorithm that chooses what it thinks is the "best" shot out of all of them and offers it to you first, but in my usage I didn't usually find myself agreeing.
+
+One other side-effect of the camera's speedy performance is that taking HDR photos happens near-instantaneously now, an especially noticeable upgrade if you're coming from a 4S. If you take an HDR photo with the 4S, there's an approximately 2.42 second lag before the Camera app will let you take another one. Compare that to about 1.36 seconds in the iPhone 5 and 5C and 0.87 seconds in the iPhone 5S. It's not quite the real-time HDR promised by chips like Nvidia's Tegra 4, but for most people it will be close enough that it won't make a difference.
+Senior Reviews Editor Lee Hutchinson gets slow with Slo-mo video capture mode. Note that while Lee has replaced the videos' native sound with the smooth sounds of royalty-free music, Slo-mo videos right off the phone also include slow-motion sound from the nightmare dimension.
+
+Finally, there's the new camera's video shooting. Like the iPhone 5 and 5C, the iPhone 5S can shoot stabilized 1080p video at 30 FPS, though Apple claims that the video stabilization in the 5S is "improved" compared to the same feature in the iPhone 5. The more entertaining new option is the Slo-mo mode, which can capture snippets of 720p at 120 FPS to create a slow-moving but smooth video. You can switch dynamically between regular and Slo-mo modes while shooting, and the Camera app will stitch them together for you seamlessly. Senior Reviews Editor Lee Hutchinson demonstrates the feature in the eminently soothing video above.
+
+Now let's examine photo quality. I took six phones for a spin--the iPhone 4S, iPhone 5C, iPhone 5S, Lumia 1020, HTC One Google Play edition, and Samsung Galaxy S 4 Google Play edition. With each phone, I took a series of photos outside on a sunny day, in a dark Brooklyn bar, in a room with overhead lighting, and in that same room bathed only in the glow of a computer monitor.
+Outdoor shooting 
+
+
+The iPhone 4S outdoors. Not a bad shot, but it's perhaps a little dark and a little washed-out looking compared to the newer iPhones.
+ 
+
+
+The iPhone 4S. In good light, the three iPhones often take shots that look very similar, differing only slightly in sharpness and color accuracy.
+ 
+
+
+The iPhone 4S.
+
+Most phone cameras can produce a serviceable image given lots of light, and in the outdoor photo tests most of the cameras do fairly well. The 5S and 5C both produce slightly sharper and more colorful images than the 4S, but shots from the three cameras (which all use 8MP sensors and five-element lens systems) share many of the same qualities. Both the HTC One and the Lumia 1020 also deliver nice, colorful shots, but both are being a little aggressive with their noise reduction. These shots look pretty good at print or Facebook resolutions, but they're a little soft and blurry when zoomed in. The Galaxy S 4 produces nice images, but to my eye the sky is just a shade or two too bright. Overall, it's a minor quibble.
+Indoor shooting 
+
+
+The iPhone 4S does a decent job with detail (look at the fur), but the shot is a little too warm and renders this normally gray cat pretty brown.
+ 
+
+
+My pile of desk junk now includes an AirPort Extreme, but I've tried to maintain balance by setting an Android on top of it. This is the shot the iPhone 4S produces--all of the iPhones do a similar job here, but note that minor details like the number 13 on the Android gets sharper as the cameras get upgraded.
+
+Moving indoors, the story is the same for the three iPhones: they take superficially similar images, but the 5S edges out both the 5C and 4S in sharpness, noise, and white balance. The 1020 takes sharp, clear pictures that are frustratingly greenish, and even playing with the white balance settings won't yield anything that looks true to life. The S4 and the One both take good shots inside that I'd say are roughly equivalent to the 5C in sharpness and noise, though again the HTC One's aggressive noise removal results in some softness when zoomed in all the way (notice the cat's fur especially).
+Low-light shooting 
+
+
+The iPhone 4S in low light. Things are very dark and indistinct.
+ 
+
+
+The iPhone 4S. This is the same shot of desk junk as before, just with the lights turned out.
+
+In the low-light tests, the 5S shows the most improvement over the 4S and 5C. What's a black, noisy mess on the 4S and a grainy collection of blurs on the 5C is at least more true to life on the 5S. Low-light scenarios are where the Lumia cameras excel, though, and especially in the bar shot the 1020 captures a much more visible, grain-free image than the other cameras. The 5S still produces a sharper image than the HTC One, and the less said about how the Galaxy S 4 handled the dark rooms the better.
+Dual-LED flash testing
+
+The 5S' dual-LED camera is one of its more unique features, and one of the more welcome given the generally terrible state of on-camera flashes. The camera combines one traditional blue LED with one warmer amber LED that work together to match the ambient light of a given scene. We'll compare the 5S against the single-LED flash in the 5C (which will stand in for most single-LED shooters in smartphones today) and the Xenon flash in the 1020. 
+
+
+Andrew Cunningham 
+
+The iPhone 5S with flash disabled, taking a picture of a backlit subject. The thing on the floor in the background is not random detritus, just a nearly destroyed cat toy.
+
+The dual-LED flash in the 5S does produce a light that's a better match for the warm indoor light in the background of the shot. What isn't changed is how harsh the on-camera flash can be--there's still a glare on the Android even if the glare happens to match the rest of the room pretty well. The subject in the foreground ends up being emphasized over the background simply because more light is bouncing off it and returning to the camera's sensor. The Xenon flash on the 1020 also matches color better than the 5C's traditional LED, but the colors all tend to be oversaturated and the result is not especially natural. On the plus side, the background and the foreground are more evenly lit in this shot.
+
+Internals and performance: Apple's A7 and the transition to 64-bit
+Enlarge
+Andrew Cunningham
+
+The short version: The move to 64-bit (and the ARMv8 instruction set support the move implies) can double performance compared to the A6 depending on the app, but only for developers who recompile their apps with 64-bit support. Existing 32-bit apps running on the A7 can expect performance increases of around 50 percent over the A6--not too bad for a dual-core CPU running at about the same clock speed.
+
+Benchmarks show the A7's GPU meeting Apple's claims of doubled performance, but the dual-band 802.11n support and 100Mbps LTE support are the same as last year. A 1560 mAh battery slightly larger than the one in the iPhone 5 is included, but most of that extra capacity is spent on the faster, more power-hungry chip. Finally, a separate M7 coprocessor will help the phone process sensor input without waking up the main SoC and consuming extra power.
+
+The long version: Here's something I wrote toward the end of the performance section of our iPhone 5 review last year:
+
+The importance of Apple's decision to go its own way with CPU designs shouldn't be understated--rather than being beholden to ARM's schedule, Apple is now going to control its own fate, possibly beating its competitors to market with new designs and creating CPUs designed specifically to complement its software.
+
+That's exactly what Apple has done with the A7. Apple's largest marketing bullet point here--that it has the world's first 64-bit smartphone--is true, but it's not as though Apple has done anything special to get there. It has implemented the natively-64-bit ARMv8 architecture like most performance-focused ARM SoC vendors were eventually going to do, it just got there months before anyone was expecting it. On the software side, Apple has taken the opportunity to recompile every one of iOS 7's built-in apps to be 64-bit compatible on day one, earning them a substantial performance boost (which we'll examine in a minute).
+
+Apple's decision to design its own ARM chips has enabled it to take what otherwise could have been a routine hardware upgrade (the move from the 32-bit ARMv7 and the 64-bit ARMv8) and use it as a marketing tentpole. The company's software integration is making the 64-bit transition relatively smooth and completely invisible to the user. The Android ecosystem's move to 64-bit will inevitably be more protracted and piecemeal by comparison, with various SoC vendors implementing 64-bit support one at a time before operating system support and then, later, application support follow later on. It's during transitions like these that Apple's integration is at its most useful.
+
+And what of the real-world benefits of 64-bit in a mobile device? Too many conversations on this topic begin and end with the 4GB memory limit that mobile devices aren't really in danger of running up against. This observation is true especially in iPhones, which tend to use about half the RAM of their Android counterparts at any given point in time. Ultimately for iPhones the benefits come not from running 64-bit code in and of itself, but from switch to the more efficient next-generation ARMv8 architecture that supersedes the older ARMv7 architecture. To get a bit more insight on the A7's performance, we spoke with John Poole from Primate Labs, which makes the cross-platform Geekbench tool that we use for CPU benchmarks in our reviews. According to Apple, Geekbench 3.1 was the first 64-bit third-party application to hit the App Store.
+
+"You'll definitely see a boost just from running 32-bit applications on the new 5S, but then with the move to 64-bit, it's not just a plain move to 64-bit," Poole explained. "[ARM has] cleaned up the architecture, they've removed a lot of the cruft that's built up over the years. They've also gone ahead and updated with things like more registers and better SIMD instructions, all while keeping the instruction encoding size exactly the same. There's roughly a comparable number of instructions."
+
+Poole explained that most (but not all) integer code should see a small performance increase in the neighborhood of 10 to 35 percent because of the 64-bit move, but that floating point code especially would benefit from the transition. "With the extra floating point registers and the extra SIMD instructions, especially if you've got numerically intensive code that can vectorize well... you're going to see a great increase in performance," he said. "I think in some cases it went up 200 percent."
+
+In essence, it's not necessarily the move to 64-bit itself that is beneficial to performance, but the move to a cleaner and more efficient underlying architecture. Apps compiled to support 64-bit on iOS--as all of Apple's built-in applications already are--can take full advantage of these optimizations and will see a larger performance benefit because of them. On the RAM question, while iPhones might not have enough memory to really necessitate 64-bit in the here-and-now, there's also a real benefit to future-proofing the platform this early aside from the performance benefits.
+
+"[Apple] could have very easily just gone ARMv8 32-bit and they would've avoided all of these sort of pitfalls that come with the transition between 32-bit to 64-bit," Poole said. "I think this was really smart on their part because, I mean, memory is only going to increase in phones. This is a great way to sort of future-proof it and avoid yet another architecture change down the road. Sort of like what happened with the Intel Macs--there was that one generation [in 2006 and early 2007] of Intel Macs that were 32-bit, and that meant you had to drag support around for them... I think people are still shipping 32-bit support in some cases."
+
+Apple tends to sell iPhones for around three years after their introduction, and it's not difficult to imagine iPhones or iPads in that not-so-distant future coming with enough RAM that 64-bit support would be required. By baking it into the A7, Apple is essentially guaranteeing that its app developers will be able to start throwing out their 32-bit code in three or four years as current 32-bit hardware ages and drops off Apple's supported hardware list. It's not unlike the transition that happened in OS X in the late 2000s and into the early part of this decade.
+
+The 64-bit future looks good, but in the present, most apps are going to be 32-bit. Primate Labs sent us a 32-bit version of Geekbench to test along with the 64-bit version currently in the App Store, and examining the results from the different versions tells us quite a bit about what we can expect from the A7's CPU performance when running apps compiled for either architecture.
+
+Without being touched by their developers, 32-bit applications currently in the App Store should be able to expect a performance increase of around 50 percent going from the A6 to the A7. This is a more-than-respectable generational improvement, and it beats the (incorrect) leaked "31 percent" figures that were floating around a month or so ago. Things really get interesting when you look at 64-bit code running on the A7, though.
+
+This is where you find that "up to" 100 percent performance increase over the A6 that Apple promised. Integer scores are roughly doubled, memory bandwidth is slightly less than doubled, and floating point performance is slightly more than doubled. The downside is that developers won't see these performance gains automatically, as they (mostly) have in past years--they'll have to recompile their applications to be 64-bit compatible.
+
+As an example of the performance jumps that are possible when an application is recompiled for 64-bit, let's take a look at our standard browser benchmarks. Mobile Safari is a 64-bit app on the iPhone 5S, and as such is capable of taking full advantage of the A7. 
+
+
+64-bit Safari running on the iPhone 5S is much, much faster than anything else.
+
+In each case, the 64-bit version of Safari on the A7 outruns the 32-bit version on the A6 by around 100 percent, usually by a little more. These scores also outdo Android SoCs like the mighty Snapdragon 800 with ease, though these browser scores should be taken with a small grain of salt in this case. Apple's ability to fine-tune its software for its specific hardware has almost always allowed its phones to post the JavaScript scores of more powerful Android phones, and heavily threaded tasks in real apps may still favor more cores to faster ones.
+The GPU
+
+All of this CPU talk almost overshadows the GPU, which like the CPU has gotten a new architecture and supposedly doubled performance over the A6. All A5 and A6 chips (and the variants thereof) use some configuration of Imagination Technologies' Series 5 XT GPUs. When it wanted more performance, Apple would either add more GPU cores, increase clock speeds, widen the memory interface, or sometimes do all three at once.
+
+The A7 makes the jump to what is almost certainly one of Imagination's Series 6 GPUs, codenamed "Rogue." Apple's developer site lists it as merely an "Apple A7 GPU," a hint that perhaps Apple wants to quietly switch to its own GPU architecture later on (it's been a while since we've heard rumors about Apple's supposed GPU team, but seeing what Apple is doing in CPUs makes me think that the company would like to custom-build its own GPUs as well).  For now, OpenGL ES 3.0 support, support for an 8x anti-aliasing mode, and a few other references dug up by AnandTech in the developer documentation point fingers at a next-generation Imagination GPU.
+
+Whatever the underlying architecture, the takeaway is that the GPU appears more than capable of doubling the performance of the A6's GPU, especially in GFXBench's demanding T-Rex HD benchmark. Note that GFXBench hasn't yet been recompiled to run in 64-bit mode, so it's possible that if any of these benchmarks are in any way CPU-limited, we may see further gains when the benchmark is updated. 
+
+
+Pay special attention to the Offscreen versions of the test, which runs the benchmark at 1080p on all phones without interference from framerate-limiting Vsync. The A7 is slightly better than the Adreno 330 GPU in the Snapdragon 800 (one of the best, if not the best, GPUs in an Android phone right now), and it handily outperforms the older Snapdragon 600 and all previous iPhone generations.
+What's next?
+
+Given how surprising Apple's 64-bit announcement was this year, it's difficult to say just what the company might pull out of its hat in a potential A8 next year. I'd say that an Apple-designed GPU is a possibility, though I think it's also possible that Apple could repeat what it did in the transition between the A5 and the A6--take the same basic Imagination-built GPU architecture and beef it up as much as is necessary to hit its desired performance target.
+
+The next iPhone will probably make an effort to upgrade its wireless interfaces, too. The 5S includes the same dual-band 802.11n and Qualcomm MDM9615M (capable of up to 100Mbps LTE speeds) as the iPhone 5, and while those are still reasonably fast interfaces, some Android phones are already moving on to 802.11ac and 150Mbps LTE Advanced speeds. Neither of those standards are in wide use yet, but by next year we'd like to see them in most high-end phones in the name of future-proofing.
+
+In the more immediate future, let's talk about iPads, since they're allegedly right around the corner. First, it's pretty likely that Apple will develop a beefier "A7X" to pair with the next 10-inch iPad. If it follows in the footsteps of the A5X and A6X, it will pair the same dual-core CPU that the A7 uses with a more powerful version of the same GPU and a wider memory interface to help drive that high-resolution display.
+
+And what of the iPad mini? Specifically, what of a Retina iPad mini, which I believe is more likely than ever given the way iOS 7 looks on the current mini's display? Let's assume that screen technology has advanced sufficiently that Apple can include a high-density display in the mini without making it into a brick or killing its battery life (the 2013 Nexus 7 suggests both are possible). What about packing in an SoC that is powerful enough to push all of those pixels? Take a look at the A7's GPU performance compared to the A6X's (remember, the Offscreen tests render the same scene at 1080p, putting the two GPUs on even footing here).
+
+Now, the A7 still only has half the memory bandwidth that the A6X does (it uses a 64-bit interface, compared to 128-bit), so it may not be a perfect fit for a Retina iPad mini. It may also make things just a tiny bit more complicated for developers, since it adds another device to test on--right now the iPad mini and iPad 2 are substantially identical, but a mini with an A7 instead of an existing SoC like a die-shrunk A6X or some such thing in it would give developers something else they'd need to target. It remains nevertheless an intriguing possibility. Whatever Apple does, we hope that the end of non-Retina iOS devices is close at hand.
+Battery life
+
+Since before our iOS 7 review ran, I've been running battery tests on an iPhone 5 running iOS 7 over and over again to try to get a handle on its apparent battery life issues. For those of you who didn't make it to the end, every single iOS 6 device we tested (including an iPad 2 tested independently by Associate Writer Casey Johnston for another article) posted a slight loss in battery life in iOS 7 when performing our Wi-Fi browsing battery life test. The iPhone 5 lost over three hours of use in iOS 7 compared to the exact same phone running iOS 6--seven hours and 44 minutes compared to 11 hours and one minute. Our test loops a series of pages continuously in Safari every 15 seconds until the phone dies. It's not exactly a common real-world use case, but it's a simple and repeatable test that yields reasonably consistent results.
+
+After reading this ExtremeTech writeup of our findings and several comments and reader e-mails asking whether the drop could be attributed to this-or-that specific iOS 7 feature, I began experimenting with a few different things. My first item of business was to find and test an AT&T model iPhone 5, which ran the test for eight hours exactly--slightly improved, but in the same ballpark as the Verizon phone that I originally tested. I disabled the Background App Refresh feature and ran the test on the Verizon phone again, which yielded no significant improvements. I ran the test with the phone's SIM completely removed and cellular data disabled, again with no significant change to the results.
+
+By changing the series of pages our test loads, I was able to get the Verizon iPhone 5 to post an improved result of eight hours and 34 minutes, but that's still short of our 11-hour figure in iOS 6, the official Apple-provided estimate of 10 hours, and AnandTech's 10.27 hours in its own iOS 6 Wi-Fi browsing test. The upshot of all of this is that, like many mobile battery life issues, the problems the iPhone 5 seems to be having are hard to nail down and workload-dependent. For those of you who aren't having issues, we hope it stays that way. For those of you who are, we'll continue to pay attention to this as Apple begins to issue updates for iOS 7.
+
+As for the iPhone 5S itself, our AT&T model ran the modified Wi-Fi browsing test for eight hours and 27 minutes, suggesting that its more powerful SoC and larger 1560 mAh battery basically cancel each other out. This is still short of Apple's advertised 10 hours, but it compares favorably the Google Play editions of the Galaxy S 4 and HTC One (five hours and 57 minutes and five hours and 37 minutes, respectively). LG's G2 outdoes it with 11 hours and 30 minutes of battery life, however.
+The best iPhone there is
+Enlarge / This year's iPhone lineup: the iPhone 4S, iPhone 5C, and iPhone 5S.
+Andrew Cunningham
+
+Like all of Apple's S series phones, the 5S presents a nice collection of upgrades over last year's iPhone 5, but it's not really for people who bought an iPhone last year. Most people keep their smartphones for at least a couple of years before upgrading, and even if the 5S sometimes feels a little incremental compared to the 5 it's still a huge upgrade over the 4S (and I was pretty happy with how my 4S was handling iOS 7).
+
+The fingerprint sensor is a genuinely useful addition, even if it isn't completely fool-proof. We still hope that Apple adds some sort of two-factor authentication option for the feature in a later update. In the meantime, the feature plus new iOS 7 features--the default prompting to enable a passcode, and the Find My iPhone addition that won't allow malicious users to wipe a phone without the Apple ID it's attached to--should improve the general state of basic user security in iOS.
+
+Equally momentous is the A7 SoC, which continues Apple's streak of doubling its flagship phone's performance once a year. We can't help but think the company has to hit a wall there some time, but at least for this year Apple has caught its competitors flat-footed and gotten its own mobile 64-bit transition kickstarted. This is all while giving users a performance increase that they'll notice even if they don't know or care how many bits their phone has.
+
+Long story short, if you currently own an iPhone that is not an iPhone 5, this is the one you should get, if only because the 5S will guarantee you the best software experience for the longest amount of time. If you do own an iPhone 5, stick with it until next year and you'll probably end up with all the 5S' improvements and more. The fact of the matter is that most people already know whether they want an iPhone at this point. It's a thoroughly known quantity. If you know you want an iPhone, this is the best iPhone that there is--at least until the next one comes out.
+The good
+The iPhone 5 design is still sturdy and attractive, and "space gray" should hold up better to scuffs than last year's black model
+Excellent performance
+Good camera with improved low-light performance, though in low light especially some Lumia phones can best it
+Lovely screen, even if some others are larger and denser
+Decent battery life, which we hope is improved by future iOS updates
+Fingerprint sensor is a useful addition that should encourage people to practice some security rather than none
+The bad
+The fingerprint sensor is imperfect as a standalone authentication tool, and Apple doesn't (yet?) support two-factor authentication
+Dual-band 802.11n and 100Mbps LTE aren't bad at all in the here-and-now, but they might be feeling a little dated by the time your two-year contract is up
+The ugly
+Developers will have to recompile their applications to take full advantage of the A7
