@@ -1,3 +1,0 @@
-syntax: glob
-.hgsub
-test_files/small_test.txt
