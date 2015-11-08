@@ -107,7 +107,7 @@ class NNSearch(ttk.Frame):
                 self.Text.insert(tk.INSERT, self.Main.clipboard_get())
             return 'break'
         except tk.TclError:
-            tkMessageBox.showwarning('nn-search 2.0', 'Nothing to paste.')
+            tkMessageBox.showinfo('nn-search 2.0', 'Nothing to paste.')
             return
 
     def ctrl_z(self, callback=False):
@@ -123,7 +123,7 @@ class NNSearch(ttk.Frame):
                 self.Text.edit_undo()
             return 'break'
         except (tk.TclError, AttributeError):
-            tkMessageBox.showwarning('nn-search 2.0', 'Nothing to undo.')
+            tkMessageBox.showinfo('nn-search 2.0', 'Nothing to undo.')
             return
 
     def ctrl_u(self, callback=False):
@@ -139,7 +139,7 @@ class NNSearch(ttk.Frame):
                 self.Text.edit_redo()
             return 'break'
         except (tk.TclError, AttributeError):
-            tkMessageBox.showwarning('nn-search 2.0', 'Nothing to redo.')
+            tkMessageBox.showinfo('nn-search 2.0', 'Nothing to redo.')
             return
 
     def build_gui(self):
@@ -236,6 +236,28 @@ class NNSearch(ttk.Frame):
         self.Text.bind('<Control-a>', self.ctrl_a)
         self.Text.bind('<Control-z>', self.ctrl_z)
         self.Text.bind('<Control-u>', self.ctrl_u)
+        # make the right frame
+        self.RightFrm = ttk.Frame(self.Main, borderwidth=2, relief='groove')
+        resizable(self.RightFrm, 1, 1, 2, 2, 'nsew')
+        # make inner frame that will contain "Load", "Save" buttons.
+        self.InnerRightFrm0 = ttk.Frame(self.RightFrm, borderwidth=2,
+                                        relief='groove')
+        resizable(self.InnerRightFrm0, 0, 0, 1, 1, 'new')
+        # make "Load", "Save" buttons for right frame
+        self.Load = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
+                               text='Load', command=self.press_return)
+        self.Load.grid(row=0, column=0, sticky='n', pady=1, padx=1)
+        self.Load = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
+                               text='Save', command=self.press_return)
+        self.Load.grid(row=1, column=0, sticky='n', pady=1, padx=1)
+        # make inner frame that will contain view types
+        self.InnerRightFrm1 = ttk.Frame(self.RightFrm, borderwidth=2,
+                                        relief='groove')
+        resizable(self.InnerRightFrm1, 1, 0, 1, 1, 'new')
+        # make inner frame that will contain various stats
+        self.InnerRightFrm2 = ttk.Frame(self.RightFrm, borderwidth=2,
+                                        relief='groove')
+        resizable(self.InnerRightFrm2, 2, 0, 1, 1, 'new')
 
 
 def main():
