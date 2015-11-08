@@ -13,6 +13,7 @@ import sys
 import ttk
 import Tkinter as tk
 import tkMessageBox
+from PIL import ImageTk as itk
 from textblob import Blobber
 from textblob_aptagger import PerceptronTagger
 from tkFileDialog import askopenfilename
@@ -29,6 +30,7 @@ class NNSearch(ttk.Frame):
         self.rowconfigure(1, weight=1)
         self.rowconfigure(2, weight=1)
         self.rowconfigure(3, weight=1)
+        master.minsize(height=300, width=400)
         self.build_gui()
 
     def press_return(self, *args):
@@ -159,17 +161,20 @@ class NNSearch(ttk.Frame):
                     rowspan (int): how many rows are allowed to span.
                     stick (str): element alignment within the cell.
             """
-            elem.grid(row=row, column=col, columnspan=colspan, rowspan=rowspan,
+            elem.grid(row=row, column=col, rowspan=rowspan, columnspan=colspan,
                       sticky=stick)
-            elem.grid_columnconfigure(0, weight=1)
-            elem.grid_rowconfigure(0, weight=1)
+            elem.grid_columnconfigure(col, weight=1)
+            elem.grid_rowconfigure(row, weight=1)
 
         options = dict(sticky='nsew', pady=1, padx=1)
         # making main frame which shall contain all widgets and subframes
         self.Main = ttk.Frame(self, borderwidth='2', relief='groove')
-        self.Main.grid(columnspan=3, rowspan=4, **options)
+        self.Main.grid(columnspan=2, rowspan=4, **options)
         self.Main.grid_columnconfigure(0, weight=1)
-        self.Main.grid_columnconfigure(1, weight=1)
+        self.Main.grid_columnconfigure(1, weight=0)  # do not get hidden
+        self.Main.grid_rowconfigure(0, weight=0)
+        self.Main.grid_rowconfigure(1, weight=0)
+        self.Main.grid_rowconfigure(2, weight=1)
         # make a toolbar menu
         # make "File" menu
         self.MenuFrm = ttk.Frame(self.Main, borderwidth='1', relief='sunken')
@@ -178,36 +183,58 @@ class NNSearch(ttk.Frame):
         self.MenuButton0 = ttk.Menubutton(self.MenuFrm, text='File',
                                           direction='below',
                                           menu=self.Menu0)
-        self.Menu0.add_command(label="Load")
-        self.Menu0.add_command(label="Save")
-        self.Menu0.add_command(label="Save as")
-        self.Menu0.add_command(label="Exit", command=self.quit)
+        self.load = itk.PhotoImage(file=os.path.join('icons', 'add.png'))
+        self.Menu0.add_command(label="Load", image=self.load, compound='left')
+        self.save = itk.PhotoImage(file=os.path.join('icons', 'disk.png'))
+        self.Menu0.add_command(label="Save", image=self.save, compound='left')
+        self.save2 = itk.PhotoImage(file=os.path.join('icons', 'disk2.png'))
+        self.Menu0.add_command(label="Save as", image=self.save2,
+                               compound='left')
+        self.exit = itk.PhotoImage(file=os.path.join('icons', 'exit.png'))
+        self.Menu0.add_command(label="Exit", image=self.exit, compound='left',
+                               command=self.quit)
         resizable(self.MenuButton0, 0, 0, 1, 1, 'n')
         # make "Edit" menu
         self.Menu1 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton1 = ttk.Menubutton(self.MenuFrm, text='Edit',
                                           direction='below',
                                           menu=self.Menu1)
-        self.Menu1.add_command(label="Copy (Ctrl-c)", command=self.ctrl_c)
-        self.Menu1.add_command(label="Cut (Ctrl-x)", command=self.ctrl_x)
-        self.Menu1.add_command(label="Paste (Ctrl-p)", command=self.ctrl_v)
-        self.Menu1.add_command(label="Undo (Ctrl-z)", command=self.ctrl_z)
-        self.Menu1.add_command(label="Redo (Ctrl-u)", command=self.ctrl_u)
+        self.copy = itk.PhotoImage(file=os.path.join('icons', 'copy.png'))
+        self.Menu1.add_command(label="Copy (Ctrl-c)", image=self.copy,
+                               compound='left', command=self.ctrl_c)
+        self.cut = itk.PhotoImage(file=os.path.join('icons', 'cut.png'))
+        self.Menu1.add_command(label="Cut (Ctrl-x)", image=self.cut,
+                               compound='left', command=self.ctrl_x)
+        self.paste = itk.PhotoImage(file=os.path.join('icons', 'paste.png'))
+        self.Menu1.add_command(label="Paste (Ctrl-p)", image=self.paste,
+                               compound='left', command=self.ctrl_v)
+        self.undo = itk.PhotoImage(file=os.path.join('icons', 'undo.png'))
+        self.Menu1.add_command(label="Undo (Ctrl-z)", image=self.undo,
+                               compound='left', command=self.ctrl_z)
+        self.redo = itk.PhotoImage(file=os.path.join('icons', 'redo.png'))
+        self.Menu1.add_command(label="Redo (Ctrl-u)", image=self.redo,
+                               compound='left', command=self.ctrl_u)
         resizable(self.MenuButton1, 0, 1, 1, 1, 'n')
         # make "Tools" menu
         self.Menu2 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton2 = ttk.Menubutton(self.MenuFrm, text='Tools',
                                           direction='below',
                                           menu=self.Menu2)
-        self.Menu2.add_command(label="POS-tagger", command=None)
+        self.tagger = itk.PhotoImage(file=os.path.join('icons', 'wand.png'))
+        self.Menu2.add_command(label="POS-tagger", image=self.tagger,
+                               compound='left', command=None)
         resizable(self.MenuButton2, 0, 2, 1, 1, 'n')
         # make "Help" menu
         self.Menu3 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton3 = ttk.Menubutton(self.MenuFrm, text='Help',
                                           direction='below',
                                           menu=self.Menu3)
-        self.Menu3.add_command(label="Help", command=None)
-        self.Menu3.add_command(label="About", command=None)
+        self.help = itk.PhotoImage(file=os.path.join('icons', 'help.png'))
+        self.Menu3.add_command(label="Help", image=self.help, compound='left',
+                               command=None)
+        self.about = itk.PhotoImage(file=os.path.join('icons', 'info.png'))
+        self.Menu3.add_command(label="About", image=self.about,
+                               compound='left', command=None)
         resizable(self.MenuButton3, 0, 3, 1, 1, 'n')
         # make a frame for query input widget
         self.EntryFrm = ttk.Frame(self.Main, borderwidth='2', relief='groove')
@@ -221,8 +248,10 @@ class NNSearch(ttk.Frame):
         self.Entry.bind('<Return>', self.press_return, '+')
         self.Entry.focus()  # <Return> enable when entry widget in focus
         # make search button
+        self.search = itk.PhotoImage(file=os.path.join('icons', 'search.png'))
         self.Search = ttk.Button(self.EntryFrm, padding=(-5, 0),
-                                 text='Search', command=self.press_return)
+                                 text='Search', image=self.search,
+                                 compound='left', command=self.press_return)
         self.Search.grid(row=1, column=1, **options)
         # make text frame
         self.TextFrm = ttk.Frame(self.Main, borderwidth=2, relief='groove')
@@ -242,22 +271,62 @@ class NNSearch(ttk.Frame):
         # make inner frame that will contain "Load", "Save" buttons.
         self.InnerRightFrm0 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm0, 0, 0, 1, 1, 'new')
+        resizable(self.InnerRightFrm0, 0, 0, 2, 1, 'new')
         # make "Load", "Save" buttons for right frame
         self.Load = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
-                               text='Load', command=self.press_return)
-        self.Load.grid(row=0, column=0, sticky='n', pady=1, padx=1)
-        self.Load = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
-                               text='Save', command=self.press_return)
-        self.Load.grid(row=1, column=0, sticky='n', pady=1, padx=1)
+                               text='Load', image=self.load,
+                               compound='left', command=self.press_return)
+        self.Load.grid(row=0, column=0, sticky='nwe', pady=1, padx=1)
+        self.Save = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
+                               text='Save', image=self.save,
+                               compound='left', command=self.press_return)
+        self.Save.grid(row=1, column=0, sticky='nwe', pady=1, padx=1)
         # make inner frame that will contain view types
         self.InnerRightFrm1 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm1, 1, 0, 1, 1, 'new')
+        resizable(self.InnerRightFrm1, 1, 0, 2, 1, 'nwe')
+        # make view widgets
+        self.view_text = ttk.Label(self.InnerRightFrm1, font='TkDefaultFont 9',
+                                   text='View mode')
+        self.view_text.grid(row=0)
+        self.view_opts = tk.IntVar()
+        self.view1 = itk.PhotoImage(file=os.path.join('icons', 'view1.png'))
+        self.view1Radio = ttk.Radiobutton(self.InnerRightFrm1,
+                                          image=self.view1,
+                                          variable=self.view_opts,
+                                          value=1)
+        self.view1Radio.grid(row=1)
+        self.view1Radio.invoke()  # make active by default
+        self.view2 = itk.PhotoImage(file=os.path.join('icons', 'view2.png'))
+        self.view2Radio = ttk.Radiobutton(self.InnerRightFrm1,
+                                          image=self.view2,
+                                          variable=self.view_opts,
+                                          value=2)
+        self.view2Radio.grid(row=2)
+        self.view3 = itk.PhotoImage(file=os.path.join('icons', 'view3.png'))
+        self.view3Radio = ttk.Radiobutton(self.InnerRightFrm1,
+                                          image=self.view3,
+                                          variable=self.view_opts,
+                                          value=3)
+        self.view3Radio.grid(row=3)
+        # make show POS-rags button
+        self.show_tags = tk.IntVar()
+        self.showTags = ttk.Checkbutton(self.InnerRightFrm1, text='POS-tags',
+                                        padding=(0, 5), onvalue=1, offvalue=0,
+                                        variable=self.show_tags)
+        self.showTags.grid(row=4)
         # make inner frame that will contain various stats
         self.InnerRightFrm2 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm2, 2, 0, 1, 1, 'new')
+        resizable(self.InnerRightFrm2, 2, 0, 2, 1, 'new')
+        # make stats labels
+        self.stats = ttk.Label(self.InnerRightFrm2, text='Statistics',
+                               font='TkDefaultFont 10')
+        self.stats.grid(row=0, column=0)
+        self.stats0 = ttk.Label(self.InnerRightFrm2, text='NOT IMPLEMENTED')
+        self.stats0.grid(row=1, column=0)
+        self.stats1 = ttk.Label(self.InnerRightFrm2, text='NOT IMPLEMENTED')
+        self.stats1.grid(row=2, column=0)
 
 
 def main():
@@ -266,7 +335,7 @@ def main():
     # print tagged_sent.tags
     root = tk.Tk()
     root.title('nn-search 2.0')
-    root.geometry("1000x630")  # gui size at startup
+    #root.geometry("1000x630")  # gui size at startup
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.resizable(True, True)
