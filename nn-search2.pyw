@@ -177,7 +177,7 @@ class NNSearch(ttk.Frame):
         self.Main.grid_rowconfigure(2, weight=1)
         # make a toolbar menu
         # make "File" menu
-        self.MenuFrm = ttk.Frame(self.Main, borderwidth='1', relief='sunken')
+        self.MenuFrm = ttk.Frame(self.Main, borderwidth='1', relief='flat')
         resizable(self.MenuFrm, 0, 0, 2, 1, 'w')
         self.Menu0 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton0 = ttk.Menubutton(self.MenuFrm, text='File',
@@ -206,7 +206,7 @@ class NNSearch(ttk.Frame):
         self.Menu1.add_command(label="Cut (Ctrl-x)", image=self.cut,
                                compound='left', command=self.ctrl_x)
         self.paste = itk.PhotoImage(file=os.path.join('icons', 'paste.png'))
-        self.Menu1.add_command(label="Paste (Ctrl-p)", image=self.paste,
+        self.Menu1.add_command(label="Paste (Ctrl-v)", image=self.paste,
                                compound='left', command=self.ctrl_v)
         self.undo = itk.PhotoImage(file=os.path.join('icons', 'undo.png'))
         self.Menu1.add_command(label="Undo (Ctrl-z)", image=self.undo,
@@ -335,14 +335,14 @@ def main():
     # print tagged_sent.tags
     root = tk.Tk()
     root.title('nn-search 2.0')
-    #root.geometry("1000x630")  # gui size at startup
+    # root.geometry("1000x630")  # gui size at startup
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.resizable(True, True)
     root.update()
-    ttk_theme = ttk.Style()
+    # ttk_theme = ttk.Style()
     # you can use ttk themes here ('clam', 'alt', 'classic', 'default')
-    ttk_theme.theme_use('default')
+    # ttk_theme.theme_use('default')
     gui = NNSearch(root)
     gui.mainloop()
 
