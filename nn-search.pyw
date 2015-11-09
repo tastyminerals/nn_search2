@@ -12,6 +12,7 @@ import re
 import sys
 import ttk
 import Tkinter as tk
+import tkFileDialog as tkf
 import tkMessageBox
 from PIL import ImageTk as itk
 from textblob import Blobber
@@ -144,6 +145,22 @@ class NNSearch(ttk.Frame):
             tkMessageBox.showinfo('nn-search 2.0', 'Nothing to redo.')
             return
 
+    def load_file(self):
+        """
+        Load text file.
+        # Limit text file size.
+        """
+        fname = tkf.askopenfilename(filetypes=(("txt file", "*.txt"),
+                                    ("All files", "*.*")))
+
+        try:
+            with open(fname, 'r') as f:
+                fdata = f.read()
+        except Exception as err:
+            print(err)
+            sys.exit(1)
+        print fdata
+
     def build_gui(self):
         """
         Create user interface including all necessary components like Frames,
@@ -184,7 +201,8 @@ class NNSearch(ttk.Frame):
                                           direction='below',
                                           menu=self.Menu0)
         self.load = itk.PhotoImage(file=os.path.join('icons', 'add.png'))
-        self.Menu0.add_command(label="Load", image=self.load, compound='left')
+        self.Menu0.add_command(label="Load", image=self.load, compound='left',
+                               command=self.load_file)
         self.save = itk.PhotoImage(file=os.path.join('icons', 'disk.png'))
         self.Menu0.add_command(label="Save", image=self.save, compound='left')
         self.save2 = itk.PhotoImage(file=os.path.join('icons', 'disk2.png'))
@@ -275,7 +293,7 @@ class NNSearch(ttk.Frame):
         # make "Load", "Save" buttons for right frame
         self.Load = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
                                text='Load', image=self.load,
-                               compound='left', command=self.press_return)
+                               compound='left', command=self.load_file)
         self.Load.grid(row=0, column=0, sticky='nwe', pady=1, padx=1)
         self.Save = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
                                text='Save', image=self.save,
