@@ -2,33 +2,76 @@
 # -*- coding: utf-8 -*-
 """
 A collection of text processing methods used by nn-search.
-This module also handles user query parsing and text stats.
+This module also handles user query parsing, text preprocessing and text stats.
 """
 from __future__ import division
 import docx
 import os
 import re
+import subprocess as sb
 import sys
+import unicodedata
 from textblob import Blobber
 from textblob_aptagger import PerceptronTagger
+
+# for reading pdf
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfpage import PDFPage
+from cStringIO import StringIO
+
+
+def pdf_read(pdf):
+    """
+    Use PDFMiner to extract text from pdf file.
+    <PDFMiner even though more low-level but pretty good tool to read pdfs>
+
+    Args:
+        *pdf* (str) -- path to pdf file
+
+    Returns:
+        *text* (str) -- a text extracted from pdf
+
+    """
+    # initalizing objects
+    res_manager = PDFResourceManager()
+    strio = StringIO()
+    lps = LAParams()
+    device = TextConverter(res_manager, strio, codec='utf-8', laparams=lps)
+    interpreter = PDFPageInterpreter(res_manager, device)
+    # opening a pdf file with 'rb' mode for reading binary files
+    pdf_file = file(pdf, 'rb')
+    for page in PDFPage.get_pages(pdf_file, maxpages=0, password='',
+                                  caching=True, check_extractable=True):
+        interpreter.process_page(page)
+    # finishing up
+    pdf_file.close()
+    device.close()
+    text = strio.getvalue()
+    strio.close()
+    return text
 
 
 def normalize_text(text):
     """
     Remove non-utf8 characters.
+    Convert text to ascii.
+
+    <If you throw some utf-8 text to English POS-tagger, it might fail because
+    even some English texts might contain weird chars, accents and diacritics.>
 
     Args:
         *chars* (str) -- strings of characters
     Returns:
-        *clean_text* (str) -- normalized strings of characters
+        *ascii_text* (str) -- text converted to ascii
 
     """
-    # data = re.sub(r'[^\x00-\x7F]+', '', fdata)  # potentially less strict
-    bad_chars = '\x81\x8d\x8f\x90\x9d\x01\x03\x0b\x17\x1a\x1c\x1d\x05' \
-                '\x06\x07\x10\x11\x12\x13\x14\x15\x16\x18\x1a\x19\x1e' \
-                '\x1f\x04\x02\x08\x0c\x0e\x0f\x1b'
-    clean_text = text.translate(None, bad_chars)
-    return clean_text
+    # removing some non-utf8 chars
+    clean = re.sub(r'[^\x00-\x7F]+', '', text)
+    # converting to ascii
+    ascii_text = unicodedata.normalize('NFKD', clean).encode('ascii', 'ignore')
+    return ascii_text
 
 
 def read_input_file(fpath):
@@ -44,16 +87,23 @@ def read_input_file(fpath):
 
     """
     fext = os.path.splitext(fpath)[-1]
-    if re.match(r'.doc|.docx', fext):
+    # read docx file
+    if re.match(r'.docx', fext):
         doc = docx.Document(fpath)
-
+        contents = ''
+        for par in doc.paragraphs:
+            contents = '\n'.join([contents, par.text])
+    # read doc file
+    elif re.match(r'.doc', fext):
+        process = sb.Popen(['antiword', fpath], stdout=sb.PIPE)
+        contents, err = process.communicate()
+    # read pdf file
     elif re.match(r'.pdf', fext):
-        pass
-
+        contents = pdf_read(fpath)
+    # read txt of file without any extension
     elif re.match(r'.txt', fext) or not fext:
         with open(fpath, 'r') as fopened:
             contents = fopened.read()
-
     return normalize_text(contents)
 
 
