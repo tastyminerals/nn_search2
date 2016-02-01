@@ -1,4 +1,9 @@
-Started 06 Nov, 2015
+06 Nov, 2015: Initial commit
 07 Nov, 2015: making GUI
 08 Nov, 2015: making GUI, adding icons
-TODO: fix stats widget incorrect positioning
+
+source text loading and preprocessing
+implementing pdf reading
+query preprocessing and text search
+adding "statistics" button
+fixing quick stats widget incorrect position

@@ -6,6 +6,7 @@ Created on Fri Nov 06 20:00:00 2015
 @author: tastyminerals@gmail.com
 """
 
+import model
 import os
 import re
 import sys
@@ -148,13 +149,15 @@ class NNSearch(ttk.Frame):
         # Limit text file size.
         """
         fname = tkf.askopenfilename(filetypes=(("txt file", "*.txt"),
+                                    ("Microsoft Word file", "*.doc;*.docx"),
+                                    ("PDF file", "*.pdf"),
                                     ("All files", "*.*")))
 
         try:
-            with open(fname, 'r') as f:
-                fdata = f.read()
-        except Exception as err:
+            model.read_input_file(fname)
+        except IOError as err:
             print(err)
+            # FIXIT! show a warning message here, don't just exit
             sys.exit(1)
         print fdata
 
