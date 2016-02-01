@@ -5,7 +5,7 @@
 Created on Fri Nov 06 20:00:00 2015
 @author: tastyminerals@gmail.com
 """
-
+from __future__ import division
 import model
 import os
 import re
@@ -67,9 +67,9 @@ class NNSearch(ttk.Frame):
                 text = self.Text.get(tk.SEL_FIRST, tk.SEL_LAST)
                 self.clipboard_append(text)
             return 'break'
-        except:
+        except TypeError:
             print('Nothing to copy.')
-            pass
+        return 'break'
 
     def ctrl_d(self):
         """
@@ -145,21 +145,51 @@ class NNSearch(ttk.Frame):
 
     def load_file(self):
         """
-        Load text file.
-        # Limit text file size.
-        """
-        fname = tkf.askopenfilename(filetypes=(("txt file", "*.txt"),
-                                    ("Microsoft Word file", "*.doc;*.docx"),
-                                    ("PDF file", "*.pdf"),
-                                    ("All files", "*.*")))
+        Open a file dialog window.
+        Handle file loading errors accordingly.
 
+        Returns:
+            | *loaded_text* (str) -- preprocessed text
+            | if IOError, OSError return None
+
+        """
+        types = (("txt file", "*.txt"),
+                 ("Microsoft Word file", ("*.doc", "*.docx")),
+                 ("PDF file", "*.pdf"),
+                 ("All files", "*.*"))
+        fname = tkf.askopenfilename(filetypes=types)
         try:
-            model.read_input_file(fname)
-        except IOError as err:
-            print(err)
-            # FIXIT! show a warning message here, don't just exit
-            sys.exit(1)
-        print fdata
+            finfo = os.path.getsize(fname)
+            # limit the file size to 20 mb
+            if finfo / (1024 * 1024) > 20:
+                self.show_warning("The file is too big!")
+                return None
+            loaded_text = model.read_input_file(fname)
+        except (IOError, OSError):
+            msg = "Oops! you didn't provide any file to read!"
+            self.show_warning(msg)
+            return None
+        return loaded_text
+
+    def show_warning(self, msg):
+        """
+        Show a warning window with a given message.
+
+        Args:
+            *msg* (str) -- error message
+
+        """
+        self.warn = tk.Toplevel()
+        self.warn.title('Error!')
+        self.warnFr = ttk.Frame(self.warn, height=150, width=150,
+                                borderwidth=2, relief='groove')
+        self.warn.resizable(0, 0)
+        self.warnFr.grid()
+        ttk.Label(self.warnFr, font='TkDefaultFont 10', text=msg).grid()
+        self.err_img = itk.PhotoImage(file=os.path.join('icons', 'error.png'))
+        ttk.Label(self.warnFr, image=self.err_img).grid()
+        ttk.Button(self.warnFr, text='OK', command=self.warn.destroy).grid()
+
 
     def build_gui(self):
         """

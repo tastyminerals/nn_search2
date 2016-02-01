@@ -68,9 +68,14 @@ def normalize_text(text):
 
     """
     # removing some non-utf8 chars
-    clean = re.sub(r'[^\x00-\x7F]+', '', text)
+    utext = re.sub(r'[^\x00-\x7F]+', '', text)
+    try:
+        utext = unicode(text, 'utf-8')
+    except TypeError as err:
+        # file is already unicode
+        print err
     # converting to ascii
-    ascii_text = unicodedata.normalize('NFKD', clean).encode('ascii', 'ignore')
+    ascii_text = unicodedata.normalize('NFKD', utext).encode('ascii', 'ignore')
     return ascii_text
 
 
@@ -145,4 +150,4 @@ def textblob_parse(text):
 
 
 if __name__ == '__main__':
-    read_input_file(sys.argv[1])
+    pass
