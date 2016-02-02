@@ -1,8 +1,7 @@
 06 Nov, 2015: Initial commit
 07 Nov, 2015: making GUI
 08 Nov, 2015: making GUI, adding icons
-01 Feb, 2016: source text loading and preprocessing, implementing pdf reading
+01 Feb, 2016: source text loading and preprocessing, implementing pdf reading,
+adding "statistics" buttons, fixing quick stats widget incorrect position
 
 query preprocessing and text search
-adding "statistics" button
-fixing quick stats widget incorrect position

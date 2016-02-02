@@ -143,10 +143,14 @@ class NNSearch(ttk.Frame):
             tkMessageBox.showinfo('nn-search 2.0', 'Nothing to redo.')
             return
 
-    def load_file(self):
+    def load_data(self):
         """
         Open a file dialog window.
-        Handle file loading errors accordingly.
+        Load a file. Handle file loading errors accordingly.
+        Invoke data preprocessing and pos-tagging functions.
+
+        <I think it is better to do main text processing together with the
+        file loading operation. This reduces query search response time.>
 
         Returns:
             | *loaded_text* (str) -- preprocessed text
@@ -169,6 +173,9 @@ class NNSearch(ttk.Frame):
             msg = "Oops! you didn't provide any file to read!"
             self.show_warning(msg)
             return None
+        # process loaded text
+
+
         return loaded_text
 
     def show_warning(self, msg):
@@ -200,13 +207,14 @@ class NNSearch(ttk.Frame):
             """
             Place the element and make it resizable.
 
-                ARGS:
-                    elem (ttk Object): ttk Object instance.
-                    row (int): row on which the element is placed.
-                    col (int): col on which the elemnt is placed.
-                    colspan (int): how many columns are allowed to span.
-                    rowspan (int): how many rows are allowed to span.
-                    stick (str): element alignment within the cell.
+            Args:
+                | *elem* (ttk Object) -- ttk Object instance
+                | *row* (int) -- row on which the element is placed
+                | *col* (int) -- col on which the elemnt is placed
+                | *colspan* (int) -- how many columns are allowed to span
+                | *rowspan* (int) -- how many rows are allowed to span
+                | *stick* (str) -- element alignment within the cell
+
             """
             elem.grid(row=row, column=col, rowspan=rowspan, columnspan=colspan,
                       sticky=stick)
@@ -230,9 +238,9 @@ class NNSearch(ttk.Frame):
         self.MenuButton0 = ttk.Menubutton(self.MenuFrm, text='File',
                                           direction='below',
                                           menu=self.Menu0)
-        self.load = itk.PhotoImage(file=os.path.join('icons', 'add.png'))
+        self.load = itk.PhotoImage(file=os.path.join('icons', 'load.png'))
         self.Menu0.add_command(label="Load", image=self.load, compound='left',
-                               command=self.load_file)
+                               command=self.load_data)
         self.save = itk.PhotoImage(file=os.path.join('icons', 'disk.png'))
         self.Menu0.add_command(label="Save", image=self.save, compound='left')
         self.save2 = itk.PhotoImage(file=os.path.join('icons', 'disk2.png'))
@@ -315,28 +323,32 @@ class NNSearch(ttk.Frame):
         self.Text.bind('<Control-u>', self.ctrl_u)
         # make the right frame
         self.RightFrm = ttk.Frame(self.Main, borderwidth=2, relief='groove')
-        resizable(self.RightFrm, 1, 1, 2, 2, 'nsew')
+        resizable(self.RightFrm, 1, 1, 2, 2, 'new')
         # make inner frame that will contain "Load", "Save" buttons.
         self.InnerRightFrm0 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
         resizable(self.InnerRightFrm0, 0, 0, 2, 1, 'new')
+        # add a label for "Load", "Save" frame
+        self.flab = ttk.Label(self.InnerRightFrm0, font='TkDefaultFont 10',
+                                text='File load/save')
+        self.flab.grid(row=0)
         # make "Load", "Save" buttons for right frame
         self.Load = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
                                text='Load', image=self.load,
-                               compound='left', command=self.load_file)
-        self.Load.grid(row=0, column=0, sticky='nwe', pady=1, padx=1)
+                               compound='left', command=self.load_data)
+        self.Load.grid(row=1, column=0, sticky='nwe', pady=1, padx=1)
         self.Save = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
                                text='Save', image=self.save,
                                compound='left', command=self.press_return)
-        self.Save.grid(row=1, column=0, sticky='nwe', pady=1, padx=1)
+        self.Save.grid(row=2, column=0, sticky='nwe', pady=1, padx=1)
         # make inner frame that will contain view types
         self.InnerRightFrm1 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
         resizable(self.InnerRightFrm1, 1, 0, 2, 1, 'nwe')
         # make view widgets
-        self.view_text = ttk.Label(self.InnerRightFrm1, font='TkDefaultFont 9',
+        self.vlab = ttk.Label(self.InnerRightFrm1, font='TkDefaultFont 10',
                                    text='View mode')
-        self.view_text.grid(row=0)
+        self.vlab.grid(row=0)
         self.view_opts = tk.IntVar()
         self.view1 = itk.PhotoImage(file=os.path.join('icons', 'view1.png'))
         self.view1Radio = ttk.Radiobutton(self.InnerRightFrm1,
@@ -363,17 +375,38 @@ class NNSearch(ttk.Frame):
                                         padding=(0, 5), onvalue=1, offvalue=0,
                                         variable=self.show_tags)
         self.showTags.grid(row=4)
-        # make inner frame that will contain various stats
+        # make inner frame that will contain back and stats buttons
         self.InnerRightFrm2 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm2, 2, 0, 2, 1, 'new')
-        # make stats labels
-        self.stats = ttk.Label(self.InnerRightFrm2, text='Statistics',
+        resizable(self.InnerRightFrm2, 2, 0, 2, 1, 'we')
+        # add text statistics label
+        self.slab = ttk.Label(self.InnerRightFrm2, font='TkDefaultFont 10',
+                              text='Text statistics')
+        self.slab.grid(row=0)
+        # make "Stats" buttons
+        self.stimg = itk.PhotoImage(file=os.path.join('icons', 'stats.png'))
+        self.Back = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
+                               text='Numbers', image=self.stimg,
+                               compound='left', command=self.stimg)
+        self.Back.grid(row=1, column=0, sticky='nwe', pady=1, padx=1)
+
+        self.stimg2 = itk.PhotoImage(file=os.path.join('icons', 'stats2.png'))
+        self.Stats = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
+                                text='Graphs', image=self.stimg2,
+                                compound='left', command=self.load_data)
+        self.Stats.grid(row=2, column=0, sticky='nwe', pady=1, padx=1)
+
+        # make inner frame that will contain file information
+        self.InnerRightFrm3 = ttk.Frame(self.RightFrm, borderwidth=2,
+                                        relief='groove')
+        resizable(self.InnerRightFrm3, 3, 0, 2, 1, 'ew')
+        # make file info labels
+        self.stats = ttk.Label(self.InnerRightFrm3, text='File info',
                                font='TkDefaultFont 10')
         self.stats.grid(row=0, column=0)
-        self.stats0 = ttk.Label(self.InnerRightFrm2, text='NOT IMPLEMENTED')
+        self.stats0 = ttk.Label(self.InnerRightFrm3, text='NOT IMPLEMENTED')
         self.stats0.grid(row=1, column=0)
-        self.stats1 = ttk.Label(self.InnerRightFrm2, text='NOT IMPLEMENTED')
+        self.stats1 = ttk.Label(self.InnerRightFrm3, text='NOT IMPLEMENTED')
         self.stats1.grid(row=2, column=0)
 
 

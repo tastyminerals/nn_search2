@@ -5,21 +5,24 @@ A collection of text processing methods used by nn-search.
 This module also handles user query parsing, text preprocessing and text stats.
 """
 from __future__ import division
-import docx
+from itertools import izip_longest
 import os
 import re
 import subprocess as sb
 import sys
 import unicodedata
+from string import punctuation as punct
+from cStringIO import StringIO
+
+import docx
 from textblob import Blobber
 from textblob_aptagger import PerceptronTagger
-
 # for reading pdf
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
-from cStringIO import StringIO
+
 
 
 def pdf_read(pdf):
@@ -112,42 +115,39 @@ def read_input_file(fpath):
     return normalize_text(contents)
 
 
-def preprocess_query(query):
-    pass
-
-def parse_query(query):
+def process_text(text):
     """
-    Preprocess and parse user query.
-
-    Args:
-        *query* (str) -- user query string
-
-
-    NN NN{1}
-    NN VB
-    'green'_JJ 'tree'_NN{2}
-    'He'_PN !'goes'_VB{1} 'shop'_NN{5}
-    """
-    pass
-
-
-
-
-def textblob_parse(text):
-    """
-    Use TextBlob toolkit to process text.
+    Process loaded text with textblob toolkit.
+    Calculate text statistics.
 
     Args:
         *text* (str) -- raw text data
 
-    Returns:
-        *(Blobber)* -- Blobber object containing various results
-        of text processing done by TextBlob module
-
     """
     blob = Blobber(pos_tagger=PerceptronTagger())
-    return blob(text)
+    parsed_text = blob(text)
+
+    # add excluded punctuation back into the sentences
+    full_tagged_sents = {}
+    for i, sent in enumerate(parsed_text.sentences):
+        full_tagged_sents[i] = []
+        for token1, token2 in izip_longest(sent.tags, sent.tokens):
+            if token2 in punct:
+                full_tagged_sents[i].append((token2, 'PUNC'))
+            elif token1:
+                full_tagged_sents[i].append(token1)
+    #print full_tagged_sents
+
+    # create {sent id: {token id: (token, POS)}} mapping
+    sent_tokens_map = {}
+    for i, sent in full_tagged_sents.items():
+        sent_tokens_map[i] = {}
+        for j, tokens in enumerate(sent):
+            sent_tokens_map[i][j] = tokens[0], tokens[1]
+    print sent_tokens_map
+
 
 
 if __name__ == '__main__':
-    pass
+    f = read_input_file(sys.argv[1])
+    p = process_text(f)
