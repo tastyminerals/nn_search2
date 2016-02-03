@@ -126,6 +126,11 @@ def process_text(text):
     Args:
         *text* (str) -- raw text data
 
+    Returns:
+        | *parsed_text* (Blobber) -- Blobber obj which contains parse results
+        | *full_tagged_sents* (dict) -- dict of
+          *{send num: {word num: (word, POS-tag)}}*
+
     """
     blob = Blobber(pos_tagger=PerceptronTagger())
     parsed_text = blob(text)
@@ -139,7 +144,7 @@ def process_text(text):
                 full_tagged_sents[i].append((token2, 'PNCT'))
             elif token1:
                 full_tagged_sents[i].append(token1)
-    full_tagged_sents
+    return parsed_text, full_tagged_sents
 
     #contents, err = process.communicate()
     #print contents
@@ -150,7 +155,6 @@ def process_text(text):
     #    for j, tokens in enumerate(sent):
     #        sent_tokens_map[i][j] = tokens[0], tokens[1]
     #print sent_tokens_map
-    calculate_stats(parsed_text)
 
 
 def calculate_stats(parsed_text):
@@ -181,7 +185,7 @@ def calculate_stats(parsed_text):
     hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
                        '/usr/share/hunspell/en_US.aff')
     correct = [hspell.spell(token) for token in parsed_text.words]
-    correctness = (1 - correct.count(False) / correct.count(True)) * 100
+    correctness = 1 - correct.count(False) / correct.count(True)
     correctness = round(correctness, 1)
 
     stats = {}
@@ -193,7 +197,6 @@ def calculate_stats(parsed_text):
     stats['polar'] = polarity
     stats['subj'] = subjectivity
     stats['spell'] = correctness
-    print stats
     return stats
 
 
