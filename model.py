@@ -5,6 +5,7 @@ A collection of text processing methods used by nn-search.
 This module also handles user query parsing, text preprocessing and text stats.
 """
 from __future__ import division
+from collections import Counter
 from itertools import izip_longest
 import os
 import re
@@ -14,10 +15,12 @@ import unicodedata
 from string import punctuation as punct
 from cStringIO import StringIO
 
+
 import docx
-from textblob import Blobber
+import hunspell
+from nltk.corpus import stopwords
+from textblob import Blobber, Word
 from textblob_aptagger import PerceptronTagger
-# for reading pdf
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
@@ -133,18 +136,65 @@ def process_text(text):
         full_tagged_sents[i] = []
         for token1, token2 in izip_longest(sent.tags, sent.tokens):
             if token2 in punct:
-                full_tagged_sents[i].append((token2, 'PUNC'))
+                full_tagged_sents[i].append((token2, 'PNCT'))
             elif token1:
                 full_tagged_sents[i].append(token1)
-    #print full_tagged_sents
+    full_tagged_sents
 
+    #contents, err = process.communicate()
+    #print contents
     # create {sent id: {token id: (token, POS)}} mapping
-    sent_tokens_map = {}
-    for i, sent in full_tagged_sents.items():
-        sent_tokens_map[i] = {}
-        for j, tokens in enumerate(sent):
-            sent_tokens_map[i][j] = tokens[0], tokens[1]
-    print sent_tokens_map
+    #sent_tokens_map = {}
+    #for i, sent in full_tagged_sents.items():
+    #    sent_tokens_map[i] = {}
+    #    for j, tokens in enumerate(sent):
+    #        sent_tokens_map[i][j] = tokens[0], tokens[1]
+    #print sent_tokens_map
+    calculate_stats(parsed_text)
+
+
+def calculate_stats(parsed_text):
+    """
+
+    """
+    # get token, word and sentence count
+    token_cnt = len(parsed_text.tokens)
+    word_cnt = len(parsed_text.words)
+    sent_cnt = len(parsed_text.sentences)
+
+    # calculate pos-tags
+    tag_cnts = Counter((tup[1] for tup in parsed_text.tags))
+
+    # calculate lexical diversity, unique words / total words
+    parsed_lower = [w.lower() for w in parsed_text.words
+                    if w.lower() not in stopwords.words('english')]
+    total_tokens = [w for w in parsed_text.words
+                    if w.lower() not in stopwords.words('english')]
+    diversity = round(len(set(parsed_lower)) / len(total_tokens), 2)
+
+    # get polarity [-1.0, 1.0]
+    # get subjectivity [0.0, 1.0], 0.0 - objective, 1.0 - subjective
+    polarity = round(parsed_text.sentiment[0], 2)
+    subjectivity = round(parsed_text.sentiment[1], 2)
+
+    # calculate text correctness
+    hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
+                       '/usr/share/hunspell/en_US.aff')
+    correct = [hspell.spell(token) for token in parsed_text.words]
+    correctness = (1 - correct.count(False) / correct.count(True)) * 100
+    correctness = round(correctness, 1)
+
+    stats = {}
+    stats['tokens'] = token_cnt
+    stats['words'] = word_cnt
+    stats['sents'] = sent_cnt
+    stats['tag_dic'] = tag_cnts
+    stats['diversity'] = diversity
+    stats['polar'] = polarity
+    stats['subj'] = subjectivity
+    stats['spell'] = correctness
+    print stats
+    return stats
 
 
 
