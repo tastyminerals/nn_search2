@@ -186,8 +186,7 @@ def calculate_stats(parsed_text):
                        '/usr/share/hunspell/en_US.aff')
     correct = [hspell.spell(token) for token in parsed_text.words]
     correctness = 1 - correct.count(False) / correct.count(True)
-    correctness = round(correctness, 1)
-
+    correctness = round(correctness, 2)
     stats = {}
     stats['tokens'] = token_cnt
     stats['words'] = word_cnt
@@ -196,11 +195,11 @@ def calculate_stats(parsed_text):
     stats['diversity'] = diversity
     stats['polar'] = polarity
     stats['subj'] = subjectivity
-    stats['spell'] = correctness
+    stats['corr'] = correctness
     return stats
 
 
 
 if __name__ == '__main__':
-    f = read_input_file(sys.argv[1])
-    p = process_text(f)
+    pass
+

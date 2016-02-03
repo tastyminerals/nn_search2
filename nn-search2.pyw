@@ -163,9 +163,9 @@ class NNSearch(ttk.Frame):
                  ("All files", "*.*"))
         fname = tkf.askopenfilename(filetypes=types)
         try:
-            finfo = os.path.getsize(fname)
             # limit the file size to 20 mb
-            if finfo / (1024 * 1024) > 20:
+            fsize = os.path.getsize(fname) / (1024 * 1024)
+            if fsize > 20:
                 self.show_warning("The file is too big!")
                 return None
             loaded_text = model.read_input_file(fname)
@@ -175,8 +175,8 @@ class NNSearch(ttk.Frame):
             return None
         # process loaded text and save the results in nn-search2 instance
         self.parsed_text, self.tagged_text = model.process_text(loaded_text)
-        self.stats0.config(text="Name: {0}".format(fname))
-        self.stats1.config(text="Size: {0}".format(finfo))
+        self.stats0.config(text="Name: {0}".format(os.path.basename(fname)))
+        self.stats1.config(text="Size: {0}kb".format(round(fsize * 1024, 1)))
 
     def show_warning(self, msg, error=False):
         """
@@ -188,11 +188,13 @@ class NNSearch(ttk.Frame):
 
         """
         if error:
+            war_title = 'Error!'
             war_icon = 'error.png'
         else:
+            war_title = 'Warning!'
             war_icon = 'warning.png'
         self.warn = tk.Toplevel()
-        self.warn.title('Error!')
+        self.warn.title(war_title)
         self.warnFr = ttk.Frame(self.warn, height=150, width=150,
                                 borderwidth=2, relief='groove')
         self.warn.resizable(0, 0)
@@ -200,7 +202,8 @@ class NNSearch(ttk.Frame):
         ttk.Label(self.warnFr, font='TkDefaultFont 11', text=msg).grid()
         self.err_img = itk.PhotoImage(file=os.path.join('icons', war_icon))
         ttk.Label(self.warnFr, image=self.err_img).grid()
-        ttk.Button(self.warnFr, text='OK', command=self.warn.destroy).grid()
+        ttk.Button(self.warnFr, padding=(0, 2), text='OK',
+                   command=self.warn.destroy).grid()
 
     def show_stats(self):
         """
@@ -209,9 +212,36 @@ class NNSearch(ttk.Frame):
         Add "close" button.
         """
         try:
-            stats_dic = model.calculate_stats(self.parsed_text)
+            stats = model.calculate_stats(self.parsed_text)
         except AttributeError:
             self.show_warning("You forgot to load the file!")
+        self.stats_win = tk.Toplevel()
+        self.stats_win.title("Text statistics")
+        self.stats_win.resizable(0, 0)
+        self.statsFr = ttk.Frame(self.stats_win, height=500, width=300,
+                                 borderwidth=2, relief='groove')
+        self.statsFr.grid()
+        self.statsFrInn1 = ttk.Frame(self.statsFr, borderwidth=2,
+                                       relief='groove')
+        self.statsFrInn1.grid(row=0, column=0, sticky='ns')
+        self.statsFrInn2 = ttk.Frame(self.statsFr, borderwidth=2,
+                                       relief='groove')
+        self.statsFrInn2.grid(row=0, column=1, sticky='ns')
+        # format stats information
+        # concreteness?
+        ltext = 'Tokens count:\nWords count:\nSentences count: \n' +\
+                '--------------------\n' +\
+                'Lexical diversity:\nSubjectivity: \nPolarity: \n' +\
+                'Correctness: \n'
+        rtext = '{0}\n{1}\n{2}\n-------\n{3}\n{4}\n{5}\n{6}'
+        rtext = rtext.format(stats.get('tokens'), stats.get('words'),
+                       stats.get('sents'), stats.get('diversity'),
+                       stats.get('subj'), stats.get('polar'),
+                       stats.get('corr'))
+        ttk.Label(self.statsFrInn1, font='TkDefaultFont 10', text=ltext).grid()
+        ttk.Label(self.statsFrInn2, font='TkDefaultFont 10', text=rtext).grid()
+        ttk.Button(self.statsFr, text='Close', padding=(0, 0),
+                   command=self.stats_win.destroy).grid(sticky='se')
 
 
     def build_gui(self):
