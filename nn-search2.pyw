@@ -186,22 +186,15 @@ class NNSearch(ttk.Frame):
             self.show_warning(msg)
             return None
 
-        # start progressbar animation
-        self.run_progressbar()
-        # process loaded text in a separate thread  and save the results
-        self.model_thread = thr.Thread(target=model.process_text,
-                                       args=(loaded_text, self.model_queue))
-        # start new thread while runnin UI in the main thread
-        self.model_thread.start()
-        # check if model_thread finished
-        self.after(10, self.check_progressbar_save_results)
-
         # update the file stats
         self.stats0.config(text="Name: {0}".format(os.path.basename(fname)))
         self.stats1.config(text="Size: {0}kb".format(round(fsize * 1024, 1)))
 
         # reset text statistics after we loaded a new file
         self.set_textstats(False)
+
+        # fun text processing after we loaded the file
+        self.process_command(model.process_text, loaded_text, self.model_queue)
 
     def lock_ui(self, lock):
         """
@@ -232,6 +225,7 @@ class NNSearch(ttk.Frame):
         """
         Check every 10ms if model thread is alive.
         Destroy progress bar when model thread finishes.
+        Unlock UI widgets.
         """
         if self.model_thread.is_alive():
             self.after(10, self.check_progressbar_save_results)
@@ -242,21 +236,42 @@ class NNSearch(ttk.Frame):
             self.prog_win.destroy()
             self.lock_ui(False)
 
-    def run_progressbar(self):
+
+    def process_command(self, func, *args):
         """
-        Start an indeterminate progress bar.
+        Most UI widgets are connected to this function.
+        It runs a progress bar in the main thread while running the required
+        command functions and their respective args in a separate thread.
+        Once the function in a separate thread has finished its work we destroy
+        the progress bar and rertrieve the results from Queue object.
+        Start the indeterminate progress bar.
+        Lock UI widgets.
         """
         self.lock_ui(True)
         self.prog_win = tk.Toplevel()
         self.prog_win.title('Exercise some patience...')
-        #self.prog_win.resizable(0, 0)
-        self.progress_bar = ttk.Progressbar(self.prog_win,
+        self.prog_win.resizable(0, 0)
+        self.progFr = ttk.Frame(self.prog_win, borderwidth=2, relief='groove')
+        self.progFr.grid(sticky='nsew')
+        msg = "Processing..."
+        ttk.Label(self.progFr, font='TkDefaultFont 10', text=msg).grid()
+        self.prog_img = itk.PhotoImage(file=os.path.join('icons', 'proc.png'))
+        ttk.Label(self.progFr, image=self.prog_img).grid()
+        self.progress_bar = ttk.Progressbar(self.progFr,
                                             orient=tk.HORIZONTAL,
                                             mode='indeterminate',
                                             takefocus=True)
         self.progress_bar.grid()
         self.centrify_widget(self.prog_win)
         self.progress_bar.start()
+
+        # now handle the button command
+        self.model_thread = thr.Thread(target=model.process_text, args=args)
+        # start new model thread while running UI
+        self.model_thread.start()
+        # check if model_thread finished
+        self.after(10, self.check_progressbar_save_results)
+
 
     def centrify_widget(self, widget):
         """

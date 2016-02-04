@@ -158,7 +158,7 @@ def process_text(text, queue):
     #print sent_tokens_map
 
 
-def get_stats(parsed_text):
+def get_stats(parsed_text, queue):
     """
 
     """
@@ -197,7 +197,8 @@ def get_stats(parsed_text):
     stats['polar'] = polarity
     stats['subj'] = subjectivity
     stats['corr'] = correctness
-    return stats
+    queue.put(stats)
+    #return stats
 
 
 
