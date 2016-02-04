@@ -118,7 +118,7 @@ def read_input_file(fpath):
     return normalize_text(contents)
 
 
-def process_text(text, queue):
+def process_text(*args):
     """
     Process loaded text with textblob toolkit.
     Calculate text statistics.
@@ -132,6 +132,7 @@ def process_text(text, queue):
           *{send num: {word num: (word, POS-tag)}}*
 
     """
+    model_queue, text = args
     blob = Blobber(pos_tagger=PerceptronTagger())
     parsed_text = blob(text)
 
@@ -144,50 +145,56 @@ def process_text(text, queue):
                 full_tagged_sents[i].append((token2, 'PNCT'))
             elif token1:
                 full_tagged_sents[i].append(token1)
-    queue.put([parsed_text, full_tagged_sents])
-    #return parsed_text, full_tagged_sents
-
-    #contents, err = process.communicate()
-    #print contents
-    # create {sent id: {token id: (token, POS)}} mapping
-    #sent_tokens_map = {}
-    #for i, sent in full_tagged_sents.items():
-    #    sent_tokens_map[i] = {}
-    #    for j, tokens in enumerate(sent):
-    #        sent_tokens_map[i][j] = tokens[0], tokens[1]
-    #print sent_tokens_map
+    model_queue.put([parsed_text, full_tagged_sents])
 
 
-def get_stats(parsed_text, queue):
+def get_stats(text):
     """
+    Use TextBlob object created after text extraction to get necessary stats.
+    Calculate pos-tags.
+    Calculate lexical diversity.
+    Use hunspell to calculate correctness.
+
+    Args:
+        *text* (TextBlob) -- TextBlob object that contains parsed text data
+
+    Returns:
+        *stats* (dict) -- dictionary object containing important stats
 
     """
     # get token, word and sentence count
-    token_cnt = len(parsed_text.tokens)
-    word_cnt = len(parsed_text.words)
-    sent_cnt = len(parsed_text.sentences)
+    token_cnt = len(text.tokens)
+    word_cnt = len(text.words)
+    sent_cnt = len(text.sentences)
 
     # calculate pos-tags
-    tag_cnts = Counter((tup[1] for tup in parsed_text.tags))
+    tag_cnts = Counter((tup[1] for tup in text.tags))
 
     # calculate lexical diversity, unique words / total words
-    parsed_lower = [w.lower() for w in parsed_text.words
+    parsed_lower = [w.lower() for w in text.words
                     if w.lower() not in stopwords.words('english')]
-    total_tokens = [w for w in parsed_text.words
+    total_tokens = [w for w in text.words
                     if w.lower() not in stopwords.words('english')]
-    diversity = round(len(set(parsed_lower)) / len(total_tokens), 2)
+    try:
+        diversity = round(len(set(parsed_lower)) / len(total_tokens), 2)
+    except ZeroDivisionError:
+        diversity = 0.0
 
     # get polarity [-1.0, 1.0]
     # get subjectivity [0.0, 1.0], 0.0 - objective, 1.0 - subjective
-    polarity = round(parsed_text.sentiment[0], 2)
-    subjectivity = round(parsed_text.sentiment[1], 2)
+    polarity = round(text.sentiment[0], 2)
+    subjectivity = round(text.sentiment[1], 2)
 
     # calculate text correctness
     hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
-                       '/usr/share/hunspell/en_US.aff')
-    correct = [hspell.spell(token) for token in parsed_text.words]
-    correctness = 1 - correct.count(False) / correct.count(True)
-    correctness = round(correctness, 2)
+                               '/usr/share/hunspell/en_US.aff')
+    correct = [hspell.spell(token) for token in text.words]
+    try:
+        correctness = 1 - correct.count(False) / correct.count(True)
+        correctness = round(correctness, 2)
+    except ZeroDivisionError:
+        correctness = 0.0
+
     stats = {}
     stats['tokens'] = token_cnt
     stats['words'] = word_cnt
@@ -197,9 +204,7 @@ def get_stats(parsed_text, queue):
     stats['polar'] = polarity
     stats['subj'] = subjectivity
     stats['corr'] = correctness
-    queue.put(stats)
-    #return stats
-
+    return stats
 
 
 if __name__ == '__main__':
