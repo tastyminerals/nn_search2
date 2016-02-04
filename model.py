@@ -118,7 +118,7 @@ def read_input_file(fpath):
     return normalize_text(contents)
 
 
-def process_text(text):
+def process_text(text, queue):
     """
     Process loaded text with textblob toolkit.
     Calculate text statistics.
@@ -144,7 +144,8 @@ def process_text(text):
                 full_tagged_sents[i].append((token2, 'PNCT'))
             elif token1:
                 full_tagged_sents[i].append(token1)
-    return parsed_text, full_tagged_sents
+    queue.put([parsed_text, full_tagged_sents])
+    #return parsed_text, full_tagged_sents
 
     #contents, err = process.communicate()
     #print contents
@@ -157,7 +158,7 @@ def process_text(text):
     #print sent_tokens_map
 
 
-def calculate_stats(parsed_text):
+def get_stats(parsed_text):
     """
 
     """
@@ -202,4 +203,3 @@ def calculate_stats(parsed_text):
 
 if __name__ == '__main__':
     pass
-

@@ -10,17 +10,29 @@ import model
 import os
 import re
 import sys
+import threading as thr
 import ttk
 import Tkinter as tk
 import tkFileDialog as tkf
 import tkMessageBox
+import Queue
 from PIL import ImageTk as itk
 from tkFileDialog import askopenfilename
 
+#from pycallgraph import PyCallGraph
+#from pycallgraph.output import GraphvizOutput
 
 class NNSearch(ttk.Frame):
 
     def __init__(self, master):
+        # init some instance vars
+        self.stats_ready = False
+        self.model_queue = Queue.Queue()
+        self.model_thread = None
+        self.model_results = None
+        self.textstats = {}
+
+        # build UI
         ttk.Frame.__init__(self, master)
         self.grid(sticky='nsew')  # FIXIT: probably not needed
         self.columnconfigure(0, weight=1)
@@ -173,10 +185,94 @@ class NNSearch(ttk.Frame):
             msg = "Oops! you didn't provide any file to read!"
             self.show_warning(msg)
             return None
-        # process loaded text and save the results in nn-search2 instance
-        self.parsed_text, self.tagged_text = model.process_text(loaded_text)
+
+        # start progressbar animation
+        self.run_progressbar()
+        # process loaded text in a separate thread  and save the results
+        self.model_thread = thr.Thread(target=model.process_text,
+                                       args=(loaded_text, self.model_queue))
+        # start new thread while runnin UI in the main thread
+        self.model_thread.start()
+        # check if model_thread finished
+        self.after(10, self.check_progressbar_save_results)
+
+        # update the file stats
         self.stats0.config(text="Name: {0}".format(os.path.basename(fname)))
         self.stats1.config(text="Size: {0}kb".format(round(fsize * 1024, 1)))
+
+        # reset text statistics after we loaded a new file
+        self.set_textstats(False)
+
+    def lock_ui(self, lock):
+        """
+        Lock all UI clickable widgets when background operations are running.
+        """
+        if lock:
+            self.MenuButton0.config(state='disabled')
+            self.MenuButton1.config(state='disabled')
+            self.MenuButton2.config(state='disabled')
+            self.MenuButton3.config(state='disabled')
+            self.search_butt.config(state='disabled')
+            self.load_butt.config(state='disabled')
+            self.save_butt.config(state='disabled')
+            self.stats_butt1.config(state='disabled')
+            self.stats_butt2.config(state='disabled')
+        else:
+            self.MenuButton0.config(state='normal')
+            self.MenuButton1.config(state='normal')
+            self.MenuButton2.config(state='normal')
+            self.MenuButton3.config(state='normal')
+            self.search_butt.config(state='normal')
+            self.load_butt.config(state='normal')
+            self.save_butt.config(state='normal')
+            self.stats_butt1.config(state='normal')
+            self.stats_butt2.config(state='normal')
+
+    def check_progressbar_save_results(self):
+        """
+        Check every 10ms if model thread is alive.
+        Destroy progress bar when model thread finishes.
+        """
+        if self.model_thread.is_alive():
+            self.after(10, self.check_progressbar_save_results)
+        else:
+            # get the results of model processing
+            self.model_results = self.model_queue.get()
+            self.progress_bar.stop()
+            self.prog_win.destroy()
+            self.lock_ui(False)
+
+    def run_progressbar(self):
+        """
+        Start an indeterminate progress bar.
+        """
+        self.lock_ui(True)
+        self.prog_win = tk.Toplevel()
+        self.prog_win.title('Exercise some patience...')
+        #self.prog_win.resizable(0, 0)
+        self.progress_bar = ttk.Progressbar(self.prog_win,
+                                            orient=tk.HORIZONTAL,
+                                            mode='indeterminate',
+                                            takefocus=True)
+        self.progress_bar.grid()
+        self.centrify_widget(self.prog_win)
+        self.progress_bar.start()
+
+    def centrify_widget(self, widget):
+        """
+        Centrify the position of a given widget.
+
+        Args:
+            *widget* (tk.Widget) -- tk widget object
+
+        """
+        widget.update_idletasks()
+        width = widget.winfo_screenwidth()
+        height = widget.winfo_screenheight()
+        xy = tuple(int(c) for c in widget.geometry().split('+')[0].split('x'))
+        xpos = width/2 - xy[0]/2
+        ypos = height/2 - xy[1]/2
+        widget.geometry("%dx%d+%d+%d" % (xy + (xpos, ypos)))
 
     def show_warning(self, msg, error=False):
         """
@@ -195,31 +291,37 @@ class NNSearch(ttk.Frame):
             war_icon = 'warning.png'
         self.warn = tk.Toplevel()
         self.warn.title(war_title)
-        self.warnFr = ttk.Frame(self.warn, height=150, width=150,
-                                borderwidth=2, relief='groove')
         self.warn.resizable(0, 0)
-        self.warnFr.grid()
+        self.warnFr = ttk.Frame(self.warn, borderwidth=2, relief='groove')
+        self.warnFr.grid(sticky='nsew')
         ttk.Label(self.warnFr, font='TkDefaultFont 11', text=msg).grid()
         self.err_img = itk.PhotoImage(file=os.path.join('icons', war_icon))
         ttk.Label(self.warnFr, image=self.err_img).grid()
         ttk.Button(self.warnFr, padding=(0, 2), text='OK',
                    command=self.warn.destroy).grid()
+        self.centrify_widget(self.warn)
 
     def show_stats(self):
         """
         Create a new TopLevel window.
         Calculate text stats and insert them as Label widgets.
-        Add "close" button.
+        Add "Close" button. Check if we already calculated stats, if yes then
+        reuse instead of recalculating.
         """
-        try:
-            stats = model.calculate_stats(self.parsed_text)
-        except AttributeError:
-            self.show_warning("You forgot to load the file!")
+        if not self.stats_ready:
+            try:
+                self.textstats = model.get_stats(self.model_results[0])
+                self.set_textstats(True)
+            except AttributeError:
+                self.show_warning("You forgot to load the file!")
+                return None
+
         self.stats_win = tk.Toplevel()
+        # centering window position
         self.stats_win.title("Text statistics")
         self.stats_win.resizable(0, 0)
-        self.statsFr = ttk.Frame(self.stats_win, height=500, width=300,
-                                 borderwidth=2, relief='groove')
+        self.statsFr = ttk.Frame(self.stats_win, borderwidth=2,
+                                 relief='groove')
         self.statsFr.grid()
         self.statsFrInn1 = ttk.Frame(self.statsFr, borderwidth=2,
                                        relief='groove')
@@ -228,28 +330,31 @@ class NNSearch(ttk.Frame):
                                        relief='groove')
         self.statsFrInn2.grid(row=0, column=1, sticky='ns')
         # format stats information
-        # concreteness?
         ltext = 'Tokens count:\nWords count:\nSentences count: \n' +\
-                '--------------------\n' +\
-                'Lexical diversity:\nSubjectivity: \nPolarity: \n' +\
-                'Correctness: \n'
-        rtext = '{0}\n{1}\n{2}\n-------\n{3}\n{4}\n{5}\n{6}'
-        rtext = rtext.format(stats.get('tokens'), stats.get('words'),
-                       stats.get('sents'), stats.get('diversity'),
-                       stats.get('subj'), stats.get('polar'),
-                       stats.get('corr'))
+                '-------------------------------\n' +\
+                'Lexical diversity [0,1]:\nSubjectivity [0,1]: \n' +\
+                'Polarity [-1,1]: \nCorrectness [0,1]: \n'
+        rtext = '{0}\n{1}\n{2}\n---------\n{3}\n{4}\n{5}\n{6}'
+        rtext = rtext.format(self.textstats.get('tokens'),
+                             self.textstats.get('words'),
+                             self.textstats.get('sents'),
+                             self.textstats.get('diversity'),
+                             self.textstats.get('subj'),
+                             self.textstats.get('polar'),
+                             self.textstats.get('corr'))
         ttk.Label(self.statsFrInn1, font='TkDefaultFont 10', text=ltext).grid()
-        ttk.Label(self.statsFrInn2, font='TkDefaultFont 10', text=rtext).grid()
+        ttk.Label(self.statsFrInn2, font='TkDefaultFont 10 bold',
+                  text=rtext).grid()
         ttk.Button(self.statsFr, text='Close', padding=(0, 0),
-                   command=self.stats_win.destroy).grid(sticky='se')
-
+                   command=self.stats_win.destroy).grid(sticky='s')
+        self.centrify_widget(self.stats_win)
 
     def build_gui(self):
         """
         Create user interface including all necessary components like Frames,
         Buttons, Labels etc.
         """
-        def resizable(elem, row, col, colspan, rowspan, stick):
+        def put_resizable(elem, row, col, colspan, rowspan, stick):
             """
             Place the element and make it resizable.
 
@@ -279,7 +384,7 @@ class NNSearch(ttk.Frame):
         # make a toolbar menu
         # make "File" menu
         self.MenuFrm = ttk.Frame(self.Main, borderwidth='1', relief='flat')
-        resizable(self.MenuFrm, 0, 0, 2, 1, 'w')
+        put_resizable(self.MenuFrm, 0, 0, 2, 1, 'w')
         self.Menu0 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton0 = ttk.Menubutton(self.MenuFrm, text='File',
                                           direction='below',
@@ -295,7 +400,7 @@ class NNSearch(ttk.Frame):
         self.exit = itk.PhotoImage(file=os.path.join('icons', 'exit.png'))
         self.Menu0.add_command(label="Exit", image=self.exit, compound='left',
                                command=self.quit)
-        resizable(self.MenuButton0, 0, 0, 1, 1, 'n')
+        put_resizable(self.MenuButton0, 0, 0, 1, 1, 'n')
         # make "Edit" menu
         self.Menu1 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton1 = ttk.Menubutton(self.MenuFrm, text='Edit',
@@ -316,7 +421,7 @@ class NNSearch(ttk.Frame):
         self.redo = itk.PhotoImage(file=os.path.join('icons', 'redo.png'))
         self.Menu1.add_command(label="Redo (Ctrl-u)", image=self.redo,
                                compound='left', command=self.ctrl_u)
-        resizable(self.MenuButton1, 0, 1, 1, 1, 'n')
+        put_resizable(self.MenuButton1, 0, 1, 1, 1, 'n')
         # make "Tools" menu
         self.Menu2 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton2 = ttk.Menubutton(self.MenuFrm, text='Tools',
@@ -325,7 +430,7 @@ class NNSearch(ttk.Frame):
         self.tagger = itk.PhotoImage(file=os.path.join('icons', 'wand.png'))
         self.Menu2.add_command(label="POS-tagger", image=self.tagger,
                                compound='left', command=None)
-        resizable(self.MenuButton2, 0, 2, 1, 1, 'n')
+        put_resizable(self.MenuButton2, 0, 2, 1, 1, 'n')
         # make "Help" menu
         self.Menu3 = tk.Menu(self.MenuFrm, tearoff=False)
         self.MenuButton3 = ttk.Menubutton(self.MenuFrm, text='Help',
@@ -337,10 +442,10 @@ class NNSearch(ttk.Frame):
         self.about = itk.PhotoImage(file=os.path.join('icons', 'info.png'))
         self.Menu3.add_command(label="About", image=self.about,
                                compound='left', command=None)
-        resizable(self.MenuButton3, 0, 3, 1, 1, 'n')
+        put_resizable(self.MenuButton3, 0, 3, 1, 1, 'n')
         # make a frame for query input widget
         self.EntryFrm = ttk.Frame(self.Main, borderwidth='2', relief='groove')
-        resizable(self.EntryFrm, 1, 0, 1, 1, 'we')
+        put_resizable(self.EntryFrm, 1, 0, 1, 1, 'we')
         # make entry widget inside entry frame
         self.Entry = ttk.Entry(self.EntryFrm, font='TkDefaultFont 12')
         self.Entry.grid(row=1, column=0, columnspan=1, **options)
@@ -357,26 +462,27 @@ class NNSearch(ttk.Frame):
         self.search_butt.grid(row=1, column=1, **options)
         # make text frame
         self.TextFrm = ttk.Frame(self.Main, borderwidth=2, relief='groove')
-        resizable(self.TextFrm, 2, 0, 1, 1, 'nsew')
+        put_resizable(self.TextFrm, 2, 0, 1, 1, 'nsew')
         # make text widget
         self.Text = tk.Text(self.TextFrm, font='TkDefaultFont 10', height=35,
                             width=100,
                             undo=True,
                             takefocus=0)
-        resizable(self.Text, 2, 0, 1, 1, 'nsew')
+        put_resizable(self.Text, 2, 0, 1, 1, 'nsew')
         self.Text.bind('<Control-a>', self.ctrl_a)
         self.Text.bind('<Control-z>', self.ctrl_z)
         self.Text.bind('<Control-u>', self.ctrl_u)
         # make the right frame
         self.RightFrm = ttk.Frame(self.Main, borderwidth=2, relief='groove')
-        resizable(self.RightFrm, 1, 1, 2, 2, 'new')
+        put_resizable(self.RightFrm, 1, 1, 2, 2, 'new')
         # make inner frame that will contain "Load", "Save" buttons.
         self.InnerRightFrm0 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm0, 0, 0, 2, 1, 'new')
+        put_resizable(self.InnerRightFrm0, 0, 0, 2, 1, 'new')
         # add a label for "Load", "Save" frame
-        self.flab = ttk.Label(self.InnerRightFrm0, font='TkDefaultFont 10',
-                                text='File load/save')
+        self.flab = ttk.Label(self.InnerRightFrm0,
+                              font='TkDefaultFont 10 bold',
+                              text='File load/save')
         self.flab.grid(row=0)
         # make "Load", "Save" buttons for right frame
         self.load_butt = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
@@ -390,10 +496,11 @@ class NNSearch(ttk.Frame):
         # make inner frame that will contain view types
         self.InnerRightFrm1 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm1, 1, 0, 2, 1, 'nwe')
+        put_resizable(self.InnerRightFrm1, 1, 0, 2, 1, 'nwe')
         # make view widgets
-        self.vlab = ttk.Label(self.InnerRightFrm1, font='TkDefaultFont 10',
-                                   text='View mode')
+        self.vlab = ttk.Label(self.InnerRightFrm1,
+                              font='TkDefaultFont 10 bold',
+                              text='View mode')
         self.vlab.grid(row=0)
         self.view_opts = tk.IntVar()
         self.view1 = itk.PhotoImage(file=os.path.join('icons', 'view1.png'))
@@ -424,9 +531,10 @@ class NNSearch(ttk.Frame):
         # make inner frame that will contain back and stats buttons
         self.InnerRightFrm2 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm2, 2, 0, 2, 1, 'we')
+        put_resizable(self.InnerRightFrm2, 2, 0, 2, 1, 'we')
         # add text statistics label
-        self.slab = ttk.Label(self.InnerRightFrm2, font='TkDefaultFont 10',
+        self.slab = ttk.Label(self.InnerRightFrm2,
+                              font='TkDefaultFont 10 bold',
                               text='Text statistics')
         self.slab.grid(row=0)
         # make "Stats" buttons
@@ -445,15 +553,24 @@ class NNSearch(ttk.Frame):
         # make inner frame that will contain file information
         self.InnerRightFrm3 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
-        resizable(self.InnerRightFrm3, 3, 0, 2, 1, 'ew')
+        put_resizable(self.InnerRightFrm3, 3, 0, 2, 1, 'ew')
         # make file info labels
         self.stats = ttk.Label(self.InnerRightFrm3, text='File info',
-                               font='TkDefaultFont 10')
+                               font='TkDefaultFont 10 bold')
         self.stats.grid(row=0, column=0)
         self.stats0 = ttk.Label(self.InnerRightFrm3, text='Name: not loaded')
         self.stats0.grid(row=1, column=0, sticky='w')
         self.stats1 = ttk.Label(self.InnerRightFrm3, text='Size: not loaded')
         self.stats1.grid(row=2, column=0, sticky='w')
+
+    def set_textstats(self, state):
+        """
+        Getter/Setter for self.stats_ready var
+
+        Args:
+            *state* (bool) -- True, if text statistics was calculated
+        """
+        self.stats_ready = state
 
 
 def main():
@@ -472,3 +589,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+    #graphviz = GraphvizOutput()
+    #graphviz.output_file = 'nn-search.png'
+    #with PyCallGraph(output=graphviz):
+    #    main()
