@@ -31,6 +31,7 @@ class NNSearch(ttk.Frame):
         self.model_thread = None
         self.model_results = None
         self.textstats = {}
+        self.is_file_loaded = False
 
         # build UI
         ttk.Frame.__init__(self, master)
@@ -161,8 +162,8 @@ class NNSearch(ttk.Frame):
         """
         para = text.split('\n\n')
         for par in para:
-            self.Text.insert('1.0', par)
-        self.Text.insert('1.0', '\n')
+            self.Text.insert(tk.END, par)
+        self.Text.insert(tk.END, '\n')
 
     def centrify_widget(self, widget):
         """
@@ -194,7 +195,7 @@ class NNSearch(ttk.Frame):
         self.message.resizable(0, 0)
         self.warnFr = ttk.Frame(self.message, borderwidth=2, relief='groove')
         self.warnFr.grid(sticky='nsew')
-        ttk.Label(self.warnFr, font='TkDefaultFont 11', text=msg).grid()
+        ttk.Label(self.warnFr, font='TkDefaultFont 10', text=msg).grid()
         self.err_img = itk.PhotoImage(file=os.path.join('icons', icon))
         ttk.Label(self.warnFr, image=self.err_img).grid()
         ttk.Button(self.warnFr, padding=(0, 2), text='OK',
@@ -233,10 +234,11 @@ class NNSearch(ttk.Frame):
                 fname = fname[:17] + '...'
         except (IOError, OSError):
             msg = "Oops! you didn't provide any file to read!"
-            self.show_message(msg, 'error.png')
-            return None
+            self.show_message(msg, 'warning.png')
+            return
 
         # update the file stats
+        self.set_file_loaded(True)
         self.stats0.config(text="Name: {0}".format(fname))
         self.stats1.config(text="Size: {0}kb".format(round(fsize * 1024, 1)))
 
@@ -249,6 +251,7 @@ class NNSearch(ttk.Frame):
         # get accumulated text from Text widget and run text processing
         loaded_text = self.Text.get("1.0",'end-1c')
         self.process_command(model.process_text, self.model_queue, loaded_text)
+        self.Text.edit_modified(False)  # reset after file load
 
     def check_thread_save_results(self):
         """
@@ -307,6 +310,12 @@ class NNSearch(ttk.Frame):
                              accumulated_text)
         self.set_stats_ready(False)
 
+        if self.Text.edit_modified() or not self.is_file_loaded:
+            # update the file stats
+            self.stats0.config(text="Name: {0}".format('Text field'))
+            acc_size = round(len(accumulated_text) / 1024, 1)
+            self.stats1.config(text="Size: {0}kb".format(acc_size))
+
     def show_stats(self):
         """
         Create a new TopLevel window.
@@ -319,7 +328,7 @@ class NNSearch(ttk.Frame):
                 self.textstats = model.get_stats(self.model_results[0])
                 self.set_stats_ready(True)
         except TypeError:
-            self.show_message('No file loaded!', 'error.png')
+            self.show_message('No data provided!', 'error.png')
             return
 
         # display "Calculating" message for each stat categrory in the pop-up
@@ -360,6 +369,16 @@ class NNSearch(ttk.Frame):
         ttk.Button(self.statsFr, text='Close', padding=(0, 0),
                    command=self.stats_win.destroy).grid(sticky='s')
         self.centrify_widget(self.stats_win)
+
+    def mk_graphs(self):
+        try:
+            if not self.stats_ready:
+                self.textstats = model.get_stats(self.model_results[0])
+                self.set_stats_ready(True)
+        except TypeError:
+            self.show_message('No data provided!', 'error.png')
+            return
+        model.plot_tags(self.textstats.get('tags'))
 
     def build_gui(self):
         """
@@ -484,6 +503,7 @@ class NNSearch(ttk.Frame):
         self.Text.bind('<Control-a>', self.ctrl_a)
         self.Text.bind('<Control-z>', self.ctrl_z)
         self.Text.bind('<Control-u>', self.ctrl_u)
+        self.Text.edit_modified(False)  # set Text widget -- not modified
         # make a scrollbar for text widget
         self.scroll = ttk.Scrollbar(self.TextFrm, command=self.Text.yview)
         self.Text.config(yscrollcommand=self.scroll.set)
@@ -571,7 +591,7 @@ class NNSearch(ttk.Frame):
         self.simg2 = itk.PhotoImage(file=os.path.join('icons', 'stats2.png'))
         self.stats_butt2 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
                                       text='Graphs', image=self.simg2,
-                                      compound='left', command=None)
+                                      compound='left', command=self.mk_graphs)
         self.stats_butt2.grid(row=3, column=0, sticky='nwe', pady=1, padx=1)
         self.simg3 = itk.PhotoImage(file=os.path.join('icons', 'stats3.png'))
         self.stats_butt3 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
@@ -584,7 +604,7 @@ class NNSearch(ttk.Frame):
                                         relief='groove')
         put_resizable(self.InnerRightFrm3, 3, 0, 2, 1, 'ew')
         # make file info labels
-        self.stats = ttk.Label(self.InnerRightFrm3, text='File info',
+        self.stats = ttk.Label(self.InnerRightFrm3, text='Data source',
                                font='TkDefaultFont 10 bold')
         self.stats.grid(row=0, column=0)
         self.stats0 = ttk.Label(self.InnerRightFrm3, text='Name: not loaded')
@@ -604,6 +624,7 @@ class NNSearch(ttk.Frame):
             self.search_butt.config(state='disabled')
             self.load_butt.config(state='disabled')
             self.save_butt.config(state='disabled')
+            self.recalc_butt.config(state='disabled')
             self.stats_butt1.config(state='disabled')
             self.stats_butt2.config(state='disabled')
             self.stats_butt3.config(state='disabled')
@@ -615,6 +636,7 @@ class NNSearch(ttk.Frame):
             self.search_butt.config(state='normal')
             self.load_butt.config(state='normal')
             self.save_butt.config(state='normal')
+            self.recalc_butt.config(state='normal')
             self.stats_butt1.config(state='normal')
             self.stats_butt2.config(state='normal')
             self.stats_butt3.config(state='normal')
@@ -627,6 +649,15 @@ class NNSearch(ttk.Frame):
             *state* (bool) -- True, if text statistics was calculated
         """
         self.stats_ready = state
+
+    def set_file_loaded(self, state):
+        """
+        Getter/Setter for self.stats_ready var
+
+        Args:
+            *state* (bool) -- True, if text statistics was calculated
+        """
+        self.is_file_loaded = state
 
 
 def main():

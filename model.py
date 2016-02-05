@@ -18,6 +18,9 @@ from cStringIO import StringIO
 
 import docx
 import hunspell
+import matplotlib.pyplot as plt
+import matplotlib.cm as cmx
+import matplotlib.colors as colors
 from nltk.corpus import stopwords
 from textblob import Blobber, Word
 from textblob_aptagger import PerceptronTagger
@@ -199,12 +202,19 @@ def get_stats(text):
     stats['tokens'] = token_cnt
     stats['words'] = word_cnt
     stats['sents'] = sent_cnt
-    stats['tag_dic'] = tag_cnts
+    stats['tags'] = tag_cnts
     stats['diversity'] = diversity
     stats['polar'] = polarity
     stats['subj'] = subjectivity
     stats['corr'] = correctness
     return stats
+
+def plot_tags(tags_dic):
+    bars = plt.bar(range(len(tags_dic)), tags_dic.values(), align='center')
+    plt.xticks(range(len(tags_dic)), tags_dic.keys())
+    for i in range(len(tags_dic)):
+        bars[i].set_color(col)
+    #plt.show()
 
 
 if __name__ == '__main__':
