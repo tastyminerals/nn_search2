@@ -6,6 +6,7 @@ Created on Fri Nov 06 20:00:00 2015
 @author: tastyminerals@gmail.com
 """
 from __future__ import division
+import csv
 import model
 import os
 import re
@@ -32,6 +33,7 @@ class NNSearch(ttk.Frame):
         self.model_results = None
         self.textstats = {}
         self.is_file_loaded = False
+        self.current_fname = 'text_field'  # currently processed file
 
         # build UI
         ttk.Frame.__init__(self, master)
@@ -190,18 +192,17 @@ class NNSearch(ttk.Frame):
             | *icon* (str) -- icon name
 
         """
-        self.message = tk.Toplevel()
-        self.message.title('Warning!')
-        self.message.resizable(0, 0)
-        self.warnFr = ttk.Frame(self.message, borderwidth=2, relief='groove')
-        self.warnFr.grid(sticky='nsew')
-        ttk.Label(self.warnFr, font='TkDefaultFont 10', text=msg).grid()
-        self.err_img = itk.PhotoImage(file=os.path.join('icons', icon))
-        ttk.Label(self.warnFr, image=self.err_img).grid()
-        ttk.Button(self.warnFr, padding=(0, 2), text='OK',
-                   command=self.message.destroy).grid()
-        self.centrify_widget(self.message)
-        return
+        message = tk.Toplevel()
+        message.title('Warning!')
+        message.resizable(0, 0)
+        warnFr = ttk.Frame(message, borderwidth=2, relief='groove')
+        warnFr.grid(sticky='nsew')
+        ttk.Label(warnFr, font='TkDefaultFont 10', text=msg).grid()
+        self.err_img = itk.PhotoImage(file=os.path.join(self.ip(icon)))
+        ttk.Label(warnFr, image=self.err_img).grid()
+        ttk.Button(warnFr, padding=(0, 2), text='OK',
+                   command=message.destroy).grid()
+        self.centrify_widget(message)
 
     def load_data(self):
         """
@@ -238,6 +239,7 @@ class NNSearch(ttk.Frame):
             return
 
         # update the file stats
+        self.current_fname = os.path.splitext(fname)[0]
         self.set_file_loaded(True)
         self.stats0.config(text="Name: {0}".format(fname))
         self.stats1.config(text="Size: {0}kb".format(round(fsize * 1024, 1)))
@@ -285,7 +287,7 @@ class NNSearch(ttk.Frame):
         self.progFr.grid(sticky='nsew')
         msg = "Processing..."
         ttk.Label(self.progFr, font='TkDefaultFont 10', text=msg).grid()
-        self.prog_img = itk.PhotoImage(file=os.path.join('icons', 'proc.png'))
+        self.prog_img = itk.PhotoImage(file=os.path.join(self.ip('proc.png')))
         ttk.Label(self.progFr, image=self.prog_img).grid()
         self.progress_bar = ttk.Progressbar(self.progFr, orient=tk.HORIZONTAL,
                                             mode='indeterminate',
@@ -347,28 +349,30 @@ class NNSearch(ttk.Frame):
                                   self.textstats.get('polar'),
                                   self.textstats.get('corr'))
         # create a pop-up window
-        self.stats_win = tk.Toplevel()
+        stats_win = tk.Toplevel()
         # centering window position
-        self.stats_win.title("Statistics")
-        self.stats_win.resizable(0, 0)
-        self.statsFr = ttk.Frame(self.stats_win, borderwidth=2,
-                                 relief='groove')
-        self.statsFr.grid()
-        self.statsFrInn1 = ttk.Frame(self.statsFr, borderwidth=2,
-                                     relief='groove')
-        self.statsFrInn1.grid(row=0, column=0, sticky='ns')
-        self.statsFrInn2 = ttk.Frame(self.statsFr, borderwidth=2,
-                                     relief='groove')
-        self.statsFrInn2.grid(row=0, column=1, sticky='ns')
-        self.ltext = ttk.Label(self.statsFrInn1, font='TkDefaultFont 10',
-                               text=ltext)
-        self.ltext.grid()
-        self.rtext = ttk.Label(self.statsFrInn2, font='TkDefaultFont 10 bold',
-                               text=stats_text)
-        self.rtext.grid()
-        ttk.Button(self.statsFr, text='Close', padding=(0, 0),
-                   command=self.stats_win.destroy).grid(sticky='s')
-        self.centrify_widget(self.stats_win)
+        stats_win.title("Statistics")
+        stats_win.resizable(0, 0)
+        statsFr = ttk.Frame(stats_win, borderwidth=2, relief='groove')
+        statsFr.grid()
+        statsFrInn1 = ttk.Frame(statsFr, borderwidth=2, relief='groove')
+        statsFrInn1.grid(row=0, column=0, sticky='ns')
+        statsFrInn2 = ttk.Frame(statsFr, borderwidth=2, relief='groove')
+        statsFrInn2.grid(row=0, column=1, sticky='ns')
+        ltext = ttk.Label(statsFrInn1, font='TkDefaultFont 10', text=ltext)
+        ltext.grid()
+        rtext = ttk.Label(statsFrInn2, font='TkDefaultFont 10 bold',
+                          text=stats_text)
+        rtext.grid()
+        ttk.Button(statsFr, text='Close', padding=(0, 0),
+                   command=stats_win.destroy).grid(sticky='s')
+        self.centrify_widget(stats_win)
+
+    def show_tags_help(self):
+        """
+        Show a pop-up window with Penn Treebank POS-tags description.
+        """
+        pass
 
     def mk_graphs(self):
         try:
@@ -378,8 +382,69 @@ class NNSearch(ttk.Frame):
         except TypeError:
             self.show_message('No data provided!', 'error.png')
             return
-        model.plot_tags(self.textstats.get('tags'))
+        # create graphs using POS-tags dict
+        tags_dic = self.textstats.get('tags')
+        sorted_tags = model.plot_tags(tags_dic, self.current_fname)
+        # create Toplevel for Graphs option
+        graphs = tk.Toplevel()
+        graphs.title('Graphs')
+        graphs.resizable(0, 0)
+        # create Frames for Toplevel window
+        graphFr = ttk.Frame(graphs, borderwidth=2, relief='groove')
+        graphFr.grid(sticky='nsew')
+        graphFr0 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
+        graphFr0.grid(row=0, column=0, sticky='nsew')
+        graphFr1 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
+        graphFr1.grid(row=0, column=1, sticky='nsew')
+        # graphFr2 will contain two inner Frames
+        graphFr2 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
+        graphFr2.grid(row=0, column=2, sticky='nsew')
+        graphFrInn0 = ttk.Frame(graphFr2, borderwidth=2, relief='groove')
+        graphFrInn0.grid(row=0, column=0, sticky='nsew')
+        graphFrInn1 = ttk.Frame(graphFr2, borderwidth=2, relief='groove')
+        graphFrInn1.grid(row=1, column=0, sticky='nsew')
 
+        # add buttons
+        tag_help = ttk.Button(graphFr0, padding=(0, 0),
+                              text='POS-tags help',
+                              command=self.show_tags_help).grid(row=0)
+        ttk.Button(graphFr1, padding=(0, 2), text='Close',
+                   command=graphs.destroy).grid(row=2, column=0, sticky='s')
+        # insert POS-tag occurences
+        tags = ''.join([(k+': '+str(v)+'\n') for k, v in sorted_tags.items()])
+        ttk.Label(graphFr0, font='TkDefaultFont 10', text=tags).grid(row=1)
+        # insert POS-tags plot
+        plot1_path = os.path.join('graphs', self.current_fname + '.png')
+        image = itk.Image.open(plot1_path)
+        image = image.resize((700, 700), itk.Image.ANTIALIAS)
+        self.plot1 = itk.PhotoImage(image)
+        # self.plot1 = itk.PhotoImage(file=plot_path)
+        self.plot1Label = ttk.Label(graphFr1, image=self.plot1)
+        self.plot1Label.grid(row=0, column=0, sticky="nsew")
+        # insert functional/content words plot
+        plot2_path = os.path.join('graphs', self.current_fname + '_pie.png')
+        image = itk.Image.open(plot2_path)
+        image = image.resize((400, 300), itk.Image.ANTIALIAS)
+        self.plot2 = itk.PhotoImage(image)
+        # self.plot2 = itk.PhotoImage(file=plot_path)
+        self.plot2Label = ttk.Label(graphFrInn1, image=self.plot2)
+        self.plot2Label.grid(row=0, column=0, sticky="nsew")
+
+
+
+        self.centrify_widget(graphs)
+
+
+
+
+    def _resize_image(self,event):
+        new_width = event.width
+        new_height = event.height
+
+        self.image = self.img_copy.resize((new_width, new_height))
+
+        self.background_image = ImageTk.PhotoImage(self.image)
+        self.background.configure(image =  self.background_image)
     def build_gui(self):
         """
         Create user interface including all necessary components like Frames,
@@ -420,15 +485,15 @@ class NNSearch(ttk.Frame):
         self.MenuButton0 = ttk.Menubutton(self.MenuFrm, text='File',
                                           direction='below',
                                           menu=self.Menu0)
-        self.load = itk.PhotoImage(file=os.path.join('icons', 'load.png'))
+        self.load = itk.PhotoImage(file=os.path.join(self.ip('load.png')))
         self.Menu0.add_command(label="Load", image=self.load, compound='left',
                                command=self.load_data)
-        self.save = itk.PhotoImage(file=os.path.join('icons', 'disk.png'))
+        self.save = itk.PhotoImage(file=os.path.join(self.ip('disk.png')))
         self.Menu0.add_command(label="Save", image=self.save, compound='left')
-        self.save2 = itk.PhotoImage(file=os.path.join('icons', 'disk2.png'))
+        self.save2 = itk.PhotoImage(file=os.path.join(self.ip('disk2.png')))
         self.Menu0.add_command(label="Save as", image=self.save2,
                                compound='left')
-        self.exit = itk.PhotoImage(file=os.path.join('icons', 'exit.png'))
+        self.exit = itk.PhotoImage(file=os.path.join(self.ip('exit.png')))
         self.Menu0.add_command(label="Exit", image=self.exit, compound='left',
                                command=self.quit)
         put_resizable(self.MenuButton0, 0, 0, 1, 1, 'n')
@@ -437,19 +502,19 @@ class NNSearch(ttk.Frame):
         self.MenuButton1 = ttk.Menubutton(self.MenuFrm, text='Edit',
                                           direction='below',
                                           menu=self.Menu1)
-        self.copy = itk.PhotoImage(file=os.path.join('icons', 'copy.png'))
+        self.copy = itk.PhotoImage(file=os.path.join(self.ip('copy.png')))
         self.Menu1.add_command(label="Copy (Ctrl-c)", image=self.copy,
                                compound='left', command=self.ctrl_c)
-        self.cut = itk.PhotoImage(file=os.path.join('icons', 'cut.png'))
+        self.cut = itk.PhotoImage(file=os.path.join(self.ip('cut.png')))
         self.Menu1.add_command(label="Cut (Ctrl-x)", image=self.cut,
                                compound='left', command=self.ctrl_x)
-        self.paste = itk.PhotoImage(file=os.path.join('icons', 'paste.png'))
+        self.paste = itk.PhotoImage(file=os.path.join(self.ip('paste.png')))
         self.Menu1.add_command(label="Paste (Ctrl-v)", image=self.paste,
                                compound='left', command=self.ctrl_v)
-        self.undo = itk.PhotoImage(file=os.path.join('icons', 'undo.png'))
+        self.undo = itk.PhotoImage(file=os.path.join(self.ip('undo.png')))
         self.Menu1.add_command(label="Undo (Ctrl-z)", image=self.undo,
                                compound='left', command=self.ctrl_z)
-        self.redo = itk.PhotoImage(file=os.path.join('icons', 'redo.png'))
+        self.redo = itk.PhotoImage(file=os.path.join(self.ip('redo.png')))
         self.Menu1.add_command(label="Redo (Ctrl-u)", image=self.redo,
                                compound='left', command=self.ctrl_u)
         put_resizable(self.MenuButton1, 0, 1, 1, 1, 'n')
@@ -458,7 +523,7 @@ class NNSearch(ttk.Frame):
         self.MenuButton2 = ttk.Menubutton(self.MenuFrm, text='Tools',
                                           direction='below',
                                           menu=self.Menu2)
-        self.tagger = itk.PhotoImage(file=os.path.join('icons', 'wand.png'))
+        self.tagger = itk.PhotoImage(file=os.path.join(self.ip('wand.png')))
         self.Menu2.add_command(label="POS-tagger", image=self.tagger,
                                compound='left', command=None)
         put_resizable(self.MenuButton2, 0, 2, 1, 1, 'n')
@@ -467,10 +532,10 @@ class NNSearch(ttk.Frame):
         self.MenuButton3 = ttk.Menubutton(self.MenuFrm, text='Help',
                                           direction='below',
                                           menu=self.Menu3)
-        self.help = itk.PhotoImage(file=os.path.join('icons', 'help.png'))
+        self.help = itk.PhotoImage(file=os.path.join(self.ip('help.png')))
         self.Menu3.add_command(label="Help", image=self.help, compound='left',
                                command=None)
-        self.about = itk.PhotoImage(file=os.path.join('icons', 'info.png'))
+        self.about = itk.PhotoImage(file=os.path.join(self.ip('info.png')))
         self.Menu3.add_command(label="About", image=self.about,
                                compound='left', command=None)
         put_resizable(self.MenuButton3, 0, 3, 1, 1, 'n')
@@ -486,10 +551,11 @@ class NNSearch(ttk.Frame):
         self.Entry.bind('<Return>', self.press_return, '+')
         self.Entry.focus()  # <Return> enable when entry widget in focus
         # make search button
-        self.search = itk.PhotoImage(file=os.path.join('icons', 'search.png'))
-        self.search_butt= ttk.Button(self.EntryFrm, padding=(-5, 0),
+        self.search = itk.PhotoImage(file=os.path.join(self.ip('search.png')))
+        self.search_butt= ttk.Button(self.EntryFrm, padding=(-5,0),
                                      text='Search', image=self.search,
-                                     compound='left', command=self.press_return)
+                                     compound='left',
+                                     command=self.press_return)
         self.search_butt.grid(row=1, column=1, **options)
         # make text frame
         self.TextFrm = ttk.Frame(self.Main, borderwidth=2, relief='groove')
@@ -539,20 +605,20 @@ class NNSearch(ttk.Frame):
                               text='View mode')
         self.vlab.grid(row=0)
         self.view_opts = tk.IntVar()
-        self.view1 = itk.PhotoImage(file=os.path.join('icons', 'view1.png'))
+        self.view1 = itk.PhotoImage(file=os.path.join(self.ip('view1.png')))
         self.view1Radio = ttk.Radiobutton(self.InnerRightFrm1,
                                           image=self.view1,
                                           variable=self.view_opts,
                                           value=1)
         self.view1Radio.grid(row=1)
         self.view1Radio.invoke()  # make active by default
-        self.view2 = itk.PhotoImage(file=os.path.join('icons', 'view2.png'))
+        self.view2 = itk.PhotoImage(file=os.path.join(self.ip('view2.png')))
         self.view2Radio = ttk.Radiobutton(self.InnerRightFrm1,
                                           image=self.view2,
                                           variable=self.view_opts,
                                           value=2)
         self.view2Radio.grid(row=2)
-        self.view3 = itk.PhotoImage(file=os.path.join('icons', 'view3.png'))
+        self.view3 = itk.PhotoImage(file=os.path.join(self.ip('view3.png')))
         self.view3Radio = ttk.Radiobutton(self.InnerRightFrm1,
                                           image=self.view3,
                                           variable=self.view_opts,
@@ -574,26 +640,26 @@ class NNSearch(ttk.Frame):
                               text='Statistics')
         self.slab.grid(row=0)
         # make "Stats" buttons
-        self.recimg = itk.PhotoImage(file=os.path.join('icons', 'recalc.png'))
+        self.recimg = itk.PhotoImage(file=os.path.join(self.ip('recalc.png')))
         self.recalc_butt = ttk.Button(self.InnerRightFrm2, padding=(0, 5),
                                       text='Recalculate!', image=self.recimg,
                                       compound='left',
                                       command=self.recalc_stats)
         self.recalc_butt.grid(row=1, column=0, sticky='nwe', pady=10, padx=0)
 
-        self.simg1 = itk.PhotoImage(file=os.path.join('icons', 'stats.png'))
+        self.simg1 = itk.PhotoImage(file=os.path.join(self.ip('stats.png')))
         self.stats_butt1 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
                                       text='Numbers', image=self.simg1,
                                       compound='left',
                                       command=self.show_stats)
         self.stats_butt1.grid(row=2, column=0, sticky='nwe', pady=1, padx=1)
 
-        self.simg2 = itk.PhotoImage(file=os.path.join('icons', 'stats2.png'))
+        self.simg2 = itk.PhotoImage(file=os.path.join(self.ip('stats2.png')))
         self.stats_butt2 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
                                       text='Graphs', image=self.simg2,
                                       compound='left', command=self.mk_graphs)
         self.stats_butt2.grid(row=3, column=0, sticky='nwe', pady=1, padx=1)
-        self.simg3 = itk.PhotoImage(file=os.path.join('icons', 'stats3.png'))
+        self.simg3 = itk.PhotoImage(file=os.path.join(self.ip('stats3.png')))
         self.stats_butt3 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
                                       text='Search stats', image=self.simg3,
                                       compound='left', command=None)
@@ -640,6 +706,17 @@ class NNSearch(ttk.Frame):
             self.stats_butt1.config(state='normal')
             self.stats_butt2.config(state='normal')
             self.stats_butt3.config(state='normal')
+
+    def ip(self, icon_name):
+        """
+        Return a full path with an icon name.
+
+        Args:
+            *icon_name* (str) -- icon name
+
+        """
+        return os.path.join('data', 'icons', icon_name)
+
 
     def set_stats_ready(self, state):
         """

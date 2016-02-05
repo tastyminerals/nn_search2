@@ -5,9 +5,11 @@ A collection of text processing methods used by nn-search.
 This module also handles user query parsing, text preprocessing and text stats.
 """
 from __future__ import division
-from collections import Counter
+from colors import COLLECTION
+from collections import Counter, OrderedDict as od
 from itertools import izip_longest
 import os
+import random
 import re
 import subprocess as sb
 import sys
@@ -15,9 +17,9 @@ import unicodedata
 from string import punctuation as punct
 from cStringIO import StringIO
 
-
 import docx
 import hunspell
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import matplotlib.colors as colors
@@ -209,12 +211,70 @@ def get_stats(text):
     stats['corr'] = correctness
     return stats
 
-def plot_tags(tags_dic):
-    bars = plt.bar(range(len(tags_dic)), tags_dic.values(), align='center')
-    plt.xticks(range(len(tags_dic)), tags_dic.keys())
+
+def get_ngrams(txtblob_obj):
+    """
+    Calculate word and ngram counts for Graphs option.
+    Calculate top 5 rare words.
+    Calculate top 5 frequent words.
+    Calculate top 5 2-grams
+    Calculate top 5 3-grams
+
+    Args:
+        *textblob_obj* (Blob) -- object containing parse results
+
+    """
+    pass
+
+
+def plot_tags(tags_dic, save_fname):
+    """
+    Create and save plots for 'Graphs' option.
+    These plot files shall be grabbed and included into UI.
+
+    Args:
+        | *tags_dic* (dict) -- dictionary of POS-tag occurrences
+        | *save_fname* (str) -- currently processed file name without extension
+
+    Returns:
+        *odd* (OrderedDict) -- frequency sorted POS-tags
+
+    """
+    matplotlib.rc('font', **{'size': 13})
+    # create POS-tags distribution plot
+    odd = od(sorted([(k, v) for k, v in tags_dic.items()], key=lambda x: x[1]))
+    bars = plt.barh(range(len(odd)), odd.values(), align='center')
+    plt.yticks(range(len(odd)), odd.keys())
+    plt.xlabel('Occurrence')
+    plt.ylabel('POS-tags')
+    plt.grid(True)
+    plt.margins(y=0)
+    random.shuffle(COLLECTION)
     for i in range(len(tags_dic)):
-        bars[i].set_color(col)
-    #plt.show()
+        bars[i].set_color(COLLECTION[i])
+    plt.savefig(os.path.join('graphs', save_fname + '.png'))
+    # create functional / non-fuctional words pie chart
+    plt.clf()
+    matplotlib.rc('font', **{'size': 16})
+    functional = ('DT', 'PDT', 'PRP', 'PRP$', 'IN', 'CC', 'UH', 'RP', 'WRB',
+                  'WP$', 'WDT', 'WP', 'EX', 'MD', 'TO')
+    content = ('JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RB', 'RBR',
+               'RBS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ')
+    fwords = sum([tags_dic[k] for k in tags_dic if k in functional])
+    cwords = sum([tags_dic[k] for k in tags_dic if k in content])
+    fratio = round(fwords / (fwords + cwords) * 100, 1)
+    cratio = round(cwords / (fwords + cwords) * 100, 1)
+    labels = ['functional words', 'content words']
+    sizes = [fratio, cratio]
+    pie_colors = ['salmon', 'royalblue']
+    plt.pie(sizes, labels=labels, colors=pie_colors, autopct='%1.1f%%',
+            shadow=True, startangle=90)
+    # Set aspect ratio to be equal so that pie is drawn as a circle.
+    plt.axis('equal')
+    # increasing fonts in a pie chart
+    plt.savefig(os.path.join('graphs', save_fname + '_pie.png'))
+    plt.clf()
+    return od(reversed(list(odd.items())))
 
 
 if __name__ == '__main__':
