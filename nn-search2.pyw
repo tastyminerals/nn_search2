@@ -27,12 +27,14 @@ class NNSearch(ttk.Frame):
 
     def __init__(self, master):
         # init some instance vars
-        self.stats_ready = False  # protect from stats recalculation
+        self.stats_ready = False  # do not recalc stats
+        self.graphs_ready = False  # do not recalc graphs
         self.model_queue = Queue.Queue()
         self.model_thread = None
         self.model_results = None
         self.textstats = {}
         self.is_file_loaded = False
+        self.processed = False  # clicked 'Process!' button
         self.current_fname = 'text_field'  # currently processed file
 
         # build UI
@@ -249,10 +251,7 @@ class NNSearch(ttk.Frame):
 
         # reset text statistics after we loaded a new file
         self.set_stats_ready(False)
-
-        # get accumulated text from Text widget and run text processing
-        loaded_text = self.Text.get("1.0",'end-1c')
-        self.process_command(model.process_text, self.model_queue, loaded_text)
+        self.set_graphs_ready(False)
         self.Text.edit_modified(False)  # reset after file load
 
     def check_thread_save_results(self):
@@ -270,15 +269,27 @@ class NNSearch(ttk.Frame):
             self.prog_win.destroy()
             self.lock_ui(False)
 
-    def process_command(self, func, *args):
+    def process_command(self):
         """
-        Process given arguments.
         Start the indeterminate progress bar.
         Lock UI widgets.
+        Process text loaded into Text widget.
         <Some UI widgets are connected to this function. The purpose of this
         function is to display a progress bar while running model functions in
         a separate thread>.
         """
+        # if Text modified, update Name and Size
+        if self.Text.edit_modified() or self.is_file_loaded:
+            # update the file stats
+            loaded_text = self.Text.get("1.0", 'end-1c')
+            self.stats0.config(text="Name: {0}".format('Text field'))
+            acc_size = round(len(loaded_text) / 1024, 1)
+            self.stats1.config(text="Size: {0}kb".format(acc_size))
+        else:
+            self.show_message('No data provided!', 'error.png')
+            self.set_processed(False)
+            return
+
         self.lock_ui(True)
         self.prog_win = tk.Toplevel()
         self.prog_win.title('Exercise some patience...')
@@ -297,26 +308,13 @@ class NNSearch(ttk.Frame):
         self.progress_bar.start()
 
         # now handle the button command
-        self.model_thread = thr.Thread(target=func, args=args)
+        self.model_thread = thr.Thread(target=model.process_text,
+                                       args=(self.model_queue, loaded_text))
         # start new model thread while running UI
         self.model_thread.start()
         # check if model_thread finished
         self.after(10, self.check_thread_save_results)
-
-    def recalc_stats(self):
-        """
-        Recalculate text stats.
-        """
-        accumulated_text = self.Text.get("1.0", 'end-1c')
-        self.process_command(model.process_text, self.model_queue,
-                             accumulated_text)
-        self.set_stats_ready(False)
-
-        if self.Text.edit_modified() or not self.is_file_loaded:
-            # update the file stats
-            self.stats0.config(text="Name: {0}".format('Text field'))
-            acc_size = round(len(accumulated_text) / 1024, 1)
-            self.stats1.config(text="Size: {0}kb".format(acc_size))
+        self.set_processed(True)
 
     def show_stats(self):
         """
@@ -326,9 +324,13 @@ class NNSearch(ttk.Frame):
         reuse instead of recalculating.
         """
         try:
-            if not self.stats_ready:
+            if self.processed and not self.stats_ready:
                 self.textstats = model.get_stats(self.model_results[0])
                 self.set_stats_ready(True)
+            elif not self.processed and self.is_file_loaded:
+                self.show_message('Please click "Process!" button',
+                                  'warning.png')
+                return
         except TypeError:
             self.show_message('No data provided!', 'error.png')
             return
@@ -376,15 +378,20 @@ class NNSearch(ttk.Frame):
 
     def mk_graphs(self):
         try:
-            if not self.stats_ready:
+            if self.processed and not self.graphs_ready:
                 self.textstats = model.get_stats(self.model_results[0])
-                self.set_stats_ready(True)
+                tags_dic = self.textstats.get('tags')
+                self.srt_tags = model.plot_tags(tags_dic, self.current_fname)
+                self.set_graphs_ready(True)
+                self.ngrams = model.get_ngrams(self.model_results)
+            elif not self.processed and self.is_file_loaded:
+                self.show_message('Please click "Process!" button',
+                                  'warning.png')
+                return
         except TypeError:
             self.show_message('No data provided!', 'error.png')
             return
-        # create graphs using POS-tags dict
-        tags_dic = self.textstats.get('tags')
-        sorted_tags = model.plot_tags(tags_dic, self.current_fname)
+
         # create Toplevel for Graphs option
         graphs = tk.Toplevel()
         graphs.title('Graphs')
@@ -394,6 +401,8 @@ class NNSearch(ttk.Frame):
         graphFr.grid(sticky='nsew')
         graphFr0 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
         graphFr0.grid(row=0, column=0, sticky='nsew')
+        graphFr0Inn = ttk.Frame(graphFr0, borderwidth=2, relief='groove')
+        graphFr0Inn.grid(row=1, column=0, sticky='nsew')
         graphFr1 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
         graphFr1.grid(row=0, column=1, sticky='nsew')
         # graphFr2 will contain two inner Frames
@@ -403,25 +412,46 @@ class NNSearch(ttk.Frame):
         graphFrInn0.grid(row=0, column=0, sticky='nsew')
         graphFrInn1 = ttk.Frame(graphFr2, borderwidth=2, relief='groove')
         graphFrInn1.grid(row=1, column=0, sticky='nsew')
+        ngramsFr = ttk.Frame(graphFrInn1, borderwidth=2, relief='groove')
+        ngramsFr.grid(row=1, column=0, sticky="nsew")
+
 
         # add buttons
         tag_help = ttk.Button(graphFr0, padding=(0, 0),
                               text='POS-tags help',
-                              command=self.show_tags_help).grid(row=0)
+                              command=self.show_tags_help).grid(row=0,
+                              sticky='we')
         ttk.Button(graphFr1, padding=(0, 2), text='Close',
                    command=graphs.destroy).grid(row=2, column=0, sticky='s')
-        # insert POS-tag occurences
-        tags = ''.join([(k+': '+str(v)+'\n') for k, v in sorted_tags.items()])
-        ttk.Label(graphFr0, font='TkDefaultFont 10', text=tags).grid(row=1)
+
+        # extract POS-tags, occurences, calculate ratio
+        self.tgs0 = '\n'.join([k for k in self.srt_tags])
+        self.tgs1 = '\n'.join([str(v) for v in self.srt_tags.values()])
+        total_cnt = sum([v for v in self.srt_tags.values()])
+        self.ratios = '\n'.join([str(round(v/total_cnt*100, 1)) +'%' for v
+                               in self.srt_tags.values()])
+        # create two inner Frames, one for POS-tags, another for counts
+        graphFr0Inn0 = ttk.Frame(graphFr0Inn, borderwidth=2, relief='groove')
+        graphFr0Inn0.grid(row=0, column=0, sticky='nsew')
+        graphFr0Inn1 = ttk.Frame(graphFr0Inn, borderwidth=2, relief='groove')
+        graphFr0Inn1.grid(row=0, column=1, sticky='nsew')
+        graphFr0Inn2 = ttk.Frame(graphFr0Inn, borderwidth=2, relief='groove')
+        graphFr0Inn2.grid(row=0, column=2, sticky='nsew')
+
+        ttk.Label(graphFr0Inn0, font='TkDefaultFont 10', text=self.tgs0).grid()
+        ttk.Label(graphFr0Inn1, font='TkDefaultFont 10 bold',
+                  text=self.tgs1).grid()
+        ttk.Label(graphFr0Inn2, font='TkDefaultFont 10',
+                  text=self.ratios).grid()
         # insert POS-tags plot
         plot1_path = os.path.join('graphs', self.current_fname + '.png')
         image = itk.Image.open(plot1_path)
-        image = image.resize((700, 700), itk.Image.ANTIALIAS)
+        image = image.resize((550, 500), itk.Image.ANTIALIAS)
         self.plot1 = itk.PhotoImage(image)
         # self.plot1 = itk.PhotoImage(file=plot_path)
         self.plot1Label = ttk.Label(graphFr1, image=self.plot1)
         self.plot1Label.grid(row=0, column=0, sticky="nsew")
-        # insert functional/content words plot
+        # insert functional/content words pie chart
         plot2_path = os.path.join('graphs', self.current_fname + '_pie.png')
         image = itk.Image.open(plot2_path)
         image = image.resize((400, 300), itk.Image.ANTIALIAS)
@@ -429,22 +459,18 @@ class NNSearch(ttk.Frame):
         # self.plot2 = itk.PhotoImage(file=plot_path)
         self.plot2Label = ttk.Label(graphFrInn1, image=self.plot2)
         self.plot2Label.grid(row=0, column=0, sticky="nsew")
+        # insert rare/frequent word stats
+        ttk.Label(ngramsFr, font='TkDefaultFont 10', text='').grid()
+        top5 = '\n'.join([': '.join([r[0], str(r[1])]) for r in self.ngrams[0]])
+        ngram2 = '\n'.join([': '.join([', '.join(r[0]), str(r[1])]) for r in self.ngrams[1]])
+        ngram3 = '\n'.join([': '.join([', '.join(r[0]), str(r[1])]) for r in self.ngrams[2]])
 
-
+        print top5
+        print ngram2
+        print ngram3
 
         self.centrify_widget(graphs)
 
-
-
-
-    def _resize_image(self,event):
-        new_width = event.width
-        new_height = event.height
-
-        self.image = self.img_copy.resize((new_width, new_height))
-
-        self.background_image = ImageTk.PhotoImage(self.image)
-        self.background.configure(image =  self.background_image)
     def build_gui(self):
         """
         Create user interface including all necessary components like Frames,
@@ -584,17 +610,23 @@ class NNSearch(ttk.Frame):
         # add a label for "Load", "Save" frame
         self.flab = ttk.Label(self.InnerRightFrm0,
                               font='TkDefaultFont 10 bold',
-                              text='File load/save')
+                              text='Text operations')
         self.flab.grid(row=0)
-        # make "Load", "Save" buttons for right frame
+        # make "Load", "Process" and "Save" buttons for right frame
         self.load_butt = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
                                     text='Load', image=self.load,
                                     compound='left', command=self.load_data)
-        self.load_butt.grid(row=1, column=0, sticky='nwe', pady=1, padx=1)
+        self.load_butt.grid(row=1, column=0, sticky='nwe', padx=1, pady=1)
+        self.proimg = itk.PhotoImage(file=os.path.join(self.ip('run.png')))
+        self.proc_butt = ttk.Button(self.InnerRightFrm0, padding=(5, 5),
+                                      text='Process!', image=self.proimg,
+                                      compound='left',
+                                      command=self.process_command)
+        self.proc_butt.grid(row=2, column=0, sticky='nwe', pady=1, padx=1)
         self.save_butt = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
                                     text='Save', image=self.save,
                                     compound='left', command=self.press_return)
-        self.save_butt.grid(row=2, column=0, sticky='nwe', pady=1, padx=1)
+        self.save_butt.grid(row=3, column=0, sticky='nwe', padx=1, pady=1)
         # make inner frame that will contain view types
         self.InnerRightFrm1 = ttk.Frame(self.RightFrm, borderwidth=2,
                                         relief='groove')
@@ -640,13 +672,6 @@ class NNSearch(ttk.Frame):
                               text='Statistics')
         self.slab.grid(row=0)
         # make "Stats" buttons
-        self.recimg = itk.PhotoImage(file=os.path.join(self.ip('recalc.png')))
-        self.recalc_butt = ttk.Button(self.InnerRightFrm2, padding=(0, 5),
-                                      text='Recalculate!', image=self.recimg,
-                                      compound='left',
-                                      command=self.recalc_stats)
-        self.recalc_butt.grid(row=1, column=0, sticky='nwe', pady=10, padx=0)
-
         self.simg1 = itk.PhotoImage(file=os.path.join(self.ip('stats.png')))
         self.stats_butt1 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
                                       text='Numbers', image=self.simg1,
@@ -690,7 +715,7 @@ class NNSearch(ttk.Frame):
             self.search_butt.config(state='disabled')
             self.load_butt.config(state='disabled')
             self.save_butt.config(state='disabled')
-            self.recalc_butt.config(state='disabled')
+            self.proc_butt.config(state='disabled')
             self.stats_butt1.config(state='disabled')
             self.stats_butt2.config(state='disabled')
             self.stats_butt3.config(state='disabled')
@@ -702,7 +727,7 @@ class NNSearch(ttk.Frame):
             self.search_butt.config(state='normal')
             self.load_butt.config(state='normal')
             self.save_butt.config(state='normal')
-            self.recalc_butt.config(state='normal')
+            self.proc_butt.config(state='normal')
             self.stats_butt1.config(state='normal')
             self.stats_butt2.config(state='normal')
             self.stats_butt3.config(state='normal')
@@ -727,14 +752,32 @@ class NNSearch(ttk.Frame):
         """
         self.stats_ready = state
 
-    def set_file_loaded(self, state):
+    def set_graphs_ready(self, state):
         """
-        Getter/Setter for self.stats_ready var
+        Getter/Setter for self.graphs_ready var
 
         Args:
-            *state* (bool) -- True, if text statistics was calculated
+            *state* (bool) -- True, if graphs were plotted
+        """
+        self.graphs_ready = state
+
+    def set_file_loaded(self, state):
+        """
+        Getter/Setter for self.is_file_loaded var
+
+        Args:
+            *state* (bool) -- True, if file was loaded
         """
         self.is_file_loaded = state
+
+    def set_processed(self, state):
+        """
+        Getter/Setter for self.processed var
+
+        Args:
+            *state* (bool) -- True, if 'Processed!' was clicked
+        """
+        self.processed = state
 
 
 def main():

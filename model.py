@@ -215,16 +215,36 @@ def get_stats(text):
 def get_ngrams(txtblob_obj):
     """
     Calculate word and ngram counts for Graphs option.
-    Calculate top 5 rare words.
     Calculate top 5 frequent words.
     Calculate top 5 2-grams
     Calculate top 5 3-grams
 
     Args:
-        *textblob_obj* (Blob) -- object containing parse results
+        *txtblob_obj* (Blob) -- object containing parse results
+
+    Returns:
+        |*most5* (list) -- a list of 5 most frequent words
+        |*ngram2* (list) -- a list of 5 most frequent 2-grams
+        |*ngram3* (list) -- a list of 5 most frequent 3-grams
 
     """
-    pass
+    counter = Counter(txtblob_obj[0].words)
+    counts_dic = od(counter.most_common())
+    tags_dic = dict(txtblob_obj[0].tags)
+    content = ('JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RB', 'RBR',
+               'RBS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ')
+    # get 5 most frequent words
+    most5 = [(k, counts_dic[k]) for k in counts_dic if tags_dic.get(k) in content][:5]
+
+    ngram2_cnt = Counter([(n[0], n[1]) for n
+                         in txtblob_obj[0].ngrams(2)])
+    ngram3_cnt = Counter([(n[0], n[1], n[2]) for n
+                         in txtblob_obj[0].ngrams(3)])
+
+    ngram2 = [(n[0], ngram2_cnt[n[0]]) for n in ngram2_cnt.most_common(5)]
+    ngram3 = [(n[0], ngram3_cnt[n[0]]) for n in ngram3_cnt.most_common(5)]
+
+    return most5, ngram2, ngram3
 
 
 def plot_tags(tags_dic, save_fname):
@@ -244,6 +264,7 @@ def plot_tags(tags_dic, save_fname):
     # create POS-tags distribution plot
     odd = od(sorted([(k, v) for k, v in tags_dic.items()], key=lambda x: x[1]))
     bars = plt.barh(range(len(odd)), odd.values(), align='center')
+    plt.title('Part-of-speech tags statistics')
     plt.yticks(range(len(odd)), odd.keys())
     plt.xlabel('Occurrence')
     plt.ylabel('POS-tags')
@@ -267,6 +288,7 @@ def plot_tags(tags_dic, save_fname):
     labels = ['functional words', 'content words']
     sizes = [fratio, cratio]
     pie_colors = ['salmon', 'royalblue']
+    plt.title('Functional vs content words statistics')
     plt.pie(sizes, labels=labels, colors=pie_colors, autopct='%1.1f%%',
             shadow=True, startangle=90)
     # Set aspect ratio to be equal so that pie is drawn as a circle.
