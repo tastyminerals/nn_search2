@@ -1,15 +1,12 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-
 """
 Created on Fri Nov 06 20:00:00 2015
 @author: tastyminerals@gmail.com
 """
 from __future__ import division
-import csv
-import model
+from collections import Counter
 import os
-import re
 import sys
 import threading as thr
 import ttk
@@ -20,22 +17,35 @@ import Queue
 from PIL import ImageTk as itk
 from tkFileDialog import askopenfilename
 
-#from pycallgraph import PyCallGraph
-#from pycallgraph.output import GraphvizOutput
+import model
+import query
 
 class NNSearch(ttk.Frame):
 
     def __init__(self, master):
         # init some instance vars
+        self.query = ''  # user query
+        self.tagged_sents = {}  # fully POS-tagged sents dict
         self.stats_ready = False  # do not recalc stats
         self.graphs_ready = False  # do not recalc graphs
-        self.model_queue = Queue.Queue()
-        self.model_thread = None
+        self.model_queue = Queue.PriorityQueue()
+        self.process_thread = None
+        self.stats_thread = None
+        self.graphs_thread = None
         self.model_results = None
+        self.process_results = None
         self.textstats = {}
         self.is_file_loaded = False
         self.processed = False  # clicked 'Process!' button
         self.current_fname = 'text_field'  # currently processed file
+
+        # init some string headers
+        # left and right label headers for Numbers pop-up window
+        self.num_llabl = 'Tokens count:\nWords count:\nSentences count: \n' +\
+                         '-------------------------------\n' +\
+                         'Lexical diversity [0,1]:\nSubjectivity [0,1]: \n' +\
+                         'Polarity [-1,1]: \nCorrectness [0,1]: \n'
+        self.num_rlabl = '{0}\n{1}\n{2}\n---------\n{3}\n{4}\n{5}\n{6}'
 
         # build UI
         ttk.Frame.__init__(self, master)
@@ -48,6 +58,8 @@ class NNSearch(ttk.Frame):
         self.rowconfigure(3, weight=1)
         master.minsize(height=300, width=400)
         self.build_gui()
+        # read Penn Treebank tags description
+        self.penn_treebank = model.get_penn_treebank()
 
     def press_return(self, *args):
         """
@@ -55,6 +67,8 @@ class NNSearch(ttk.Frame):
         """
         self.query = self.Entry.get().strip()  # get query from entry widget
         # self.Entry.delete(0, 'end')  # removes query from entry widget
+        query.preprocess_query(self.query)
+        print self.tagged_sents
 
     def ctrl_a(self, callback=False):
         """
@@ -239,35 +253,55 @@ class NNSearch(ttk.Frame):
             msg = "Oops! you didn't provide any file to read!"
             self.show_message(msg, 'warning.png')
             return
-
         # update the file stats
         self.current_fname = os.path.splitext(fname)[0]
         self.set_file_loaded(True)
         self.stats0.config(text="Name: {0}".format(fname))
         self.stats1.config(text="Size: {0}kb".format(round(fsize * 1024, 1)))
-
         # insert read text into Text widget
         self.insert_text(loaded_text)
-
         # reset text statistics after we loaded a new file
         self.set_stats_ready(False)
         self.set_graphs_ready(False)
-        self.Text.edit_modified(False)  # reset after file load
+        self.Text.edit_modified(False)
 
-    def check_thread_save_results(self):
+    def check_process_thread_save_results(self):
         """
         Check every 10ms if model thread is alive.
         Destroy progress bar when model thread finishes.
         Unlock UI widgets.
         """
-        if self.model_thread.is_alive():
-            self.after(10, self.check_thread_save_results)
+        if self.process_thread.is_alive():
+            self.after(10, self.check_process_thread_save_results)
         else:
+            self.process_thread.join()
             # get the results of model processing
-            self.model_results = self.model_queue.get()
+            self.process_results = self.model_queue.get()
+            self.tagged_sents = self.process_results[-1]
             self.progress_bar.stop()
             self.prog_win.destroy()
             self.lock_ui(False)
+
+    def run_progressbar(self):
+        """
+        Run progress bar.
+        """
+        self.prog_win = tk.Toplevel()
+        self.prog_win.title('Processing')
+        self.prog_win.resizable(0, 0)
+        self.progFr = ttk.Frame(self.prog_win, borderwidth=2, relief='flat')
+        self.progFr.grid(sticky='nsew')
+        msg = "Exercise some patience..."
+        ttk.Label(self.progFr, font='TkDefaultFont 10', text=msg).grid()
+        self.prog_img = itk.PhotoImage(file=os.path.join(self.ip('proc.png')))
+        ttk.Label(self.progFr, image=self.prog_img).grid()
+        self.progress_bar = ttk.Progressbar(self.progFr, orient=tk.HORIZONTAL,
+                                            length=250,
+                                            mode='indeterminate',
+                                            takefocus=True)
+        self.progress_bar.grid()
+        self.centrify_widget(self.prog_win)
+        self.progress_bar.start()
 
     def process_command(self):
         """
@@ -291,30 +325,39 @@ class NNSearch(ttk.Frame):
             return
 
         self.lock_ui(True)
-        self.prog_win = tk.Toplevel()
-        self.prog_win.title('Exercise some patience...')
-        self.prog_win.resizable(0, 0)
-        self.progFr = ttk.Frame(self.prog_win, borderwidth=2, relief='groove')
-        self.progFr.grid(sticky='nsew')
-        msg = "Processing..."
-        ttk.Label(self.progFr, font='TkDefaultFont 10', text=msg).grid()
-        self.prog_img = itk.PhotoImage(file=os.path.join(self.ip('proc.png')))
-        ttk.Label(self.progFr, image=self.prog_img).grid()
-        self.progress_bar = ttk.Progressbar(self.progFr, orient=tk.HORIZONTAL,
-                                            mode='indeterminate',
-                                            takefocus=True)
-        self.progress_bar.grid()
-        self.centrify_widget(self.prog_win)
-        self.progress_bar.start()
-
-        # now handle the button command
-        self.model_thread = thr.Thread(target=model.process_text,
+        self.run_progressbar()
+        # now handle the Process button command
+        self.process_thread = thr.Thread(target=model.process_text,
                                        args=(self.model_queue, loaded_text))
-        # start new model thread while running UI
-        self.model_thread.start()
-        # check if model_thread finished
-        self.after(10, self.check_thread_save_results)
+        self.process_thread.start()
+         # check if model_thread finished
+        self.after(10, self.check_process_thread_save_results)
         self.set_processed(True)
+        self.set_stats_ready(False)
+        self.set_graphs_ready(False)
+
+    def check_nums_thread_save_results(self):
+        """
+        Check every 10ms if model thread is alive.
+        Destroy progress bar when model thread finishes.
+        Unlock UI widgets.
+        """
+        if self.stats_thread.is_alive():
+            self.after(10, self.check_nums_thread_save_results)
+        else:
+            self.stats_thread.join()
+            # get the results of model processing
+            self.textstats = self.model_queue.get()
+            # update the information to calculated stats
+            stats_text = self.num_rlabl.format(self.textstats.get('tokens'),
+                                               self.textstats.get('words'),
+                                               self.textstats.get('sents'),
+                                               self.textstats.get('diversity'),
+                                               self.textstats.get('subj'),
+                                               self.textstats.get('polar'),
+                                               self.textstats.get('corr'))
+            self.set_stats_ready(True)
+            self.rtext.config(text=stats_text)
 
     def show_stats(self):
         """
@@ -322,111 +365,166 @@ class NNSearch(ttk.Frame):
         Calculate text stats and insert them as Label widgets.
         Add "Close" button. Check if we already calculated stats, if yes then
         reuse instead of recalculating.
+
+        <Numbers stats calculation is done in a separate Thread in order to
+        leave UI responsive. This, however, makes the code that handles
+        Numbers pop-up window look ugly and confusing.
+        show_stats() invokes self.check_nums_thread_save_results() which
+        checks whenever Thread is done, updates the Numbers pop-up window>
         """
-        try:
-            if self.processed and not self.stats_ready:
-                self.textstats = model.get_stats(self.model_results[0])
-                self.set_stats_ready(True)
-            elif not self.processed and self.is_file_loaded:
-                self.show_message('Please click "Process!" button',
-                                  'warning.png')
-                return
-        except TypeError:
+        if self.processed and not self.stats_ready:
+            self.model_queue = Queue.PriorityQueue()
+            # now handle the Process button command
+            self.stats_thread = thr.Thread(target=model.get_stats,
+                                           args=(self.model_queue,
+                                                 self.process_results[0]))
+            self.stats_thread.start()
+            stats = ('tokens', 'words', 'sents', 'diversity', 'subj', 'polar',
+                     'corr')
+            self.textstats = dict((stat, 'Wait...') for stat in stats)
+            # check if model_thread finished
+            self.after(10, self.check_nums_thread_save_results)
+        elif not self.processed and self.is_file_loaded:
+            self.show_message('Please click "Process!" button',
+                              'warning.png')
+            return
+        elif not self.processed and not self.is_file_loaded:
             self.show_message('No data provided!', 'error.png')
             return
 
-        # display "Calculating" message for each stat categrory in the pop-up
-        ltext = 'Tokens count:\nWords count:\nSentences count: \n' +\
-                '-------------------------------\n' +\
-                'Lexical diversity [0,1]:\nSubjectivity [0,1]: \n' +\
-                'Polarity [-1,1]: \nCorrectness [0,1]: \n'
-        rtext = '{0}\n{1}\n{2}\n---------\n{3}\n{4}\n{5}\n{6}'
-
         # update the information to calculated stats
-        stats_text = rtext.format(self.textstats.get('tokens'),
-                                  self.textstats.get('words'),
-                                  self.textstats.get('sents'),
-                                  self.textstats.get('diversity'),
-                                  self.textstats.get('subj'),
-                                  self.textstats.get('polar'),
-                                  self.textstats.get('corr'))
-        # create a pop-up window
-        stats_win = tk.Toplevel()
+        stats_text = self.num_rlabl.format(self.textstats.get('tokens'),
+                                           self.textstats.get('words'),
+                                           self.textstats.get('sents'),
+                                           self.textstats.get('diversity'),
+                                           self.textstats.get('subj'),
+                                           self.textstats.get('polar'),
+                                           self.textstats.get('corr'))
+        # create a pop-up window, use self instances, we need to update them
+        self.stats_win = tk.Toplevel()
         # centering window position
-        stats_win.title("Statistics")
-        stats_win.resizable(0, 0)
-        statsFr = ttk.Frame(stats_win, borderwidth=2, relief='groove')
-        statsFr.grid()
-        statsFrInn1 = ttk.Frame(statsFr, borderwidth=2, relief='groove')
-        statsFrInn1.grid(row=0, column=0, sticky='ns')
-        statsFrInn2 = ttk.Frame(statsFr, borderwidth=2, relief='groove')
-        statsFrInn2.grid(row=0, column=1, sticky='ns')
-        ltext = ttk.Label(statsFrInn1, font='TkDefaultFont 10', text=ltext)
-        ltext.grid()
-        rtext = ttk.Label(statsFrInn2, font='TkDefaultFont 10 bold',
-                          text=stats_text)
-        rtext.grid()
-        ttk.Button(statsFr, text='Close', padding=(0, 0),
-                   command=stats_win.destroy).grid(sticky='s')
-        self.centrify_widget(stats_win)
+        self.stats_win.title("Statistics")
+        self.stats_win.resizable(0, 0)
+        self.statsFr = ttk.Frame(self.stats_win, borderwidth=2,
+                                 relief='groove')
+        self.statsFr.grid()
+        self.statsFrInn1 = ttk.Frame(self.statsFr, borderwidth=2,
+                                     relief='groove')
+        self.statsFrInn1.grid(row=0, column=0, sticky='ns')
+        self.statsFrInn2 = ttk.Frame(self.statsFr, borderwidth=2,
+                                     relief='groove')
+        self.statsFrInn2.grid(row=0, column=1, sticky='ns')
+        self.ltext = ttk.Label(self.statsFrInn1, font='TkDefaultFont 10',
+                               text=self.num_llabl)
+        self.ltext.grid()
+        self.rtext = ttk.Label(self.statsFrInn2, font='TkDefaultFont 10 bold',
+                               text=stats_text)
+        self.rtext.grid()
+        ttk.Button(self.statsFr, text='Close', padding=(0, 0),
+                   command=self.stats_win.destroy).grid(sticky='w')
+        self.centrify_widget(self.stats_win)
 
     def show_tags_help(self):
         """
         Show a pop-up window with Penn Treebank POS-tags description.
         """
-        pass
+        ids, tags, desc = self.penn_treebank
+        header = ids[0], tags[0], desc[0]
+        penn_win = tk.Toplevel()
+        penn_win.title('Penn Treebank POS-tags')
+        penn_win.resizable(0, 0)
+        # creating Frames for headers
+        pennFr = ttk.Frame(penn_win, borderwidth=2, relief='groove')
+        pennFr.grid(sticky='nsew')
+        pennFrInnHead0 = ttk.Frame(pennFr, borderwidth=2, relief='flat')
+        pennFrInnHead0.grid(row=0, column=0)
+        pennFrInnHead1 = ttk.Frame(pennFr, borderwidth=2, relief='flat')
+        pennFrInnHead1.grid(row=0, column=1)
+        pennFrInnHead2 = ttk.Frame(pennFr, borderwidth=2, relief='flat')
+        pennFrInnHead2.grid(row=0, column=2)
+        # creating Frames for ids, tags and desc
+        pennFrInn0 = ttk.Frame(pennFr, borderwidth=2, relief='groove')
+        pennFrInn0.grid(row=1, column=0)
+        pennFrInn1 = ttk.Frame(pennFr, borderwidth=2, relief='groove')
+        pennFrInn1.grid(row=1, column=1)
+        pennFrInn2 = ttk.Frame(pennFr, borderwidth=2, relief='groove')
+        pennFrInn2.grid(row=1, column=2)
+        # inserting Labels
+        ttk.Label(pennFrInnHead0, font='TkDefaultFont 10 bold',
+                  text=header[0]).grid()
+        ttk.Label(pennFrInnHead1, font='TkDefaultFont 10 bold',
+                  text=header[1]).grid()
+        ttk.Label(pennFrInnHead2, font='TkDefaultFont 10 bold',
+                  text=header[2]).grid()
+        ttk.Label(pennFrInn0, font='TkDefaultFont 10',
+                  text='\n'.join(ids[1:])).grid()
+        ttk.Label(pennFrInn1, font='TkDefaultFont 10 bold',
+                  text='\n'.join(tags[1:])).grid()
+        ttk.Label(pennFrInn2, font='TkDefaultFont 10',
+                  text='\n'.join(desc[1:])).grid()
+        # create Close button
+        penn_butt = ttk.Button(pennFr, padding=(0, 0), text='Close',
+                               command=penn_win.destroy)
+        penn_butt.grid(column=2)
+        self.centrify_widget(penn_win)
 
-    def mk_graphs(self):
-        try:
-            if self.processed and not self.graphs_ready:
-                self.textstats = model.get_stats(self.model_results[0])
-                tags_dic = self.textstats.get('tags')
-                self.srt_tags = model.plot_tags(tags_dic, self.current_fname)
-                self.set_graphs_ready(True)
-                self.ngrams = model.get_ngrams(self.model_results)
-            elif not self.processed and self.is_file_loaded:
-                self.show_message('Please click "Process!" button',
-                                  'warning.png')
-                return
-        except TypeError:
-            self.show_message('No data provided!', 'error.png')
-            return
+    def check_graphs_thread_save_results(self):
+        """
+        Check every 10ms if model thread is alive.
+        Destroy progress bar when model thread finishes.
+        Unlock UI widgets.
+        """
+        if self.graphs_thread.is_alive():
+            self.after(10, self.check_graphs_thread_save_results)
+        else:
+            self.graphs_thread.join()
+            # get the results of model processing
+            self.srt_tags = self.model_queue.get()
+            self.ngrams = self.model_queue.get()
+            self.finish_graphs_window()
+            self.set_graphs_ready(True)
 
-        # create Toplevel for Graphs option
-        graphs = tk.Toplevel()
-        graphs.title('Graphs')
-        graphs.resizable(0, 0)
+    def finish_graphs_window(self):
+        """
+        Finish building Graphs window when the results are ready.
+        <Plotting, word/ngrams calculation etc. takes time. We first show
+        a dummy Toplevel window and then fill it with the elements>
+        """
+        # remove "Wait" message
+        self.waitFr.destroy()
         # create Frames for Toplevel window
-        graphFr = ttk.Frame(graphs, borderwidth=2, relief='groove')
-        graphFr.grid(sticky='nsew')
+        graphFr = ttk.Frame(self.graphs_win, borderwidth=2, relief='groove')
+        graphFr.grid(row=0, column=0, sticky='nsew')
+        closeFr = ttk.Frame(self.graphs_win, borderwidth=2, relief='groove')
+        closeFr.grid(row=1, column=0, sticky='nsew')
         graphFr0 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
         graphFr0.grid(row=0, column=0, sticky='nsew')
         graphFr0Inn = ttk.Frame(graphFr0, borderwidth=2, relief='groove')
         graphFr0Inn.grid(row=1, column=0, sticky='nsew')
         graphFr1 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
         graphFr1.grid(row=0, column=1, sticky='nsew')
-        # graphFr2 will contain two inner Frames
+        # graphFr2 will contain two inner Frames for pie charts and ngram cnts
         graphFr2 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
         graphFr2.grid(row=0, column=2, sticky='nsew')
         graphFrInn0 = ttk.Frame(graphFr2, borderwidth=2, relief='groove')
         graphFrInn0.grid(row=0, column=0, sticky='nsew')
         graphFrInn1 = ttk.Frame(graphFr2, borderwidth=2, relief='groove')
         graphFrInn1.grid(row=1, column=0, sticky='nsew')
-        ngramsFr = ttk.Frame(graphFrInn1, borderwidth=2, relief='groove')
+        ngramsFr = ttk.Frame(graphFrInn0, borderwidth=2, relief='groove')
         ngramsFr.grid(row=1, column=0, sticky="nsew")
-
-
         # add buttons
+        self.pos_img = itk.PhotoImage(file=os.path.join(self.ip('info.png')))
         tag_help = ttk.Button(graphFr0, padding=(0, 0),
-                              text='POS-tags help',
-                              command=self.show_tags_help).grid(row=0,
-                              sticky='we')
-        ttk.Button(graphFr1, padding=(0, 2), text='Close',
-                   command=graphs.destroy).grid(row=2, column=0, sticky='s')
-
+                              text='POS-tags help', image=self.pos_img,
+                              compound='left', command=self.show_tags_help)
+        tag_help.grid(row=0, sticky='we')
+        # add Close button
+        close_butt = ttk.Button(closeFr, padding=(0, 2), text='Close',
+                                command=self.graphs_win.destroy)
+        close_butt.grid(sticky='e')
         # extract POS-tags, occurences, calculate ratio
-        self.tgs0 = '\n'.join([k for k in self.srt_tags])
-        self.tgs1 = '\n'.join([str(v) for v in self.srt_tags.values()])
+        self.tgs = '\n'.join([k for k in self.srt_tags])
+        self.tgs_cnts = '\n'.join([str(v) for v in self.srt_tags.values()])
         total_cnt = sum([v for v in self.srt_tags.values()])
         self.ratios = '\n'.join([str(round(v/total_cnt*100, 1)) +'%' for v
                                in self.srt_tags.values()])
@@ -437,10 +535,10 @@ class NNSearch(ttk.Frame):
         graphFr0Inn1.grid(row=0, column=1, sticky='nsew')
         graphFr0Inn2 = ttk.Frame(graphFr0Inn, borderwidth=2, relief='groove')
         graphFr0Inn2.grid(row=0, column=2, sticky='nsew')
-
-        ttk.Label(graphFr0Inn0, font='TkDefaultFont 10', text=self.tgs0).grid()
+        # insert POS-tags, counts and ratios
+        ttk.Label(graphFr0Inn0, font='TkDefaultFont 10', text=self.tgs).grid()
         ttk.Label(graphFr0Inn1, font='TkDefaultFont 10 bold',
-                  text=self.tgs1).grid()
+                  text=self.tgs_cnts).grid()
         ttk.Label(graphFr0Inn2, font='TkDefaultFont 10',
                   text=self.ratios).grid()
         # insert POS-tags plot
@@ -449,27 +547,113 @@ class NNSearch(ttk.Frame):
         image = image.resize((550, 500), itk.Image.ANTIALIAS)
         self.plot1 = itk.PhotoImage(image)
         # self.plot1 = itk.PhotoImage(file=plot_path)
-        self.plot1Label = ttk.Label(graphFr1, image=self.plot1)
-        self.plot1Label.grid(row=0, column=0, sticky="nsew")
+        plot1Label = ttk.Label(graphFr1, image=self.plot1)
+        plot1Label.grid(row=0, column=0, sticky="nsew")
         # insert functional/content words pie chart
-        plot2_path = os.path.join('graphs', self.current_fname + '_pie.png')
-        image = itk.Image.open(plot2_path)
-        image = image.resize((400, 300), itk.Image.ANTIALIAS)
-        self.plot2 = itk.PhotoImage(image)
-        # self.plot2 = itk.PhotoImage(file=plot_path)
-        self.plot2Label = ttk.Label(graphFrInn1, image=self.plot2)
-        self.plot2Label.grid(row=0, column=0, sticky="nsew")
-        # insert rare/frequent word stats
-        ttk.Label(ngramsFr, font='TkDefaultFont 10', text='').grid()
-        top5 = '\n'.join([': '.join([r[0], str(r[1])]) for r in self.ngrams[0]])
-        ngram2 = '\n'.join([': '.join([', '.join(r[0]), str(r[1])]) for r in self.ngrams[1]])
-        ngram3 = '\n'.join([': '.join([', '.join(r[0]), str(r[1])]) for r in self.ngrams[2]])
+        pie_path = os.path.join('graphs', self.current_fname + '_pie.png')
+        pie_image = itk.Image.open(pie_path)
+        pie_image = pie_image.resize((400, 300), itk.Image.ANTIALIAS)
+        self.pie_plot = itk.PhotoImage(pie_image)
+        pie_header = "Functional vs content words ratio"
+        ttk.Label(graphFrInn1, font='TkDefaultFont 10 bold',
+                  text=pie_header).grid(row=0)
+        plot2Label = ttk.Label(graphFrInn1, image=self.pie_plot)
+        plot2Label.grid(row=1, column=0, sticky="nsew")
+        # insert ngrams stats
+        top5, top5_cnts = zip(*[['"' + r[0] + '"', str(r[1])]
+                                for r in self.ngrams[0]])
+        top5 = '\n'.join(top5)
+        top5_cnts = '\n'.join(top5_cnts)
+        ngram2, ngram2_cnts = zip(*[['"' + ' '.join(r[0]) + '"', str(r[1])]
+                                    for r in self.ngrams[1]])
+        ngram3, ngram3_cnts = zip(*[['"' + ' '.join(r[0]) + '"', str(r[1])]
+                                    for r in self.ngrams[2]])
+        ngram2 = '\n'.join(ngram2)
+        ngram2_cnts = '\n'.join(ngram2_cnts)
+        ngram3 = '\n'.join(ngram3)
+        ngram3_cnts = '\n'.join(ngram3_cnts)
+        # create inner Frames for ngrams header
+        headerFr = ttk.Frame(graphFrInn0, borderwidth=0, relief='flat')
+        headerFr.grid(row=0, sticky='we')
+        head_msg = "Top 10 words, 2-grams, 3-grams and their counts"
+        ttk.Label(headerFr, font='TkDefaultFont 10 bold',
+                  text=head_msg).grid(row=0, column=1)
+        # for top5 ngrams
+        ngramFrInn0 = ttk.Frame(ngramsFr, borderwidth=2, relief='groove')
+        ngramFrInn0.grid(row=1, column=0, sticky='nsew')
+        ngramFrInn1 = ttk.Frame(ngramsFr, borderwidth=2, relief='groove')
+        ngramFrInn1.grid(row=1, column=1, sticky='nsew')
+        # for ngram2
+        ngramFrInn2 = ttk.Frame(ngramsFr, borderwidth=2, relief='groove')
+        ngramFrInn2.grid(row=1, column=2, sticky='nsew')
+        ngramFrInn3 = ttk.Frame(ngramsFr, borderwidth=2, relief='groove')
+        ngramFrInn3.grid(row=1, column=3, sticky='nsew')
+        # for ngram3
+        ngramFrInn4 = ttk.Frame(ngramsFr, borderwidth=2, relief='groove')
+        ngramFrInn4.grid(row=1, column=4, sticky='nsew')
+        ngramFrInn5 = ttk.Frame(ngramsFr, borderwidth=2, relief='groove')
+        ngramFrInn5.grid(row=1, column=5, sticky='nsew')
+        # inserting ngram counts
+        ttk.Label(ngramFrInn0, font='TkDefaultFont 10', text=top5).grid()
+        ttk.Label(ngramFrInn1, font='TkDefaultFont 10 bold',
+                  text=top5_cnts).grid()
+        ttk.Label(ngramFrInn2, font='TkDefaultFont 10', text=ngram2).grid()
+        ttk.Label(ngramFrInn3, font='TkDefaultFont 10 bold',
+                  text=ngram2_cnts).grid()
+        ttk.Label(ngramFrInn4, font='TkDefaultFont 10', text=ngram3).grid()
+        ttk.Label(ngramFrInn5, font='TkDefaultFont 10 bold',
+                  text=ngram3_cnts).grid()
+        # update to get the new dimensions
+        self.update()
+        self.graphs_win.update()
+        newx = self.graphs_win.winfo_width()
+        newy = self.graphs_win.winfo_height()
+        newsize = self.graphs_win.winfo_geometry()
+        print newx, newy, newsize
+        self.graphs_win.geometry('1100x550+739+433')
+        self.graphs_win.minsize(height=300, width=110)
+        self.graphs_win.maxsize(height=530, width=1100)
 
-        print top5
-        print ngram2
-        print ngram3
+    def mk_graphs(self):
+        """
+        Create various plots using acquired text statistics.
+        Create necessary UI elements that will contain stats.
 
-        self.centrify_widget(graphs)
+        <This is a massive function as there are a lot of unique Frames that
+        I am using to hold the stats>.
+        """
+        if self.processed and not self.graphs_ready:
+            self.model_queue = Queue.PriorityQueue()
+            tags_dic = Counter((tup[1] for tup in self.process_results[0].tags))
+            # now handle the Process button command
+            self.graphs_thread = thr.Thread(target=model.get_graphs_data,
+                                            args=(self.model_queue, tags_dic,
+                                                  self.current_fname,
+                                                  self.process_results))
+            self.graphs_thread.start()
+            # check if model_thread finished
+            self.after(10, self.check_graphs_thread_save_results)
+            #self.srt_tags = model.plot_tags(tags_dic, self.current_fname)
+            #self.ngrams = model.get_ngrams(self.process_results)
+            #self.set_graphs_ready(True)
+        elif not self.processed and self.is_file_loaded:
+            self.show_message('Please click "Process!" button',
+                              'warning.png')
+            return
+        elif not self.processed and not self.is_file_loaded:
+            self.show_message('No data provided!', 'error.png')
+            return
+
+        # create Toplevel for Graphs option
+        self.graphs_win = tk.Toplevel()
+        self.graphs_win.title('Graphs')
+        #self.graphs_win.resizable(0, 0)
+        self.waitFr = ttk.Frame(self.graphs_win, borderwidth=2,
+                                relief='groove')
+        self.waitFr.grid(sticky='nsew')
+        ttk.Label(self.waitFr, font='TkDefaultFont 10 bold',
+                  text='Wait...\nCreating plots...').grid()
+        self.centrify_widget(self.graphs_win)
 
     def build_gui(self):
         """
@@ -712,6 +896,10 @@ class NNSearch(ttk.Frame):
             self.MenuButton1.config(state='disabled')
             self.MenuButton2.config(state='disabled')
             self.MenuButton3.config(state='disabled')
+            self.view1Radio.config(state='disabled')
+            self.view2Radio.config(state='disabled')
+            self.view3Radio.config(state='disabled')
+            self.tags_butt.config(state='disabled')
             self.search_butt.config(state='disabled')
             self.load_butt.config(state='disabled')
             self.save_butt.config(state='disabled')
@@ -724,6 +912,10 @@ class NNSearch(ttk.Frame):
             self.MenuButton1.config(state='normal')
             self.MenuButton2.config(state='normal')
             self.MenuButton3.config(state='normal')
+            self.view1Radio.config(state='normal')
+            self.view2Radio.config(state='normal')
+            self.view3Radio.config(state='normal')
+            self.tags_butt.config(state='normal')
             self.search_butt.config(state='normal')
             self.load_butt.config(state='normal')
             self.save_butt.config(state='normal')
@@ -796,7 +988,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    #graphviz = GraphvizOutput()
-    #graphviz.output_file = 'nn-search.png'
-    #with PyCallGraph(output=graphviz):
-    #    main()

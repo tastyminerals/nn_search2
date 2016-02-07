@@ -4,7 +4,20 @@
 This module handles various query operations.
 """
 
+
 def preprocess_query(query):
+    """
+    Check user query for errors.
+    Convert it into ready to parse format.
+    Convert all punctuation tags to PUNC.
+
+    Args:
+        *query* (str) -- user query as entered in Entry widget
+
+    Returns:
+        *prequery* () -- preprocessed query
+
+    """
     pass
 
 def parse_query(query):
