@@ -25,10 +25,7 @@ class MyApp(ttk.Frame):
 
         # update to get the new dimensions
         self.update()
-        self.loop_win.update_idletasks()
-        newsize = self.loop_win.winfo_geometry()
-        print newsize
-        self.loop_win.geometry(newsize)
+        self.loop_win.geometry("")
         ttk.Label(self.loop_win, text=self.fib_result).grid()
 
     def check_looping_thread_save_results(self):

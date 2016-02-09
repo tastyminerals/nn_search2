@@ -356,6 +356,8 @@ class NNSearch(ttk.Frame):
                                                self.textstats.get('subj'),
                                                self.textstats.get('polar'),
                                                self.textstats.get('corr'))
+            self.update()
+            self.stats_win.geometry("")
             self.set_stats_ready(True)
             self.rtext.config(text=stats_text)
 
