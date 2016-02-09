@@ -4,6 +4,7 @@
 This module handles various query operations.
 """
 
+import re
 
 def preprocess_query(query):
     """
@@ -18,6 +19,7 @@ def preprocess_query(query):
         *prequery* () -- preprocessed query
 
     """
+    re.search('(".+")?([A-Z]+)?({[0-9]+})?', query).group()
     pass
 
 def parse_query(query):

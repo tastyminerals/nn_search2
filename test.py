@@ -3,7 +3,7 @@
 sent = {0: [('a', 'NNS', 0), ('b', 'VB', 1), ('c', 'NN', 2),
             ('d', 'DT', 3), ('e', 'NN', 4), ('f', 'JJ', 5)]}
 
-query = (['a', 'NNS', None], [None, 'NN', 3])
+query = (['a', 'NNS', None], [None, 'DT', 2], ['f', None, 0])
 
 def single_match(query, sent):
     prev = 0
