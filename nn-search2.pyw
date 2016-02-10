@@ -26,7 +26,7 @@ class NNSearch(ttk.Frame):
     def __init__(self, master):
         # init some instance vars
         self.query = ''  # user query
-        self.tagged_sents = {}  # fully POS-tagged sents dict
+        self.fully_tagged_sents = {}  # fully POS-tagged sents dict
         self.stats_ready = False  # do not recalc stats
         self.graphs_ready = False  # do not recalc graphs
         self.model_queue = Queue.PriorityQueue()
@@ -68,7 +68,6 @@ class NNSearch(ttk.Frame):
         self.query = self.Entry.get().strip()  # get query from entry widget
         # self.Entry.delete(0, 'end')  # removes query from entry widget
         query.preprocess_query(self.query)
-        print self.tagged_sents
 
     def ctrl_a(self, callback=False):
         """
@@ -277,7 +276,7 @@ class NNSearch(ttk.Frame):
             self.process_thread.join()
             # get the results of model processing
             self.process_results = self.model_queue.get()
-            self.tagged_sents = self.process_results[-1]
+            self.fully_tagged_sents = self.process_results[-1]
             self.progress_bar.stop()
             self.prog_win.destroy()
             self.lock_ui(False)
@@ -342,12 +341,17 @@ class NNSearch(ttk.Frame):
         Destroy progress bar when model thread finishes.
         Unlock UI widgets.
         """
+        self.lock_toplevel(self.stats_win_butt, True)
+        self.stats_butt1.config(state='disabled')
         if self.stats_thread.is_alive():
             self.after(10, self.check_nums_thread_save_results)
         else:
             self.stats_thread.join()
             # get the results of model processing
             self.textstats = self.model_queue.get()
+            # centering window position
+            self.stats_win.title("Statistics")
+            self.stats_win.resizable(0, 0)
             # update the information to calculated stats
             stats_text = self.num_rlabl.format(self.textstats.get('tokens'),
                                                self.textstats.get('words'),
@@ -359,7 +363,10 @@ class NNSearch(ttk.Frame):
             self.update()
             self.stats_win.geometry("")
             self.set_stats_ready(True)
+            self.lock_toplevel(self.stats_win_butt, False)
+            self.stats_butt1.config(state='normal')
             self.rtext.config(text=stats_text)
+
 
     def show_stats_win(self):
         """
@@ -422,8 +429,10 @@ class NNSearch(ttk.Frame):
         self.rtext = ttk.Label(self.statsFrInn2, font='TkDefaultFont 10 bold',
                                text=stats_text)
         self.rtext.grid()
-        ttk.Button(self.statsFr, text='Close', padding=(0, 0),
-                   command=self.stats_win.destroy).grid(sticky='w')
+        self.stats_win_butt = ttk.Button(self.statsFr, text='Close',
+                                         padding=(0, 0),
+                                         command=self.stats_win.destroy)
+        self.stats_win_butt.grid(sticky='w')
         self.centrify_widget(self.stats_win)
 
     def show_tags_help(self):
@@ -486,6 +495,7 @@ class NNSearch(ttk.Frame):
             self.set_graphs_ready(True)
             # remove "Wait" message
             self.waitFr.destroy()
+            self.stats_butt2.config(state='normal')
             self.finish_graphs_window()
 
     def finish_graphs_window(self):
@@ -620,8 +630,8 @@ class NNSearch(ttk.Frame):
         # create a Toplevel first, we will update it later
         self.graphs_win = tk.Toplevel()
         self.graphs_win.title('Graphs')
-
         if self.processed and not self.graphs_ready:
+            self.stats_butt2.config(state='disabled')
             self.waitFr = ttk.Frame(self.graphs_win, borderwidth=2,
                                 relief='groove')
             self.waitFr.grid(sticky='nsew')
@@ -632,7 +642,8 @@ class NNSearch(ttk.Frame):
             ttk.Label(self.waitFr, image=self.wait_img).grid()
             self.centrify_widget(self.graphs_win)
             self.model_queue = Queue.PriorityQueue()
-            tags_dic = Counter((tup[1] for tup in self.process_results[0].tags))
+            tags_dic = Counter((tup[1] for tup
+                                in self.process_results[0].tags))
             # now handle the Process button command
             self.graphs_thread = thr.Thread(target=model.get_graphs_data,
                                             args=(self.model_queue, tags_dic,
@@ -641,9 +652,6 @@ class NNSearch(ttk.Frame):
             self.graphs_thread.start()
             # check if model_thread finished
             self.after(10, self.check_graphs_thread_save_results)
-            #self.srt_tags = model.plot_tags(tags_dic, self.current_fname)
-            #self.ngrams = model.get_ngrams(self.process_results)
-            #self.set_graphs_ready(True)
         elif not self.processed and self.is_file_loaded:
             self.graphs_win.destroy()
             self.show_message('Please click "Process!" button',
@@ -797,7 +805,7 @@ class NNSearch(ttk.Frame):
         # add a label for "Load", "Save" frame
         self.flab = ttk.Label(self.InnerRightFrm0,
                               font='TkDefaultFont 10 bold',
-                              text='Text operations')
+                              text='File operations')
         self.flab.grid(row=0)
         # make "Load", "Process" and "Save" buttons for right frame
         self.load_butt = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
@@ -894,6 +902,10 @@ class NNSearch(ttk.Frame):
     def lock_ui(self, lock):
         """
         Lock all UI clickable widgets when background operations are running.
+
+        Args:
+            *lock* (bool) -- disable widgets if True
+
         """
         if lock:
             self.MenuButton0.config(state='disabled')
@@ -928,15 +940,33 @@ class NNSearch(ttk.Frame):
             self.stats_butt2.config(state='normal')
             self.stats_butt3.config(state='normal')
 
+    def lock_toplevel(self, toplevel_win_widget, lock):
+        """
+        Lock Toplevel widgets in order to prevent a user from closing it.
+
+        Args:
+            |*toplevel_win_widget* (ttk.Button) -- Toplevel Button widget
+            |*lock* (bool) -- disable widgets if True
+
+        """
+        if lock:
+            toplevel_win_widget.config(state='disabled')
+        else:
+            toplevel_win_widget.config(state='normal')
+
     def clean_up(self):
         """
         Remove all plot files in 'graphs' dir upon initialization.
         """
         try:
             shutil.rmtree('graphs')
-            shutil.os.mkdir('graphs')
         except (OSError, IOError):
             print "WARNING: Cannot remove 'graphs/' directory!"
+        try:
+            shutil.os.mkdir('graphs')
+        except (OSError, IOError):
+            print "WARNING: Cannot create 'graphs' directory!"
+            sys.exit(1)
 
     def img_path(self, icon_name):
         """

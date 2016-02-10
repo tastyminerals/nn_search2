@@ -177,12 +177,12 @@ def get_stats(model_queue, tblob):
 
     # calculate pos-tags
     tag_cnts = Counter((tup[1] for tup in tblob.tags))
-
+    english_stopwords = stopwords.words('english')
     # calculate lexical diversity, unique words / total words
     parsed_lower = [w.lower() for w in tblob.words
-                    if w.lower() not in stopwords.words('english')]
+                    if w.lower() not in english_stopwords]
     total_tokens = [w for w in tblob.words
-                    if w.lower() not in stopwords.words('english')]
+                    if w.lower() not in english_stopwords]
     try:
         diversity = round(len(set(parsed_lower)) / len(total_tokens), 2)
     except ZeroDivisionError:
@@ -271,11 +271,11 @@ def get_ngrams(txtblob_obj):
     counter = Counter(txtblob_obj[0].words)
     counts_dic = od(counter.most_common())
     tags_dic = dict(txtblob_obj[0].tags)
-    content = ('JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RB', 'RBR',
-               'RBS', 'VB', 'VBG')
+    # POS-tags included into most frequent words list
+    include = ('JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'VB', 'VBG')
     # get n most frequent words
     mostn = [(k, counts_dic[k])
-             for k in counts_dic if tags_dic.get(k) in content][:10]
+             for k in counts_dic if tags_dic.get(k) in include][:10]
     ngram2_cnt = Counter([(n[0], n[1]) for n in txtblob_obj[0].ngrams(2)])
     ngram3_cnt = Counter([(n[0], n[1], n[2]) for n
                          in txtblob_obj[0].ngrams(3)])
