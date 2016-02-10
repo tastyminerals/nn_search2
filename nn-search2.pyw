@@ -15,6 +15,7 @@ import tkFileDialog as tkf
 import tkMessageBox
 import Queue
 from PIL import ImageTk as itk
+import shutil
 from tkFileDialog import askopenfilename
 
 import model
@@ -38,7 +39,6 @@ class NNSearch(ttk.Frame):
         self.is_file_loaded = False
         self.processed = False  # clicked 'Process!' button
         self.current_fname = 'text_field'  # currently processed file
-
         # init some string headers
         # left and right label headers for Numbers pop-up window
         self.num_llabl = 'Tokens count:\nWords count:\nSentences count: \n' +\
@@ -46,10 +46,10 @@ class NNSearch(ttk.Frame):
                          'Lexical diversity [0,1]:\nSubjectivity [0,1]: \n' +\
                          'Polarity [-1,1]: \nCorrectness [0,1]: \n'
         self.num_rlabl = '{0}\n{1}\n{2}\n---------\n{3}\n{4}\n{5}\n{6}'
-
         # build UI
+        self.clean_up()
         ttk.Frame.__init__(self, master)
-        self.grid(sticky='nsew')  # FIXIT: probably not needed
+        self.grid(sticky='nsew')
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
@@ -928,6 +928,16 @@ class NNSearch(ttk.Frame):
             self.stats_butt2.config(state='normal')
             self.stats_butt3.config(state='normal')
 
+    def clean_up(self):
+        """
+        Remove all plot files in 'graphs' dir upon initialization.
+        """
+        try:
+            shutil.rmtree('graphs')
+            shutil.os.mkdir('graphs')
+        except (OSError, IOError):
+            print "WARNING: Cannot remove 'graphs/' directory!"
+
     def img_path(self, icon_name):
         """
         Return a full path with an icon name.
@@ -937,7 +947,6 @@ class NNSearch(ttk.Frame):
 
         """
         return os.path.join('data', 'icons', icon_name)
-
 
     def set_stats_ready(self, state):
         """
