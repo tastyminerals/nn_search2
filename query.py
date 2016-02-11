@@ -22,8 +22,8 @@ def preprocess_query(query):
     """
     query_lst = query.split()
     # check query syntax
-    rx = re.compile('(".+"([A-Z$]{2,4})?({[0-9]+})?|' +
-                    '(".+")?[A-Z$]{2,4}({[0-9]+})?)')
+    rx = re.compile('!?(".+"([A-Z$]{2,4})?({[0-9]+})?|' +
+                    '!?(".+")?[A-Z$]{2,4}({[0-9]+})?)')
     for node in query_lst:
         try:
             match_gr = rx.search(node).group()
@@ -37,12 +37,17 @@ def preprocess_query(query):
     # convert query for further processing, check POS-tags
     conv_query = []
     for node in query_lst:
+        if not node.startswith('!'):
+            not_node = False
+        else:
+            not_node = True
         word = re.match(".+", node)
         tag = re.match('(".+")?([A-Z$]{2,4}){?', node)
         idx = re.match('}[0-9]+{', node[::-1])
         if tag and tag.groups()[-1] not in penn_tags:
             return 2, tag.groups()[-1]
-        conv_query.append([word, tag, idx])
+        conv_query.append([word, tag, idx, not_node])
+    print conv_query
     return conv_query
 
 
@@ -53,11 +58,6 @@ def parse_query(query):
     Args:
         *query* (str) -- user query string
 
-
-    NN NN{1}
-    NN VB
-    'green'_JJ 'tree'_NN{2}
-    'He'_PN !'goes'_VB{1} 'shop'_NN{5}
     """
     pass
 
