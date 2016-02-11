@@ -5,6 +5,7 @@ This module handles various query operations.
 """
 
 import re
+import model
 
 def preprocess_query(query):
     """
@@ -19,8 +20,31 @@ def preprocess_query(query):
         *prequery* () -- preprocessed query
 
     """
-    re.search('(".+")?([A-Z]+)?({[0-9]+})?', query).group()
-    pass
+    query_lst = query.split()
+    # check query syntax
+    rx = re.compile('(".+"([A-Z$]{2,4})?({[0-9]+})?|' +
+                    '(".+")?[A-Z$]{2,4}({[0-9]+})?)')
+    for node in query_lst:
+        try:
+            match_gr = rx.search(node).group()
+        except AttributeError:
+            return 1, node
+        if len(node) != len(match_gr):
+            # return code 1 with the incorrect node
+            return 1, node
+
+    penn_tags = model.get_penn_treebank()[1][1:] + ('PUNC',)
+    # convert query for further processing, check POS-tags
+    conv_query = []
+    for node in query_lst:
+        word = re.match(".+", node)
+        tag = re.match('(".+")?([A-Z$]{2,4}){?', node)
+        idx = re.match('}[0-9]+{', node[::-1])
+        if tag and tag.groups()[-1] not in penn_tags:
+            return 2, tag.groups()[-1]
+        conv_query.append([word, tag, idx])
+    return conv_query
+
 
 def parse_query(query):
     """

@@ -67,7 +67,16 @@ class NNSearch(ttk.Frame):
         """
         self.query = self.Entry.get().strip()  # get query from entry widget
         # self.Entry.delete(0, 'end')  # removes query from entry widget
-        query.preprocess_query(self.query)
+        valid = query.preprocess_query(self.query)
+        if valid and valid[0] == 1:
+            msg = 'Incorrect query syntax in: %s' % valid[1]
+            self.show_message(msg, 'error.png')
+            return
+        if valid and valid[0] == 2:
+            msg = 'Incorrect POS-tag used: %s' % valid[1]
+            self.show_message(msg, 'error.png')
+            return
+
 
     def ctrl_a(self, callback=False):
         """
@@ -360,7 +369,7 @@ class NNSearch(ttk.Frame):
                                                self.textstats.get('subj'),
                                                self.textstats.get('polar'),
                                                self.textstats.get('corr'))
-            self.update()
+            self.update_idletasks()
             self.stats_win.geometry("")
             self.set_stats_ready(True)
             self.lock_toplevel(self.stats_win_butt, False)
@@ -616,8 +625,9 @@ class NNSearch(ttk.Frame):
         ttk.Label(ngramFrInn5, font='TkDefaultFont 10 bold',
                   text=ngram3_cnts).grid()
         # update and reset window size, tkinter will adjust
-        self.graphs_win.update()
+        self.graphs_win.update_idletasks()
         self.graphs_win.geometry('')
+        self.graphs_win.minsize(120, 300)  # FIX: limit max size
         self.centrify_widget(self.graphs_win)
 
     def mk_graphs_win(self):
@@ -662,8 +672,8 @@ class NNSearch(ttk.Frame):
             self.show_message('No data provided!', 'error.png')
             return
         else:
-            self.graphs_win.minsize(120, 300)
             #self.graphs_win.resizable(0, 0)
+            self.graphs_win.minsize(120, 300)
             self.finish_graphs_window()
 
     def build_gui(self):
