@@ -82,5 +82,3 @@ def single_match(query, sent):
         print prev, len(sent)
 
 single_match(query, sent[0])
-
-

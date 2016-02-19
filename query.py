@@ -33,22 +33,27 @@ def preprocess_query(query):
             # return code 1 with the incorrect node
             return 1, node
 
+    # check POS-tags correctness
     penn_tags = model.get_penn_treebank()[1][1:] + ('PUNC',)
-    # convert query for further processing, check POS-tags
-    conv_query = []
+    ready_query = []
+    node_idx = None
     for node in query_lst:
         if not node.startswith('!'):
             not_node = False
         else:
             not_node = True
-        word = re.match(".+", node)
         tag = re.match('(".+")?([A-Z$]{2,4}){?', node)
-        idx = re.match('}[0-9]+{', node[::-1])
         if tag and tag.groups()[-1] not in penn_tags:
             return 2, tag.groups()[-1]
-        conv_query.append([word, tag, idx, not_node])
-    print conv_query
-    return conv_query
+        # separate idx from node
+        if node.endswith('}'):
+            node_idx = int(re.search('{([0-9]+)}$', node).groups()[-1])
+            node = re.sub('}[0-9]+{', '', node[::-1], 1)[::-1]
+        # add formatted query to list
+        ready_query.append((node, node_idx, not_node))
+        node_idx = None
+    print ready_query
+    return ready_query
 
 
 def parse_query(query):

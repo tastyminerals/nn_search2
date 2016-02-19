@@ -65,6 +65,7 @@ class NNSearch(ttk.Frame):
         """
         Trigger query processing when <Enter> or "Search" button is pressed.
         """
+        print self.fully_tagged_sents
         self.query = self.Entry.get().strip()  # get query from entry widget
         # self.Entry.delete(0, 'end')  # removes query from entry widget
         valid = query.preprocess_query(self.query)
