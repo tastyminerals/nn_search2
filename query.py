@@ -38,6 +38,8 @@ def preprocess_query(query):
     ready_query = []
     node_idx = None
     for node in query_lst:
+        # hack, because we need to prevent 'RB' match 'WRB'
+        node = '"' + re.sub('"', '', node, 1)
         if not node.startswith('!'):
             not_node = False
         else:
