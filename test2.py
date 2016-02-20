@@ -57,6 +57,7 @@ def matching(query, sent):
             last_matched = False  # True if last qterm matched anything
             for token in fsent[start:]:
                 # first check if qterm index allows further search
+                print '>>>', qterm[1], token[1] - last
                 if qterm[1] is not None and qterm[1] < token[1] - last:
                     last = token[1] + 1
                     break
