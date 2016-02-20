@@ -36,24 +36,20 @@ def preprocess_query(query):
     # check POS-tags correctness
     penn_tags = model.get_penn_treebank()[1][1:] + ('PUNC',)
     ready_query = []
-    node_idx = None
+    # convert query for further processing, check POS-tags
     for node in query_lst:
-        # hack, because we need to prevent 'RB' match 'WRB'
-        node = '"' + re.sub('"', '', node, 1)
         if not node.startswith('!'):
             not_node = False
         else:
             not_node = True
-        tag = re.match('(".+")?([A-Z$]{2,4}){?', node)
+        word = re.match(r'".+"', node) or None
+        tag = re.match(r'(".+")?([A-Z$]{2,4}){?', node) or None
+        idx = re.match(r'}([0-9]+){', node[::-1]) or None
         if tag and tag.groups()[-1] not in penn_tags:
             return 2, tag.groups()[-1]
-        # separate idx from node
-        if node.endswith('}'):
-            node_idx = int(re.search('{([0-9]+)}$', node).groups()[-1])
-            node = re.sub('}[0-9]+{', '', node[::-1], 1)[::-1]
-        # add formatted query to list
-        ready_query.append((node, node_idx, not_node))
-        node_idx = None
+        ready_query.append((not word or word.group(),
+                            tag.group(2),
+                            not idx or int(idx.group(1)[::-1]), not_node))
     print ready_query
     return ready_query
 
