@@ -300,7 +300,6 @@ class nn_search(Frame):
                     token_mod = token_mod_output1[self.options[1]] #used to implement POS-tags for a sentence
                 else:
                     token_mod = token_mod_output2[self.options[1]] #used to implement POS-tags for a sentence
-
                 temp_token_pos = self.text.search(token_mod, start, stopindex=END, regexp=True) # we need to know the index of the first token in a token pack for highlighting
                 last_token_len = len(token.split()[0])
                 end_pos = '%s+%dc' % (temp_token_pos, last_token_len)
@@ -632,7 +631,7 @@ class nn_search(Frame):
 
 # init gui
 global SIZE
-SIZE = {'posix':{'WIDTH':990, 'HEIGHT':410, 'A_HEIGHT':312, 'T_HEIGHT':370, 'T_WIDTH':862, 'B_FRAME':10, 'E_WIDTH':75}, \
+SIZE = {'posix':{'WIDTH':1050, 'HEIGHT':410, 'A_HEIGHT':312, 'T_HEIGHT':370, 'T_WIDTH':862, 'B_FRAME':10, 'E_WIDTH':75}, \
 'nt':{'WIDTH':890, 'HEIGHT':390, 'A_HEIGHT':287, 'T_HEIGHT':348, 'T_WIDTH':770, 'B_FRAME':3, 'E_WIDTH':74}} #UI dimentions for win and linux
 
 root = Tk()

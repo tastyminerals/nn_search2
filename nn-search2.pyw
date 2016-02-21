@@ -65,7 +65,7 @@ class NNSearch(ttk.Frame):
         """
         Trigger query processing when <Enter> or "Search" button is pressed.
         """
-        print self.fully_tagged_sents
+        # print self.fully_tagged_sents
         self.query = self.Entry.get().strip()  # get query from entry widget
         # self.Entry.delete(0, 'end')  # removes query from entry widget
         valid = query.preprocess_query(self.query)
@@ -77,7 +77,13 @@ class NNSearch(ttk.Frame):
             msg = 'Incorrect POS-tag used: %s' % valid[1]
             self.show_message(msg, 'error.png')
             return
-
+        # find query matches
+        matches, high_type = query.find_matches(valid, self.fully_tagged_sents)
+        if not matches or not any([m for m in matches.values() if m]):
+            msg = 'No matches found \n revise you query'
+            self.show_message(msg, 'sad.png')
+            return
+        self.insert_matches(matches, high_type)
 
     def ctrl_a(self, callback=False):
         """
@@ -222,7 +228,7 @@ class NNSearch(ttk.Frame):
         message.resizable(0, 0)
         warnFr = ttk.Frame(message, borderwidth=2, relief='groove')
         warnFr.grid(sticky='nsew')
-        ttk.Label(warnFr, font='TkDefaultFont 10', text=msg).grid()
+        ttk.Label(warnFr, font='TkDefaultFont 10 bold', text=msg).grid()
         self.err_img = itk.PhotoImage(file=self.img_path(icon))
         ttk.Label(warnFr, image=self.err_img).grid()
         ttk.Button(warnFr, padding=(0, 2), text='OK',
@@ -376,7 +382,6 @@ class NNSearch(ttk.Frame):
             self.lock_toplevel(self.stats_win_butt, False)
             self.stats_butt1.config(state='normal')
             self.rtext.config(text=stats_text)
-
 
     def show_stats_win(self):
         """
@@ -676,6 +681,57 @@ class NNSearch(ttk.Frame):
             #self.graphs_win.resizable(0, 0)
             self.graphs_win.minsize(120, 300)
             self.finish_graphs_window()
+
+    def insert_matches(self, matched, hl_type):
+        """
+        Insert and highlight text matches according to selected UI options.
+
+        Args:
+            | *matched* -- dict of matched tokens
+            | *hl_type* -- type of highlighting, single token or range
+
+        """
+        pos_tags, text_view = self.get_opts()
+        # if view is 1, no need to insert text, it has been loaded already
+        if text_view == 1:
+            self.mark_tokens1(matched, hl_type)
+            self.highlight1()
+
+    def mark_tokens1(self, matched, hltype):
+        start = '1.0'
+        for tokens in matched.values():
+            for token in tokens:
+                token = ''.join(['\y', token[0], '\y'])
+            temp_mark = self.Text.search(token, start, stopindex=tk.END, regexp=True)
+            print 'temp_mark', temp_mark
+            last_mark = len(token[0])
+            end_pos = '%s+%dc' % (temp_mark, last_mark)
+            first_mark = temp_mark
+            start = end_pos + '+ 1c'
+            first = False
+            self.Text.tag_add('style', first_mark, end_pos)
+
+
+    def mark_tokens2(self):
+        pass
+
+    def mark_tokens3(self):
+        pass
+
+
+    def highlight1(self):
+        self.Text.tag_configure('style', background='#C0FA82')
+
+    def highlight2(self):
+        self.Text.tag_configure('style', background="#BCFC77",
+                                font='TkDefaultFont 11 bold')
+
+    def highlight3(self):
+        self.Text.tag_configure('style', font='TkDefaultFont 12 bold')
+
+
+
+
 
     def build_gui(self):
         """
@@ -978,6 +1034,12 @@ class NNSearch(ttk.Frame):
         except (OSError, IOError):
             print "WARNING: Cannot create 'graphs' directory!"
             sys.exit(1)
+
+    def get_opts(self):
+        """
+        Return UI selected widget values.
+        """
+        return self.show_tags.get(), self.view_opts.get()
 
     def img_path(self, icon_name):
         """

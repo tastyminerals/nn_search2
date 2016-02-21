@@ -22,7 +22,20 @@ query.append([(None, 'DT', None, False), (None, 'ZZZ', 10, False), ('r', None, N
 query.append([(None, 'NNP', None, False), (None, 'NN', 10, False)])
 query.append([(None, 'NN', None, False), (None, 'NN', None, False)])
 
+
 def matching(query, sent):
+    def update_cache(token, qmatch, full_query, neg=False):
+        last = token[2] + 1
+        start = last
+        full_query -= 1
+        last_matched = True
+        negation = False
+        if neg:
+            negation = True
+        if not neg:
+            qmatch.append(token)
+        return [last, start, full_query, last_matched, negation, qmatch]
+
     start = 0
     last = 0
     negation = False
@@ -44,11 +57,7 @@ def matching(query, sent):
                 if qterm[2] is not None and qterm[2] < token[2] - last:
                     # if negation, we add to qmatch and break
                     if qterm[3]:
-                        last = token[2] + 1
-                        start = last
-                        full_query -= 1
-                        last_matched = True
-                        qmatch.append(token)
+                        last, start, full_query, last_matched, negation, qmatch = update_cache(token, qmatch, full_query)
                         print 'NEGATION! BREAK0'
                         break
                     last = token[2] + 1
@@ -62,24 +71,16 @@ def matching(query, sent):
                 if qterm[1] is not None and not qterm[1] == token[1] and not qterm[3]:
                     print 'POS-tag not matched! continue'
                     continue
-
-                # check ! negation
+                # check ! negation and handle all options accordingly
                 if qterm[3] and (qterm[0] == token[0] or qterm[1] == token[1]):
                     if qterm[2] is not None:
                         if qterm[2] >= token[2] - last:
                             print 'NEGATION Full match! BREAK1'
-                            last = token[2] + 1
-                            start = last
-                            last_matched = True
-                            negation = True
+                            # params = [last, start, full_query, last_matched, negation, qmatch]
+                            last, start, full_query, last_matched, negation, qmatch = update_cache(token, qmatch, full_query, True)
                             break
                         else:
-                            last = token[2] + 1
-                            start = last
-                            full_query -= 1
-                            last_matched = True
-                            negation = False
-                            qmatch.append(token)
+                            last, start, full_query, last_matched, negation, qmatch = update_cache(token, qmatch, full_query)
                             # check here if the qterm was the last in a query
                             if full_query == 0:
                                 # if it was append a qmatch before we break
@@ -89,22 +90,14 @@ def matching(query, sent):
                             break
                     else:
                         print 'NEGATION word and TAG matched!, BREAK'
-                        last = token[2] + 1
-                        start = last
-                        last_matched = True
-                        negation = True
+                        last, start, full_query, last_matched, negation, qmatch = update_cache(token, qmatch, full_query, True)
                         break
-
                 # if idx and there is idx match act
                 print 'WORD and TAG matched, checking idx:', qterm[2]
                 if qterm[2] is not None:
                     if qterm[2] >= token[2] - last:
                         print 'IDX MATCH!'
-                        last = token[2] + 1
-                        start = last
-                        full_query -= 1
-                        last_matched = True
-                        qmatch.append(token)
+                        last, start, full_query, last_matched, negation, qmatch = update_cache(token, qmatch, full_query)
                         # check here if the qterm was the last in a query
                         if full_query == 0:
                             # if it was append a qmatch before we break
@@ -120,18 +113,11 @@ def matching(query, sent):
                 # check here for ! negation node, disallow adding to qmatch
                 if qterm[3]:
                     print 'NEGATION! BREAK2'
-                    last = token[2] + 1
-                    start = last
-                    last_matched = True
-                    negation = True
+                    last, start, full_query, last_matched, negation, qmatch = update_cache(token, qmatch, full_query, True)
                     break
                 # if idx limit does not exist, add token to qmatch cache
                 print 'NO IDX, adding to qmatch'
-                last = token[2] + 1
-                start = last
-                full_query -= 1
-                qmatch.append(token)
-                last_matched = True
+                last, start, full_query, last_matched, negation, qmatch = update_cache(token, qmatch, full_query)
                 # check again if we have fully matched the query
                 if full_query == 0:
                     print 'FULL MATCH! adding to matches'
