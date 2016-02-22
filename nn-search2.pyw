@@ -31,6 +31,7 @@ class NNSearch(ttk.Frame):
         self.graphs_ready = False  # do not recalc graphs
         self.model_queue = Queue.PriorityQueue()
         self.process_thread = None
+        self.loaded_text = None
         self.stats_thread = None
         self.graphs_thread = None
         self.model_results = None
@@ -79,9 +80,12 @@ class NNSearch(ttk.Frame):
             return
         # find query matches
         matches, high_type = query.find_matches(valid, self.fully_tagged_sents)
-        if not matches or not any([m for m in matches.values() if m]):
+        if matches and not any([m for m in matches.values() if m]):
             msg = 'No matches found \n revise you query'
             self.show_message(msg, 'sad.png')
+            return
+        elif not matches:
+            self.Text.tag_delete('style')  # reset highighting
             return
         self.insert_matches(matches, high_type)
 
@@ -226,13 +230,15 @@ class NNSearch(ttk.Frame):
         message = tk.Toplevel()
         message.title('Warning!')
         message.resizable(0, 0)
-        warnFr = ttk.Frame(message, borderwidth=2, relief='groove')
-        warnFr.grid(sticky='nsew')
-        ttk.Label(warnFr, font='TkDefaultFont 10 bold', text=msg).grid()
+        warnFr0 = ttk.Frame(message, borderwidth=2, relief='groove')
+        warnFr0.grid(sticky='nsew')
+        warnFr1 = ttk.Frame(warnFr0, borderwidth=2, relief='groove')
+        warnFr1.grid(sticky='nsew')
+        ttk.Label(warnFr1, font='TkDefaultFont 10 bold', text=msg).grid()
         self.err_img = itk.PhotoImage(file=self.img_path(icon))
-        ttk.Label(warnFr, image=self.err_img).grid()
-        ttk.Button(warnFr, padding=(0, 2), text='OK',
-                   command=message.destroy).grid()
+        ttk.Label(warnFr1, image=self.err_img).grid()
+        ttk.Button(warnFr0, padding=(0, 2), text='OK',
+                   command=message.destroy, takefocus=True).grid()
         self.centrify_widget(message)
 
     def load_data(self):
@@ -260,7 +266,7 @@ class NNSearch(ttk.Frame):
             if fsize > 10:
                 self.show_message("The file is too big!", 'warning.png')
                 return None
-            loaded_text = model.read_input_file(fpath)
+            self.loaded_text = model.read_input_file(fpath)
             fname = os.path.basename(fpath)
             if len(fname) > 20:
                 fname = fname[:17] + '...'
@@ -274,7 +280,7 @@ class NNSearch(ttk.Frame):
         self.stats0.config(text="Name: {0}".format(fname))
         self.stats1.config(text="Size: {0}kb".format(round(fsize * 1024, 1)))
         # insert read text into Text widget
-        self.insert_text(loaded_text)
+        self.insert_text(self.loaded_text)
         # reset text statistics after we loaded a new file
         self.set_stats_ready(False)
         self.set_graphs_ready(False)
@@ -694,44 +700,208 @@ class NNSearch(ttk.Frame):
         pos_tags, text_view = self.get_opts()
         # if view is 1, no need to insert text, it has been loaded already
         if text_view == 1:
-            self.mark_tokens1(matched, hl_type)
+            self.mark_tokens1(matched, hl_type, pos_tags)
             self.highlight1()
+        elif text_view == 2:
+            self.mark_tokens2(matched, hl_type, pos_tags)
+            self.highlight2()
+        elif text_view == 3:
+            self.mark_tokens3(matched, hl_type, pos_tags)
+            self.highlight3()
 
-    def mark_tokens1(self, matched, hltype):
+    def precache_text_views(self):
+        """
+        Precache text data for various text views.
+        <This is done in order to stop recalculating text each time during
+        results insertion.>
+        """
+        # precache for view1
+        text1_view = ''
+        for key, values in self.process_results[1].items():
+            text = ['_'.join([value[0], value[1]]) for value in values]
+            text1_view = ' '.join([' '.join(text), text1_view])
+        self.text1_view = text1_view
+        # precache for view2
+        view2_text = ''
+        for sent_id, sent_lst in self.process_results[1].items():
+            sent = ' '.join([token[0] for token in sent_lst])
+            text = ': '.join([str(sent_id), sent])
+            view2_text = '\n\n'.join([view2_text, text])
+        # precache for view2 with POS-tags
+        for sent_id, sent_lst in self.process_results[1].items():
+            sent = ['_'.join([token[0], token[1]]) for token in sent_lst]
+            text = ': '.join([str(sent_id), sent])
+            view2_text = '\n\n'.join([view2_text, text])
+        self.view2_text = view2_text
+        # precache for view3
+        # precache for view3 with POS-tags
+
+    def mark_tokens1(self, matched, single, pos):
+        """
+        Using results of a query match add text tags.
+        Highlighting view 1, just plain loaded text.
+        <tk.Text.search returns only the beginning of a match, thats why we
+        need to '+%dc' to the starting match index.>
+
+        Args:
+            | *matched* -- dict of matched results
+            | *single* -- True if single match
+            | *pos* -- True if add POS-tags
+
+        """
+        self.Text.tag_delete('style')  # reset highighting
         start = '1.0'
+        first = True
+        end_mark = '1.0'
+        # reload text
+        self.Text.delete('1.0', 'end')  # remove text
+        if pos:
+            text1_view = ''
+            for key, values in self.process_results[1].items():
+                text = ['_'.join([value[0], value[1]]) for value in values]
+                text1_view = ' '.join([' '.join(text), text1_view])
+            self.insert_text(text1_view)
+        else:
+            if self.loaded_text:
+                self.insert_text(self.loaded_text)
+            else:
+                self.insert_text(self.process_results[0])
+        #start_mark = '1.0'
         for tokens in matched.values():
+            sent_limit = True
             for token in tokens:
                 token = ''.join(['\y', token[0], '\y'])
-            temp_mark = self.Text.search(token, start, stopindex=tk.END, regexp=True)
-            print 'temp_mark', temp_mark
-            last_mark = len(token[0])
-            end_pos = '%s+%dc' % (temp_mark, last_mark)
-            first_mark = temp_mark
-            start = end_pos + '+ 1c'
-            first = False
-            self.Text.tag_add('style', first_mark, end_pos)
+                # get start index, search returns only first match
+                temp_mark = self.Text.search(token, start, stopindex=tk.END,
+                                             regexp=True)
+                if not temp_mark:
+                    break
+                token_len = len(token) - 4
+                end_mark = '%s+%dc' % (temp_mark, token_len)
+                # highlight range or single token
+                if single:
+                    start_mark = temp_mark
+                # break highlight between sents
+                if sent_limit:
+                    start_mark = temp_mark
+                    sent_limit = False
+                # mark first token
+                if first:
+                    start_mark = temp_mark
+                    start = end_mark + '+ 1c'  # plus one character
+                    first = False
+                self.Text.tag_add('style', start_mark, end_mark)
 
+    def mark_tokens2(self, matched, single, pos):
+        """
+        Using results of a query match add text tags.
+        Highlighting view 2, formatted text into sentence blocks.
+        <tk.Text.search returns only the beginning of a match, thats why we
+        need to '+%dc' to the starting match index.>
 
-    def mark_tokens2(self):
-        pass
+        Args:
+            | *matched* -- dict of matched results
+            | *single* -- True if single match
+            | *pos* -- True if add POS-tags
 
-    def mark_tokens3(self):
-        pass
+        """
+        self.Text.tag_delete('style')  # reset highighting
+        start = '1.0'
+        first = True
+        view2_text = ''
+        for sent_id, sent_lst in self.process_results[1].items():
+            sent = ' '.join([token[0] for token in sent_lst])
+            text = ': '.join([str(sent_id), sent])
+            view2_text = '\n\n'.join([view2_text, text])
+        self.Text.delete('1.0', 'end')  # remove text
+        self.Text.insert('1.0', view2_text.lstrip('\n\n'))  # remove first \n\n
+        for tokens in matched.values():
+            sent_limit = True
+            for token in tokens:
+                token = ''.join(['\y', token[0], '\y'])
+                # get start index, search returns only first match
+                temp_mark = self.Text.search(token, start, stopindex=tk.END,
+                                             regexp=True)
+                if not temp_mark:
+                    break
+                token_len = len(token) - 4
+                end_mark = '%s+%dc' % (temp_mark, token_len)
+                # highlight range or single token
+                if single:
+                    start_mark = temp_mark
+                # break highlight between sents
+                if sent_limit:
+                    start_mark = temp_mark
+                    sent_limit = False
+                # mark first token
+                if first:
+                    start_mark = temp_mark
+                    start = end_mark + '+ 1c'  # plus one character
+                    first = False
+                self.Text.tag_add('style', start_mark, end_mark)
 
+    def mark_tokens3(self, matched, single, pos):
+        """
+        Using results of a query match add text tags.
+        Highlighting view 3, display only matched tokens.
+        <tk.Text.search returns only the beginning of a match, thats why we
+        need to '+%dc' to the starting match index.>
+
+        Args:
+            | *matched* -- dict of matched results
+            | *single* -- True if single match
+            | *pos* -- True if add POS-tags
+
+        """
+        self.Text.tag_delete('style')  # reset highighting
+        start = '1.0'
+        first = True
+        self.Text.delete('1.0', 'end')  # remove text
+        view3_text = ''
+        match_cnt = 0
+        for tokens in matched.values():
+            for token in tokens:
+                match_cnt += 1
+                text = ': '.join([str(match_cnt), token[0]])
+                view3_text = '\n'.join([view3_text, text])
+        self.Text.delete('1.0', 'end')  # remove text
+        self.Text.insert('1.0', view3_text.lstrip('\n'))  # remove first \n
+        for tokens in matched.values():
+            sent_limit = True
+            for token in tokens:
+                token = ''.join(['\y', token[0], '\y'])
+                # get start index, search returns only first match
+                temp_mark = self.Text.search(token, start, stopindex=tk.END,
+                                             regexp=True)
+                if not temp_mark:
+                    break
+                token_len = len(token) - 4
+                end_mark = '%s+%dc' % (temp_mark, token_len)
+                # highlight range or single token
+                if single:
+                    start_mark = temp_mark
+                # break highlight between sents
+                if sent_limit:
+                    start_mark = temp_mark
+                    sent_limit = False
+                # mark first token
+                if first:
+                    start_mark = temp_mark
+                    start = end_mark + '+ 1c'  # plus one character
+                    first = False
+                self.Text.tag_add('style', start_mark, end_mark)
 
     def highlight1(self):
-        self.Text.tag_configure('style', background='#C0FA82')
+        self.Text.tag_configure('style', foreground='#000000',
+                                background='#C0FA82')
 
     def highlight2(self):
-        self.Text.tag_configure('style', background="#BCFC77",
-                                font='TkDefaultFont 11 bold')
+        self.Text.tag_configure('style', foreground='#000000',
+                                background="#BCFC77",
+                                font='TkDefaultFont 10 bold')
 
     def highlight3(self):
-        self.Text.tag_configure('style', font='TkDefaultFont 12 bold')
-
-
-
-
+        self.Text.tag_configure('style', font='TkDefaultFont 11 bold')
 
     def build_gui(self):
         """

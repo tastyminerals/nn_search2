@@ -631,7 +631,7 @@ class nn_search(Frame):
 
 # init gui
 global SIZE
-SIZE = {'posix':{'WIDTH':1050, 'HEIGHT':410, 'A_HEIGHT':312, 'T_HEIGHT':370, 'T_WIDTH':862, 'B_FRAME':10, 'E_WIDTH':75}, \
+SIZE = {'posix':{'WIDTH':1150, 'HEIGHT':410, 'A_HEIGHT':312, 'T_HEIGHT':370, 'T_WIDTH':862, 'B_FRAME':10, 'E_WIDTH':75}, \
 'nt':{'WIDTH':890, 'HEIGHT':390, 'A_HEIGHT':287, 'T_HEIGHT':348, 'T_WIDTH':770, 'B_FRAME':3, 'E_WIDTH':74}} #UI dimentions for win and linux
 
 root = Tk()

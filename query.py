@@ -130,8 +130,7 @@ def match_query(query, sent):
         if not neg:
             qmatch.append(token)
         return [last, start, full_query, last_matched, negation, qmatch]
-    print 'RECEIVED:', query
-    print 'RECEIVED:', sent
+
     start = 0
     last = 0
     negation = False
