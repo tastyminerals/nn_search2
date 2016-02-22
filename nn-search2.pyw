@@ -16,7 +16,6 @@ import tkMessageBox
 import Queue
 from PIL import ImageTk as itk
 import shutil
-from tkFileDialog import askopenfilename
 
 import model
 import query
@@ -24,23 +23,32 @@ import query
 class NNSearch(ttk.Frame):
 
     def __init__(self, master):
-        # init some instance vars
         self.query = ''  # user query
+        # stats vars
         self.fully_tagged_sents = {}  # fully POS-tagged sents dict
         self.stats_ready = False  # do not recalc stats
         self.graphs_ready = False  # do not recalc graphs
+        self.textstats = {}
+        # processing vars
+        self.processed = False  # clicked 'Process!' button
         self.model_queue = Queue.PriorityQueue()
         self.process_thread = None
-        self.loaded_text = None
         self.stats_thread = None
         self.graphs_thread = None
+        # text and file vars
+        self.loaded_text = None
+        self.is_file_loaded = False
+        self.current_fname = 'text_field'  # currently processed file
+        # results vars
         self.model_results = None
         self.process_results = None
-        self.textstats = {}
-        self.is_file_loaded = False
-        self.processed = False  # clicked 'Process!' button
-        self.current_fname = 'text_field'  # currently processed file
-        # init some string headers
+        # precache text before inserting in order to reduce recalculation
+        self.precached = [False, False]  # for Text widget text caching
+        self.view1_text_pos = ''
+        self.view2_text = ''
+        self.view2_text_pos = ''
+        self.view3_text = ''
+        self.view3_text_pos = ''
         # left and right label headers for Numbers pop-up window
         self.num_llabl = 'Tokens count:\nWords count:\nSentences count: \n' +\
                          '-------------------------------\n' +\
@@ -50,6 +58,7 @@ class NNSearch(ttk.Frame):
         # build UI
         self.clean_up()
         ttk.Frame.__init__(self, master)
+        # resizing main UI
         self.grid(sticky='nsew')
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
@@ -66,6 +75,15 @@ class NNSearch(ttk.Frame):
         """
         Trigger query processing when <Enter> or "Search" button is pressed.
         """
+        # handle exceptions
+        if not self.processed and (self.Text.edit_modified() or
+                                   self.is_file_loaded):
+            self.show_message('Please click "Process!" button', 'warning.png')
+            return
+        elif not self.processed and (not self.Text.edit_modified() and
+                                     not self.is_file_loaded):
+            self.show_message('No data provided!', 'error.png')
+            return
         # print self.fully_tagged_sents
         self.query = self.Entry.get().strip()  # get query from entry widget
         # self.Entry.delete(0, 'end')  # removes query from entry widget
@@ -87,6 +105,14 @@ class NNSearch(ttk.Frame):
         elif not matches:
             self.Text.tag_delete('style')  # reset highighting
             return
+        # precache results before inserting
+        if not self.precached[0]:
+            self.precache_text_view12(matches)
+            self.precached[0] = True
+        if not self.precached[1]:
+            self.precache_text_view3(matches)
+            self.precached[1] = True
+        # insert the results
         self.insert_matches(matches, high_type)
 
     def ctrl_a(self, callback=False):
@@ -241,6 +267,28 @@ class NNSearch(ttk.Frame):
                    command=message.destroy, takefocus=True).grid()
         self.centrify_widget(message)
 
+    def save_data(self):
+        """
+        Save Text widget contents
+        """
+        types = (("txt file", "*.txt"),
+                 ("All files", "*.*"))
+        try:
+            opened_file = tkf.asksaveasfile(mode='w', filetypes=types)
+        except (IOError, OSError):
+            msg = 'Can not open the specified file!'
+            self.show_message(msg, 'error.png')
+            return
+        try:
+            opened_file.write(self.Text.get('1.0', tk.END))
+        except AttributeError:
+            return
+        except (IOError, OSError):
+            msg = 'Can not write the specified file!\n' + \
+                  'Make sure there is enough free space on disk'
+            self.show_message(msg, 'error.png')
+            return
+
     def load_data(self):
         """
         Open a file dialog window.
@@ -270,8 +318,8 @@ class NNSearch(ttk.Frame):
             fname = os.path.basename(fpath)
             if len(fname) > 20:
                 fname = fname[:17] + '...'
-        except (IOError, OSError):
-            msg = "Oops! you didn't provide any file to read!"
+        except (OSError, IOError):
+            msg = "Can not open the specified file!"
             self.show_message(msg, 'warning.png')
             return
         # update the file stats
@@ -333,13 +381,15 @@ class NNSearch(ttk.Frame):
         function is to display a progress bar while running model functions in
         a separate thread>.
         """
-        # if Text modified, update Name and Size
+        # if Text modified, update Name and Size, reset precached bools
         if self.Text.edit_modified() or self.is_file_loaded:
             # update the file stats
             loaded_text = self.Text.get("1.0", 'end-1c')
             self.stats0.config(text="Name: {0}".format('Text field'))
             acc_size = round(len(loaded_text) / 1024, 1)
             self.stats1.config(text="Size: {0}kb".format(acc_size))
+            # reset Text precaching
+            self.precached = [False, False]
         else:
             self.show_message('No data provided!', 'error.png')
             self.set_processed(False)
@@ -349,9 +399,9 @@ class NNSearch(ttk.Frame):
         self.run_progressbar()
         # now handle the Process button command
         self.process_thread = thr.Thread(target=model.process_text,
-                                       args=(self.model_queue, loaded_text))
+                                         args=(self.model_queue, loaded_text))
         self.process_thread.start()
-         # check if model_thread finished
+        # check if model_thread finished
         self.after(10, self.check_process_thread_save_results)
         self.set_processed(True)
         self.set_stats_ready(False)
@@ -414,14 +464,15 @@ class NNSearch(ttk.Frame):
             self.textstats = dict((stat, 'Wait...') for stat in stats)
             # check if model_thread finished
             self.after(10, self.check_nums_thread_save_results)
-        elif not self.processed and self.is_file_loaded:
+        elif not self.processed and (self.is_file_loaded or
+                                     self.Text.edit_modified()):
             self.show_message('Please click "Process!" button',
                               'warning.png')
             return
-        elif not self.processed and not self.is_file_loaded:
+        elif not self.processed and not (self.is_file_loaded or
+                                         self.Text.edit_modified()):
             self.show_message('No data provided!', 'error.png')
             return
-
         # update the information to calculated stats
         stats_text = self.num_rlabl.format(self.textstats.get('tokens'),
                                            self.textstats.get('words'),
@@ -559,8 +610,8 @@ class NNSearch(ttk.Frame):
         self.tgs = '\n'.join([k for k in self.srt_tags])
         self.tgs_cnts = '\n'.join([str(v) for v in self.srt_tags.values()])
         total_cnt = sum([v for v in self.srt_tags.values()])
-        self.ratios = '\n'.join([str(round(v/total_cnt*100, 1)) +'%' for v
-                               in self.srt_tags.values()])
+        self.ratios = '\n'.join([str(round(v/total_cnt*100, 1)) + '%' for v
+                                   in self.srt_tags.values()])
         # create two inner Frames, one for POS-tags, another for counts
         graphFr0Inn0 = ttk.Frame(graphFr0Inn, borderwidth=2, relief='groove')
         graphFr0Inn0.grid(row=0, column=0, sticky='nsew')
@@ -641,6 +692,10 @@ class NNSearch(ttk.Frame):
         self.graphs_win.geometry('')
         self.graphs_win.minsize(120, 300)  # FIX: limit max size
         self.centrify_widget(self.graphs_win)
+        self.graphs_win.update()
+        # limit max size using current
+        x, y = self.graphs_win.winfo_geometry().split('+')[0].split('x')
+        self.graphs_win.maxsize(int(x), int(y))
 
     def mk_graphs_win(self):
         """
@@ -674,17 +729,19 @@ class NNSearch(ttk.Frame):
             self.graphs_thread.start()
             # check if model_thread finished
             self.after(10, self.check_graphs_thread_save_results)
-        elif not self.processed and self.is_file_loaded:
+        elif not self.processed and (self.is_file_loaded
+                                     or self.Text.edit_modified()):
             self.graphs_win.destroy()
             self.show_message('Please click "Process!" button',
                               'warning.png')
             return
-        elif not self.processed and not self.is_file_loaded:
+        elif not self.processed and not (self.is_file_loaded
+                                         or self.Text.edit_modified()):
             self.graphs_win.destroy()
             self.show_message('No data provided!', 'error.png')
             return
         else:
-            #self.graphs_win.resizable(0, 0)
+            # self.graphs_win.resizable(0, 0)
             self.graphs_win.minsize(120, 300)
             self.finish_graphs_window()
 
@@ -709,32 +766,72 @@ class NNSearch(ttk.Frame):
             self.mark_tokens3(matched, hl_type, pos_tags)
             self.highlight3()
 
-    def precache_text_views(self):
+    def precache_text_view12(self, matched):
         """
         Precache text data for various text views.
         <This is done in order to stop recalculating text each time during
         results insertion.>
+
+        Args:
+            | *matched* -- dict of matched tokens
+
         """
         # precache for view1
-        text1_view = ''
+        view1_text_pos = ''
         for key, values in self.process_results[1].items():
             text = ['_'.join([value[0], value[1]]) for value in values]
-            text1_view = ' '.join([' '.join(text), text1_view])
-        self.text1_view = text1_view
+            view1_text_pos = ' '.join([' '.join(text), view1_text_pos])
+        self.view1_text_pos = view1_text_pos
         # precache for view2
+        # first see which sent has query matches and include only those
+        matched_ids = [k for k in matched if matched[k]]
         view2_text = ''
         for sent_id, sent_lst in self.process_results[1].items():
+            if sent_id not in matched_ids:
+                continue
             sent = ' '.join([token[0] for token in sent_lst])
             text = ': '.join([str(sent_id), sent])
             view2_text = '\n\n'.join([view2_text, text])
+        self.view2_text = view2_text.lstrip('\n\n')   # remove first \n\n
         # precache for view2 with POS-tags
+        view2_text = ''
         for sent_id, sent_lst in self.process_results[1].items():
-            sent = ['_'.join([token[0], token[1]]) for token in sent_lst]
+            if sent_id not in matched_ids:
+                continue
+            sent = ' '.join(['_'.join([token[0], token[1]])
+                             for token in sent_lst])
             text = ': '.join([str(sent_id), sent])
             view2_text = '\n\n'.join([view2_text, text])
-        self.view2_text = view2_text
+        self.view2_text_pos = view2_text.lstrip('\n\n')
+
+    def precache_text_view3(self, matched):
+        """
+        Precache text data for various text views.
+        <This is done in order to stop recalculating text each time during
+        results insertion.>
+
+        Args:
+            | *matched* -- dict of matched tokens
+
+        """
         # precache for view3
+        view3_text = ''
+        match_cnt = 0
+        for tokens in matched.values():
+            for token in tokens:
+                match_cnt += 1
+                text = ': '.join([str(match_cnt), token[0]])
+                view3_text = '\n'.join([view3_text, text])
+        self.view3_text = view3_text.lstrip('\n')
         # precache for view3 with POS-tags
+        view3_text = ''
+        match_cnt = 0
+        for tokens in matched.values():
+            for token in tokens:
+                match_cnt += 1
+                text = ''.join([str(match_cnt), ': ', token[0], '_', token[1]])
+                view3_text = '\n'.join([view3_text, text])
+        self.view3_text_pos = view3_text.lstrip('\n')
 
     def mark_tokens1(self, matched, single, pos):
         """
@@ -756,21 +853,22 @@ class NNSearch(ttk.Frame):
         # reload text
         self.Text.delete('1.0', 'end')  # remove text
         if pos:
-            text1_view = ''
-            for key, values in self.process_results[1].items():
-                text = ['_'.join([value[0], value[1]]) for value in values]
-                text1_view = ' '.join([' '.join(text), text1_view])
-            self.insert_text(text1_view)
+            self.insert_text(self.view1_text_pos)
         else:
             if self.loaded_text:
                 self.insert_text(self.loaded_text)
             else:
                 self.insert_text(self.process_results[0])
-        #start_mark = '1.0'
+        # start_mark = '1.0'
         for tokens in matched.values():
+            if not tokens:
+                continue
             sent_limit = True
             for token in tokens:
-                token = ''.join(['\y', token[0], '\y'])
+                if not pos:
+                    token = ''.join([r'\y', token[0], r'\y'])
+                else:
+                    token = ''.join([r'\y', token[0], '_', token[1], r'\y'])
                 # get start index, search returns only first match
                 temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                              regexp=True)
@@ -813,12 +911,21 @@ class NNSearch(ttk.Frame):
             sent = ' '.join([token[0] for token in sent_lst])
             text = ': '.join([str(sent_id), sent])
             view2_text = '\n\n'.join([view2_text, text])
+        # reload text
         self.Text.delete('1.0', 'end')  # remove text
-        self.Text.insert('1.0', view2_text.lstrip('\n\n'))  # remove first \n\n
+        if pos:
+            self.Text.insert('1.0', self.view2_text_pos)
+        else:
+            self.Text.insert('1.0', self.view2_text)
         for tokens in matched.values():
+            if not tokens:
+                continue
             sent_limit = True
             for token in tokens:
-                token = ''.join(['\y', token[0], '\y'])
+                if not pos:
+                    token = ''.join([r'\y', token[0], r'\y'])
+                else:
+                    token = ''.join([r'\y', token[0], '_', token[1], r'\y'])
                 # get start index, search returns only first match
                 temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                              regexp=True)
@@ -856,20 +963,21 @@ class NNSearch(ttk.Frame):
         self.Text.tag_delete('style')  # reset highighting
         start = '1.0'
         first = True
+        # reload text
         self.Text.delete('1.0', 'end')  # remove text
-        view3_text = ''
-        match_cnt = 0
+        if pos:
+            self.Text.insert('1.0', self.view3_text_pos)
+        else:
+            self.Text.insert('1.0', self.view3_text)
         for tokens in matched.values():
-            for token in tokens:
-                match_cnt += 1
-                text = ': '.join([str(match_cnt), token[0]])
-                view3_text = '\n'.join([view3_text, text])
-        self.Text.delete('1.0', 'end')  # remove text
-        self.Text.insert('1.0', view3_text.lstrip('\n'))  # remove first \n
-        for tokens in matched.values():
+            if not tokens:
+                continue
             sent_limit = True
             for token in tokens:
-                token = ''.join(['\y', token[0], '\y'])
+                if not pos:
+                    token = ''.join([r'\y', token[0], r'\y'])
+                else:
+                    token = ''.join([r'\y', token[0], '_', token[1], r'\y'])
                 # get start index, search returns only first match
                 temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                              regexp=True)
@@ -947,10 +1055,11 @@ class NNSearch(ttk.Frame):
         self.Menu0.add_command(label="Load", image=self.load, compound='left',
                                command=self.load_data)
         self.save = itk.PhotoImage(file=self.img_path('disk.png'))
-        self.Menu0.add_command(label="Save", image=self.save, compound='left')
+        self.Menu0.add_command(label="Save", image=self.save, compound='left',
+                               command=self.save_data)
         self.save2 = itk.PhotoImage(file=self.img_path('disk2.png'))
         self.Menu0.add_command(label="Save as", image=self.save2,
-                               compound='left')
+                               compound='left', command=self.save_data)
         self.exit = itk.PhotoImage(file=self.img_path('exit.png'))
         self.Menu0.add_command(label="Exit", image=self.exit, compound='left',
                                command=self.quit)
@@ -1051,13 +1160,13 @@ class NNSearch(ttk.Frame):
         self.load_butt.grid(row=1, column=0, sticky='nwe', padx=1, pady=1)
         self.proimg = itk.PhotoImage(file=self.img_path('proc.png'))
         self.proc_butt = ttk.Button(self.InnerRightFrm0, padding=(5, 5),
-                                      text='Process!', image=self.proimg,
-                                      compound='left',
-                                      command=self.process_command)
+                                    text='Process!', image=self.proimg,
+                                    compound='left',
+                                    command=self.process_command)
         self.proc_butt.grid(row=2, column=0, sticky='nwe', pady=1, padx=1)
         self.save_butt = ttk.Button(self.InnerRightFrm0, padding=(0, 0),
                                     text='Save', image=self.save,
-                                    compound='left', command=self.press_return)
+                                    compound='left', command=self.save_data)
         self.save_butt.grid(row=3, column=0, sticky='nwe', padx=1, pady=1)
         # make inner frame that will contain view types
         self.InnerRightFrm1 = ttk.Frame(self.RightFrm, borderwidth=2,
