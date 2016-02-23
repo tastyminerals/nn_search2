@@ -19,6 +19,7 @@ import shutil
 
 import model
 import query
+import pos_tagger
 
 class NNSearch(ttk.Frame):
 
@@ -283,9 +284,8 @@ class NNSearch(ttk.Frame):
             self.show_message(msg, 'error.png')
             return
         try:
-            # TODO! UnicodeEncodeError: 'ascii' codec can't encode character u'\u201c' in position 36: ordinal not in range(128)
-            opened_file.write(self.Text.get('1.0', tk.END))
-            print self.Text.get('1.0', tk.END)
+            text = self.Text.get('1.0', tk.END).encode('utf-8')
+            opened_file.write(text)
         except AttributeError:
             return
         except (IOError, OSError):
@@ -514,9 +514,9 @@ class NNSearch(ttk.Frame):
                                text=stats_text)
         self.rtext.grid()
         self.stats_win_butt = ttk.Button(self.statsFr, text='Close',
-                                         padding=(-3, 0),
+                                         padding=(0, 0),
                                          command=self.stats_win.destroy)
-        self.stats_win_butt.grid(column=1, sticky='e')
+        self.stats_win_butt.grid(sticky='w')
         self.centrify_widget(self.stats_win)
 
     def show_tags_help(self):
@@ -615,9 +615,9 @@ class NNSearch(ttk.Frame):
                               compound='left', command=self.show_tags_help)
         tag_help.grid(row=0, sticky='we')
         # add Close button
-        close_butt = ttk.Button(closeFr, padding=(-3, 2), text='Close',
+        close_butt = ttk.Button(closeFr, padding=(0, 0), text='Close',
                                 command=self.graphs_win.destroy)
-        close_butt.grid(column=2, sticky='e')
+        close_butt.grid(sticky='w')
         # extract POS-tags, occurences, calculate ratio
         self.tgs = '\n'.join([k for k in self.srt_tags])
         self.tgs_cnts = '\n'.join([str(v) for v in self.srt_tags.values()])
@@ -773,7 +773,6 @@ class NNSearch(ttk.Frame):
             self.sstats = self.model_queue.get()
             # centering window position
             # update the information to calculated stats
-            print self.sstats
             tmatched = self.sstats.get('Tokens matched')
             mlength = self.sstats.get('Matched length')
             mlratio = self.sstats.get('Matched length ratio')
@@ -821,7 +820,7 @@ class NNSearch(ttk.Frame):
             return
         ss_text = self.ss_rlabl.format(self.sstats.get('Tokens matched'),
                                        self.sstats.get('Matched length'),
-                                       self.sstats.get('Matched tooken ratio'))
+                                       self.sstats.get('Matched length ratio'))
         # build a Toplevel window
         self.sstats_win = tk.Toplevel()
         # centering window position
@@ -845,9 +844,9 @@ class NNSearch(ttk.Frame):
                                   text=ss_text)
         self.ss_rtext.grid()
         self.sstats_win_butt = ttk.Button(self.sstatsFr, text='Close',
-                                          padding=(-3, 0),
+                                          padding=(0, 0),
                                           command=self.sstats_win.destroy)
-        self.sstats_win_butt.grid(column=1, sticky='e')
+        self.sstats_win_butt.grid(sticky='w')
         self.centrify_widget(self.sstats_win)
 
     def insert_matches(self, matched, hl_type):
@@ -990,6 +989,8 @@ class NNSearch(ttk.Frame):
                 if sent_limit:
                     start_mark = temp_mark
                     sent_limit = False
+                # remember last matched position
+                start = end_mark
                 # mark first token
                 if first:
                     start_mark = temp_mark
@@ -1047,6 +1048,8 @@ class NNSearch(ttk.Frame):
                 if sent_limit:
                     start_mark = temp_mark
                     sent_limit = False
+                # remember last matched position
+                start = end_mark
                 # mark first token
                 if first:
                     start_mark = temp_mark
@@ -1099,6 +1102,8 @@ class NNSearch(ttk.Frame):
                 if sent_limit:
                     start_mark = temp_mark
                     sent_limit = False
+                # remember last matched position
+                start = end_mark
                 # mark first token
                 if first:
                     start_mark = temp_mark
@@ -1117,6 +1122,55 @@ class NNSearch(ttk.Frame):
 
     def highlight3(self):
         self.Text.tag_configure('style', font='TkDefaultFont 11 bold')
+
+    def pos_tagger(self):
+        """
+        Display a pos-tagger window.
+        Implement pos-tagger using TextBlob's averaged perceptron.
+        """
+        pos_tagger = tk.Toplevel()
+        pos_tagger.title('POS-tagger')
+        pos_tagger.resizable(0, 0)
+        pos_taggerFr = ttk.Frame(pos_tagger, borderwidth=2, relief='groove')
+        pos_taggerFr.grid(sticky='nsew')
+        pos_butt = ttk.Button(pos_taggerFr, padding=(0, 0), text='Close',
+                              command=pos_tagger.destroy)
+        pos_butt.grid()
+        # pos_tagger
+
+
+    def show_about(self):
+        """
+        Display About window
+        """
+        about = ['nn-search v.2.0.0',
+                 'Built with nltk, TextBlob and matplotlib',
+                 'tastyminerals@gmail.com']
+        about_win = tk.Toplevel()
+        about_win.title('About')
+        about_win.resizable(0, 0)
+        # creating Frames for headers
+        aboutFr = ttk.Frame(about_win, borderwidth=2, relief='groove')
+        aboutFr.grid(sticky='nsew')
+        aboutFrInn0 = ttk.Frame(aboutFr, borderwidth=2, relief='groove')
+        aboutFrInn0.grid(row=0, column=0)
+        # inserting Labels
+        ttk.Label(aboutFrInn0, font='TkDefaultFont 10 bold',
+                  text=about[0]).grid()
+        self.nn_icon = itk.PhotoImage(file=self.img_path('nn-search.png'))
+        ttk.Label(aboutFrInn0, image=self.nn_icon).grid()
+        ttk.Label(aboutFrInn0, font='TkDefaultFont 10',
+                  text=about[1]).grid(sticky='we')
+        email = about[2]
+        email_str = tk.StringVar()
+        email_str.set(email)
+        contact = tk.Entry(aboutFrInn0, state='readonly', relief='flat',
+                           fg='#0000FF', textvariable=email_str)
+        contact.grid()
+        about_butt = ttk.Button(aboutFr, padding=(0, 0), text='Close',
+                                command=about_win.destroy)
+        about_butt.grid()
+        self.centrify_widget(about_win)
 
     def build_gui(self):
         """
@@ -1199,7 +1253,7 @@ class NNSearch(ttk.Frame):
                                           menu=self.Menu2)
         self.tagger = itk.PhotoImage(file=self.img_path('wand.png'))
         self.Menu2.add_command(label="POS-tagger", image=self.tagger,
-                               compound='left', command=None)
+                               compound='left', command=self.pos_tagger)
         put_resizable(self.MenuButton2, 0, 2, 1, 1, 'n')
         # make "Help" menu
         self.Menu3 = tk.Menu(self.MenuFrm, tearoff=False)
@@ -1211,7 +1265,7 @@ class NNSearch(ttk.Frame):
                                command=None)
         self.about = itk.PhotoImage(file=self.img_path('info.png'))
         self.Menu3.add_command(label="About", image=self.about,
-                               compound='left', command=None)
+                               compound='left', command=self.show_about)
         put_resizable(self.MenuButton3, 0, 3, 1, 1, 'n')
         # make a frame for query input widget
         self.EntryFrm = ttk.Frame(self.Main, borderwidth='2', relief='groove')

@@ -278,7 +278,7 @@ def get_ngrams(txtblob_obj):
              for k in counts_dic if tags_dic.get(k) in include][:10]
     ngram2_cnt = Counter([(n[0], n[1]) for n in txtblob_obj[0].ngrams(2)])
     ngram3_cnt = Counter([(n[0], n[1], n[2]) for n
-                         in txtblob_obj[0].ngrams(3)])
+                          in txtblob_obj[0].ngrams(3)])
     ngram2 = [(n[0], ngram2_cnt[n[0]]) for n in ngram2_cnt.most_common(10)]
     ngram3 = [(n[0], ngram3_cnt[n[0]]) for n in ngram3_cnt.most_common(10)]
     return mostn, ngram2, ngram3
@@ -361,8 +361,8 @@ def get_search_stats(model_queue, matches, text):
                 for term in values])
     # calculate % of matched terms against complete text
     mratio = round(mlen / len(text), 2)
-
-    model_queue.put([mcnt, mlen, mratio])
+    model_queue.put({'Tokens matched': mcnt, 'Matched length': mlen,
+                     'Matched length ratio': mratio})
 
 
 if __name__ == '__main__':

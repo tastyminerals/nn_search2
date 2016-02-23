@@ -14,15 +14,15 @@ from codecs import open
 from os import path
 
 
-here = path.abspath(path.dirname(__file__))
+HERE = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
+          long_description = f.read()
 
 setup(
     windows=['nn-search2.pyw'],
-    console = ['nn-search2.pyw'],
+    console=['nn-search2.pyw'],
     name='nn-search2',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
@@ -85,36 +85,38 @@ setup(
     # other dependencies are: Tk 8.6.4-1,
 
     data_files=[
-      ('penn', ['/nn-search/data/penn_tags.csv']),
-      ('icons', [
-                    'nn-search/data/icons/cog.png',
-                    'nn-search/data/icons/copy.png',
-                    'nn-search/data/icons/cross.png',
-                    'nn-search/data/icons/cup.png',
-                    'nn-search/data/icons/cut.png',
-                    'nn-search/data/icons/disk.png',
-                    'nn-search/data/icons/error.png',
-                    'nn-search/data/icons/exit.png',
-                    'nn-search/data/icons/help.png',
-                    'nn-search/data/icons/info.png',
-                    'nn-search/data/icons/load.png',
-                    'nn-search/data/icons/page_save.png',
-                    'nn-search/data/icons/paste.png',
-                    'nn-search/data/icons/pos-tagging.png',
-                    'nn-search/data/icons/proc.png',
-                    'nn-search/data/icons/redo.png',
-                    'nn-search/data/icons/sad.png',
-                    'nn-search/data/icons/search.png',
-                    'nn-search/data/icons/stats2.png',
-                    'nn-search/data/icons/stats3.png',
-                    'nn-search/data/icons/stats.png',
-                    'nn-search/data/icons/undo.png',
-                    'nn-search/data/icons/view1.png',
-                    'nn-search/data/icons/view2.png',
-                    'nn-search/data/icons/view3.png',
-                    'nn-search/data/icons/wand.png',
-                    'nn-search/data/icons/warning.png'
-                 ])
+        ('penn', ['/nn-search/data/penn_tags.csv']),
+        ('icons', [
+            'nn-search/data/icons/cog.png',
+            'nn-search/data/icons/copy.png',
+            'nn-search/data/icons/cross.png',
+            'nn-search/data/icons/cup.png',
+            'nn-search/data/icons/cut.png',
+            'nn-search/data/icons/disk.png',
+            'nn-search/data/icons/error.png',
+            'nn-search/data/icons/exit.png',
+            'nn-search/data/icons/help.png',
+            'nn-search/data/icons/info.png',
+            'nn-search/data/icons/load.png',
+            'nn-search/data/icons/page_save.png',
+            'nn-search/data/icons/paste.png',
+            'nn-search/data/icons/pos-tagging.png',
+            'nn-search/data/icons/proc.png',
+            'nn-search/data/icons/redo.png',
+            'nn-search/data/icons/sad.png',
+            'nn-search/data/icons/search.png',
+            'nn-search/data/icons/stats2.png',
+            'nn-search/data/icons/stats3.png',
+            'nn-search/data/icons/stats.png',
+            'nn-search/data/icons/undo.png',
+            'nn-search/data/icons/view1.png',
+            'nn-search/data/icons/view2.png',
+            'nn-search/data/icons/view3.png',
+            'nn-search/data/icons/wand.png',
+            'nn-search/data/icons/warning.png',
+            'nn-search/data/icons/nn-search.png',
+            'nn-search/data/icons/nn-search.ico',
+            ])
     ],
 
     setup_requires=['pytest-runner'],
