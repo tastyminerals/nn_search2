@@ -26,15 +26,18 @@ class NNSearch(ttk.Frame):
         self.query = ''  # user query
         # stats vars
         self.fully_tagged_sents = {}  # fully POS-tagged sents dict
-        self.stats_ready = False  # do not recalc stats
-        self.graphs_ready = False  # do not recalc graphs
+        self.stats_ready = False  # used not to recalc stats
+        self.graphs_ready = False  # used not to recalc graphs
+        self.sstats_ready = False  # do not recalc search stats
         self.textstats = {}
+        self.sstats = {}
         # processing vars
         self.processed = False  # clicked 'Process!' button
         self.model_queue = Queue.PriorityQueue()
         self.process_thread = None
         self.stats_thread = None
         self.graphs_thread = None
+        self.sstats_thread = None
         # text and file vars
         self.loaded_text = None
         self.is_file_loaded = False
@@ -50,12 +53,10 @@ class NNSearch(ttk.Frame):
         self.view2_text_pos = ''
         self.view3_text = ''
         self.view3_text_pos = ''
-        # left and right label headers for Numbers pop-up window
-        self.num_llabl = 'Tokens count:\nWords count:\nSentences count: \n' +\
-                         '-------------------------------\n' +\
-                         'Lexical diversity [0,1]:\nSubjectivity [0,1]: \n' +\
-                         'Polarity [-1,1]: \nCorrectness [0,1]: \n'
+        # right label headers for Number stats pop-up window
         self.num_rlabl = '{0}\n{1}\n{2}\n---------\n{3}\n{4}\n{5}\n{6}'
+        # right label headers for search stats pop-up window
+        self.ss_rlabl = '{0}\n{1}\n{2}\n'
         # build UI
         self.clean_up()
         ttk.Frame.__init__(self, master)
@@ -282,7 +283,9 @@ class NNSearch(ttk.Frame):
             self.show_message(msg, 'error.png')
             return
         try:
+            # TODO! UnicodeEncodeError: 'ascii' codec can't encode character u'\u201c' in position 36: ordinal not in range(128)
             opened_file.write(self.Text.get('1.0', tk.END))
+            print self.Text.get('1.0', tk.END)
         except AttributeError:
             return
         except (IOError, OSError):
@@ -320,6 +323,8 @@ class NNSearch(ttk.Frame):
             fname = os.path.basename(fpath)
             if len(fname) > 20:
                 fname = fname[:17] + '...'
+        except TypeError:  # when clicked Load and didn't choose any file
+            return
         except (OSError, IOError):
             msg = "Can not open the specified file!"
             self.show_message(msg, 'warning.png')
@@ -408,17 +413,18 @@ class NNSearch(ttk.Frame):
         self.set_processed(True)
         self.set_stats_ready(False)
         self.set_graphs_ready(False)
+        self.set_search_stats_ready(False)
 
-    def check_nums_thread_save_results(self):
+    def check_stats_thread_save_results(self):
         """
         Check every 10ms if model thread is alive.
-        Destroy progress bar when model thread finishes.
+        While displaying waiting label in Toplevel.
         Unlock UI widgets.
         """
         self.lock_toplevel(self.stats_win_butt, True)
         self.stats_butt1.config(state='disabled')
         if self.stats_thread.is_alive():
-            self.after(10, self.check_nums_thread_save_results)
+            self.after(10, self.check_stats_thread_save_results)
         else:
             self.stats_thread.join()
             # get the results of model processing
@@ -451,7 +457,7 @@ class NNSearch(ttk.Frame):
         <Numbers stats calculation is done in a separate Thread in order to
         leave UI responsive. This, however, makes the code that handles
         Numbers pop-up window look ugly and confusing.
-        show_stats_win() invokes self.check_nums_thread_save_results() which
+        show_stats_win() invokes self.check_stats_thread_save_results() which
         checks whenever Thread is done, updates the Numbers pop-up window>
         """
         if self.processed and not self.stats_ready:
@@ -465,7 +471,7 @@ class NNSearch(ttk.Frame):
                      'corr')
             self.textstats = dict((stat, 'Wait...') for stat in stats)
             # check if model_thread finished
-            self.after(10, self.check_nums_thread_save_results)
+            self.after(10, self.check_stats_thread_save_results)
         elif not self.processed and (self.is_file_loaded or
                                      self.Text.edit_modified()):
             self.show_message('Please click "Process!" button',
@@ -497,8 +503,12 @@ class NNSearch(ttk.Frame):
         self.statsFrInn2 = ttk.Frame(self.statsFr, borderwidth=2,
                                      relief='groove')
         self.statsFrInn2.grid(row=0, column=1, sticky='ns')
+        num_llabl = 'Tokens count:\nWords count:\nSentences count: \n' +\
+                    '-------------------------------\n' +\
+                    'Lexical diversity [0,1]:\nSubjectivity [0,1]: \n' +\
+                    'Polarity [-1,1]: \nCorrectness [0,1]: \n'
         self.ltext = ttk.Label(self.statsFrInn1, font='TkDefaultFont 10',
-                               text=self.num_llabl)
+                               text=num_llabl)
         self.ltext.grid()
         self.rtext = ttk.Label(self.statsFrInn2, font='TkDefaultFont 10 bold',
                                text=stats_text)
@@ -556,7 +566,7 @@ class NNSearch(ttk.Frame):
     def check_graphs_thread_save_results(self):
         """
         Check every 10ms if model thread is alive.
-        Destroy progress bar when model thread finishes.
+        While displaying waiting label in Toplevel.
         Unlock UI widgets.
         """
         if self.graphs_thread.is_alive():
@@ -747,30 +757,97 @@ class NNSearch(ttk.Frame):
             self.graphs_win.minsize(120, 300)
             self.finish_graphs_window()
 
-    def show_search_stats(self):
+    def check_search_stats_thread_save_results(self):
+        """
+        Check every 10ms if model thread is alive.
+        While displaying waiting label in Toplevel.
+        Unlock UI widgets.
+        """
+        self.lock_toplevel(self.sstats_win_butt, True)
+        self.stats_butt2.config(state='disabled')
+        if self.sstats_thread.is_alive():
+            self.after(10, self.check_search_stats_thread_save_results)
+        else:
+            self.sstats_thread.join()
+            # get the results of model processing
+            self.sstats = self.model_queue.get()
+            # centering window position
+            # update the information to calculated stats
+            sstats_text = self.ss_rlabl.format(self.sstats[0][0],
+                                               self.sstats[0][1],
+                                               self.sstats[0][2])
+            self.update_idletasks()
+            self.sstats_win.geometry("")
+            self.set_search_stats_ready(True)
+            self.lock_toplevel(self.sstats_win_butt, False)
+            self.stats_butt2.config(state='normal')
+            self.ss_rtext.config(text=sstats_text)
+
+    def show_search_stats_win(self):
         """
         Show a window with statistics for a query search.
-
-        Possible stats:
+        Search stats:
             number of matched terms
             length of all matched strings
             % of matched data to all search corpus
-
         """
+        if not self.matches:
+            msg = 'Please provide a search query!'
+            self.show_message(msg, 'warning.png')
+            return
         # handle exceptions
-        if not self.processed and (self.Text.edit_modified() or
-                                   self.is_file_loaded):
+        if self.processed and not self.sstats_ready:
+            self.model_queue = Queue.PriorityQueue()
+            # now handle the Process button command
+            text = self.Text.get('1.0', tk.END)
+            self.sstats_thread = thr.Thread(target=model.get_search_stats,
+                                            args=(self.model_queue,
+                                                  self.matches, text))
+            self.sstats_thread.start()
+            sstats = ('Tokens matched', 'Matched length',
+                      'Matched length ratio')
+            self.sstats = dict((stat, 'Wait...') for stat in sstats)
+            # check if model_thread finished
+            self.after(10, self.check_search_stats_thread_save_results)
+
+        elif not self.processed and (self.Text.edit_modified() or
+                                     self.is_file_loaded):
             self.show_message('Please click "Process!" button', 'warning.png')
             return
         elif not self.processed and (not self.Text.edit_modified() and
                                      not self.is_file_loaded):
             self.show_message('No data provided!', 'error.png')
             return
-
-        text = self.Text.get('1.0', tk.END)
-        mcnt, mlen, mratio = model.get_search_stats(self.matches, text)
+        ss_text = self.ss_rlabl.format(self.sstats.get('Tokens matched'),
+                                       self.sstats.get('Matched length'),
+                                       self.sstats.get('Matched length ratio'))
         # build a Toplevel window
-
+        self.sstats_win = tk.Toplevel()
+        # centering window position
+        self.sstats_win.resizable(0, 0)
+        self.sstats_win.title("Search statistics")
+        self.sstatsFr = ttk.Frame(self.sstats_win, borderwidth=2,
+                                  relief='groove')
+        self.sstatsFr.grid()
+        self.sstatsFrInn1 = ttk.Frame(self.sstatsFr, borderwidth=2,
+                                      relief='groove')
+        self.sstatsFrInn1.grid(row=0, column=0, sticky='ns')
+        self.sstatsFrInn2 = ttk.Frame(self.sstatsFr, borderwidth=2,
+                                      relief='groove')
+        self.sstatsFrInn2.grid(row=0, column=1, sticky='ns')
+        ss_llabl = 'Tokens matched:\nMatched length:\n' +\
+                   'Matched length ratio[0,1]:\n'
+        self.ss_ltext = ttk.Label(self.sstatsFrInn1, font='TkDefaultFont 10',
+                                  text=ss_llabl)
+        self.ss_ltext.grid()
+        self.ss_rtext = ttk.Label(self.sstatsFrInn2, font='TkDefaultFont 10 bold',
+                                  text=ss_text)
+        self.ss_rtext.grid()
+        self.sstats_win_butt = ttk.Button(self.sstatsFr, text='Close',
+                                          padding=(0, 0),
+                                          command=self.sstats_win.destroy)
+        self.sstats_win_butt.grid(sticky='w')
+        self.centrify_widget(self.sstats_win)
 
     def insert_matches(self, matched, hl_type):
         """
@@ -781,7 +858,6 @@ class NNSearch(ttk.Frame):
             | *hl_type* -- type of highlighting, single token or range
 
         """
-
         # This is a green tree. The tree is big. The monument is black.
         pos_tags, text_view = self.get_opts()
         # if view is 1, no need to insert text, it has been loaded already
@@ -875,6 +951,7 @@ class NNSearch(ttk.Frame):
             | *pos* -- True if add POS-tags
 
         """
+        # This is a green tree. The tree is big. The monument is black.
         self.Text.tag_delete('style')  # reset highighting
         start = '1.0'
         first = True
@@ -915,7 +992,7 @@ class NNSearch(ttk.Frame):
                 # mark first token
                 if first:
                     start_mark = temp_mark
-                    start = end_mark + '+ 1c'  # plus one character
+                    start = end_mark + '+1c'  # plus one character
                     first = False
                 self.Text.tag_add('style', start_mark, end_mark)
 
@@ -1259,7 +1336,7 @@ class NNSearch(ttk.Frame):
         self.stats_butt3 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
                                       text='Search stats', image=self.simg3,
                                       compound='left',
-                                      command=self.show_search_stats)
+                                      command=self.show_search_stats_win)
         self.stats_butt3.grid(row=4, column=0, sticky='nwe', pady=1, padx=1)
 
         # make inner frame that will contain file information
@@ -1332,7 +1409,7 @@ class NNSearch(ttk.Frame):
 
     def clean_up(self):
         """
-        Remove all plot files in 'graphs' dir upon initialization.
+        Remove all plot files in '_graphs' dir upon initialization.
         """
         try:
             shutil.rmtree('_graphs')
@@ -1377,6 +1454,15 @@ class NNSearch(ttk.Frame):
             *state* (bool) -- True, if graphs were plotted
         """
         self.graphs_ready = state
+
+    def set_search_stats_ready(self, state):
+        """
+        Getter/Setter for self.graphs_ready var
+
+        Args:
+            *state* (bool) -- True, if graphs were plotted
+        """
+        self.sstats_ready = state
 
     def set_file_loaded(self, state):
         """

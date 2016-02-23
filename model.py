@@ -339,7 +339,7 @@ def plot_tags(tags_dic, save_fname):
     return od(reversed(list(odd.items())))
 
 
-def get_search_stats(matches, text):
+def get_search_stats(model_queue, matches, text):
     """
     Get some search stats.
 
@@ -353,16 +353,15 @@ def get_search_stats(matches, text):
         | *mratio* -- ratio of matched characters
 
     """
+    print matches
     # get number of matches
-    mcnt = sum([sum([1 for match in matches[k]]) for k in matches
-               if matches[k]])
+    mcnt = sum([sum(len(matches[k])) for k in matches if matches[k]])
     # get the length of matches chars
     mlen = sum([len(term[0]) for values in matches.values() if values
                 for term in values])
     # calculate % of matched terms against complete text
     mratio = round(mlen / len(text), 2)
-    return mcnt, mlen, mratio
-    # This is a green tree. The tree is big. The monument is black.
+    model_queue.put([mcnt, mlen, mratio])
 
 
 if __name__ == '__main__':
