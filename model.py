@@ -353,14 +353,15 @@ def get_search_stats(model_queue, matches, text):
         | *mratio* -- ratio of matched characters
 
     """
-    print matches
     # get number of matches
-    mcnt = sum([sum(len(matches[k])) for k in matches if matches[k]])
+    mcnt = sum([len(vals) for vals in matches.values() if vals])
+
     # get the length of matches chars
     mlen = sum([len(term[0]) for values in matches.values() if values
                 for term in values])
     # calculate % of matched terms against complete text
     mratio = round(mlen / len(text), 2)
+
     model_queue.put([mcnt, mlen, mratio])
 
 

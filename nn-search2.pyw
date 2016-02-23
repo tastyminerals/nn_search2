@@ -514,9 +514,9 @@ class NNSearch(ttk.Frame):
                                text=stats_text)
         self.rtext.grid()
         self.stats_win_butt = ttk.Button(self.statsFr, text='Close',
-                                         padding=(0, 0),
+                                         padding=(-3, 0),
                                          command=self.stats_win.destroy)
-        self.stats_win_butt.grid(sticky='w')
+        self.stats_win_butt.grid(column=1, sticky='e')
         self.centrify_widget(self.stats_win)
 
     def show_tags_help(self):
@@ -615,9 +615,9 @@ class NNSearch(ttk.Frame):
                               compound='left', command=self.show_tags_help)
         tag_help.grid(row=0, sticky='we')
         # add Close button
-        close_butt = ttk.Button(closeFr, padding=(0, 2), text='Close',
+        close_butt = ttk.Button(closeFr, padding=(-3, 2), text='Close',
                                 command=self.graphs_win.destroy)
-        close_butt.grid(sticky='e')
+        close_butt.grid(column=2, sticky='e')
         # extract POS-tags, occurences, calculate ratio
         self.tgs = '\n'.join([k for k in self.srt_tags])
         self.tgs_cnts = '\n'.join([str(v) for v in self.srt_tags.values()])
@@ -773,9 +773,11 @@ class NNSearch(ttk.Frame):
             self.sstats = self.model_queue.get()
             # centering window position
             # update the information to calculated stats
-            sstats_text = self.ss_rlabl.format(self.sstats[0][0],
-                                               self.sstats[0][1],
-                                               self.sstats[0][2])
+            print self.sstats
+            tmatched = self.sstats.get('Tokens matched')
+            mlength = self.sstats.get('Matched length')
+            mlratio = self.sstats.get('Matched length ratio')
+            sstats_text = self.ss_rlabl.format(tmatched, mlength, mlratio)
             self.update_idletasks()
             self.sstats_win.geometry("")
             self.set_search_stats_ready(True)
@@ -809,7 +811,6 @@ class NNSearch(ttk.Frame):
             self.sstats = dict((stat, 'Wait...') for stat in sstats)
             # check if model_thread finished
             self.after(10, self.check_search_stats_thread_save_results)
-
         elif not self.processed and (self.Text.edit_modified() or
                                      self.is_file_loaded):
             self.show_message('Please click "Process!" button', 'warning.png')
@@ -820,7 +821,7 @@ class NNSearch(ttk.Frame):
             return
         ss_text = self.ss_rlabl.format(self.sstats.get('Tokens matched'),
                                        self.sstats.get('Matched length'),
-                                       self.sstats.get('Matched length ratio'))
+                                       self.sstats.get('Matched tooken ratio'))
         # build a Toplevel window
         self.sstats_win = tk.Toplevel()
         # centering window position
@@ -844,9 +845,9 @@ class NNSearch(ttk.Frame):
                                   text=ss_text)
         self.ss_rtext.grid()
         self.sstats_win_butt = ttk.Button(self.sstatsFr, text='Close',
-                                          padding=(0, 0),
+                                          padding=(-3, 0),
                                           command=self.sstats_win.destroy)
-        self.sstats_win_butt.grid(sticky='w')
+        self.sstats_win_butt.grid(column=1, sticky='e')
         self.centrify_widget(self.sstats_win)
 
     def insert_matches(self, matched, hl_type):
