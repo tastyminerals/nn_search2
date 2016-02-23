@@ -310,7 +310,7 @@ def plot_tags(tags_dic, save_fname):
     random.shuffle(COLLECTION)
     for i in range(len(tags_dic)):
         bars[i].set_color(COLLECTION[i])
-    plt.savefig(os.path.join('graphs', save_fname + '.png'))
+    plt.savefig(os.path.join('_graphs', save_fname + '.png'))
     # create functional / non-fuctional words pie chart
     plt.clf()
     matplotlib.rc('font', **{'size': 16})
@@ -334,9 +334,35 @@ def plot_tags(tags_dic, save_fname):
     # Set aspect ratio to be equal so that pie is drawn as a circle.
     plt.axis('equal')
     # increasing fonts in a pie chart
-    plt.savefig(os.path.join('graphs', save_fname + '_pie.png'))
+    plt.savefig(os.path.join('_graphs', save_fname + '_pie.png'))
     plt.clf()
     return od(reversed(list(odd.items())))
+
+
+def get_search_stats(matches, text):
+    """
+    Get some search stats.
+
+    Args:
+        | *matches* -- dict of matching results
+        | *text* -- Text widget text
+
+    Returns:
+        | *mcnt* -- number of matched terms
+        | *mlen* -- length of matched characters
+        | *mratio* -- ratio of matched characters
+
+    """
+    # get number of matches
+    mcnt = sum([sum([1 for match in matches[k]]) for k in matches
+               if matches[k]])
+    # get the length of matches chars
+    mlen = sum([len(term[0]) for values in matches.values() if values
+                for term in values])
+    # calculate % of matched terms against complete text
+    mratio = round(mlen / len(text), 2)
+    return mcnt, mlen, mratio
+    # This is a green tree. The tree is big. The monument is black.
 
 
 if __name__ == '__main__':

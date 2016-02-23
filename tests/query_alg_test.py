@@ -8,7 +8,7 @@ import unittest
 import os
 import sys
 sys.path.insert(0, os.pardir)
-import matching_demo_opt as demo
+import query as q
 
 
 SENT = [(u'a', u'DT', 0), (u'b', u'NNP', 1), (u'c', u'NN', 2),
@@ -55,7 +55,7 @@ GOLD = [
 def query_alg_test():
     results = []
     for query in TEST_QUERIES:
-        results.append(demo.matching(query, SENT))
+        results.append(q.match_query(query, SENT))
     tests = []
     for gold, result in zip(GOLD, results):
         if len(result) == 1:

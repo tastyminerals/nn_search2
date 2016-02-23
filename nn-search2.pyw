@@ -42,6 +42,7 @@ class NNSearch(ttk.Frame):
         # results vars
         self.model_results = None
         self.process_results = None
+        self.matches = None
         # precache text before inserting in order to reduce recalculation
         self.precached = [False, False]  # for Text widget text caching
         self.view1_text_pos = ''
@@ -98,6 +99,7 @@ class NNSearch(ttk.Frame):
             return
         # find query matches
         matches, high_type = query.find_matches(valid, self.fully_tagged_sents)
+        self.matches = matches
         if matches and not any([m for m in matches.values() if m]):
             msg = 'No matches found \n revise you query'
             self.show_message(msg, 'sad.png')
@@ -626,7 +628,7 @@ class NNSearch(ttk.Frame):
         ttk.Label(graphFr0Inn2, font='TkDefaultFont 10',
                   text=self.ratios).grid()
         # insert POS-tags plot
-        plot1_path = os.path.join('graphs', self.current_fname + '.png')
+        plot1_path = os.path.join('_graphs', self.current_fname + '.png')
         image = itk.Image.open(plot1_path)
         image = image.resize((550, 500), itk.Image.ANTIALIAS)
         self.plot1 = itk.PhotoImage(image)
@@ -634,7 +636,7 @@ class NNSearch(ttk.Frame):
         plot1Label = ttk.Label(graphFr1, image=self.plot1)
         plot1Label.grid(row=0, column=0, sticky="nsew")
         # insert functional/content words pie chart
-        pie_path = os.path.join('graphs', self.current_fname + '_pie.png')
+        pie_path = os.path.join('_graphs', self.current_fname + '_pie.png')
         pie_image = itk.Image.open(pie_path)
         pie_image = pie_image.resize((400, 300), itk.Image.ANTIALIAS)
         self.pie_plot = itk.PhotoImage(pie_image)
@@ -745,6 +747,31 @@ class NNSearch(ttk.Frame):
             self.graphs_win.minsize(120, 300)
             self.finish_graphs_window()
 
+    def show_search_stats(self):
+        """
+        Show a window with statistics for a query search.
+
+        Possible stats:
+            number of matched terms
+            length of all matched strings
+            % of matched data to all search corpus
+
+        """
+        # handle exceptions
+        if not self.processed and (self.Text.edit_modified() or
+                                   self.is_file_loaded):
+            self.show_message('Please click "Process!" button', 'warning.png')
+            return
+        elif not self.processed and (not self.Text.edit_modified() and
+                                     not self.is_file_loaded):
+            self.show_message('No data provided!', 'error.png')
+            return
+
+        text = self.Text.get('1.0', tk.END)
+        mcnt, mlen, mratio = model.get_search_stats(self.matches, text)
+        # build a Toplevel window
+
+
     def insert_matches(self, matched, hl_type):
         """
         Insert and highlight text matches according to selected UI options.
@@ -754,6 +781,8 @@ class NNSearch(ttk.Frame):
             | *hl_type* -- type of highlighting, single token or range
 
         """
+
+        # This is a green tree. The tree is big. The monument is black.
         pos_tags, text_view = self.get_opts()
         # if view is 1, no need to insert text, it has been loaded already
         if text_view == 1:
@@ -1057,9 +1086,9 @@ class NNSearch(ttk.Frame):
         self.save = itk.PhotoImage(file=self.img_path('disk.png'))
         self.Menu0.add_command(label="Save", image=self.save, compound='left',
                                command=self.save_data)
-        self.save2 = itk.PhotoImage(file=self.img_path('disk2.png'))
-        self.Menu0.add_command(label="Save as", image=self.save2,
-                               compound='left', command=self.save_data)
+        # self.save2 = itk.PhotoImage(file=self.img_path('disk2.png'))
+        # self.Menu0.add_command(label="Save as", image=self.save2,
+        #                       compound='left', command=self.save_data)
         self.exit = itk.PhotoImage(file=self.img_path('exit.png'))
         self.Menu0.add_command(label="Exit", image=self.exit, compound='left',
                                command=self.quit)
@@ -1229,7 +1258,8 @@ class NNSearch(ttk.Frame):
         self.simg3 = itk.PhotoImage(file=self.img_path('stats3.png'))
         self.stats_butt3 = ttk.Button(self.InnerRightFrm2, padding=(0, 0),
                                       text='Search stats', image=self.simg3,
-                                      compound='left', command=None)
+                                      compound='left',
+                                      command=self.show_search_stats)
         self.stats_butt3.grid(row=4, column=0, sticky='nwe', pady=1, padx=1)
 
         # make inner frame that will contain file information
@@ -1305,13 +1335,13 @@ class NNSearch(ttk.Frame):
         Remove all plot files in 'graphs' dir upon initialization.
         """
         try:
-            shutil.rmtree('graphs')
+            shutil.rmtree('_graphs')
         except (OSError, IOError):
-            print "WARNING: Cannot remove 'graphs/' directory!"
+            print "WARNING: Cannot remove '_graphs' directory!"
         try:
-            shutil.os.mkdir('graphs')
+            shutil.os.mkdir('_graphs')
         except (OSError, IOError):
-            print "WARNING: Cannot create 'graphs' directory!"
+            print "WARNING: Cannot create '_graphs' directory!"
             sys.exit(1)
 
     def get_opts(self):
