@@ -132,29 +132,36 @@ def match_query(query, sent):
         if not neg:
             qmatch.append(token)
         return [last, start, full_query, last_matched, negation, qmatch]
-
+    print 'query:', query
+    print 'sent:', sent
     start = 0
     last = 0
     negation = False
     matches = []
     while start != len(sent):
+        print 'WHILE loop'
         full_query = len(query)  # used to check whether the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
         for qterm in query:
+            print 'QTERM loop'
             # if ! negation, we must break into while and restart query loop
             if negation:
+                print 'NEGATION BREAKING TO WHILE'
                 negation = False
                 break
             last_matched = False
             for token in sent[start:]:
+                print 'token loop, iterating:', qterm, 'with token:', token
                 # first check if qterm index allows further search
                 if qterm[2] is not None and qterm[2] < token[2] - last:
+                    print 'EARLY BREAK!', start, len(sent)
                     # if negation, we add to qmatch and break
                     if qterm[3]:
                         last, start, full_query, last_matched, negation, \
                          qmatch = update_cache(token, qmatch, full_query)
                         break
                     last = token[2] + 1
+                    print 'ABOUT TO BREAK!'
                     break
                 # if word and there is no word match just proceed to next token
                 if qterm[0] is not None and not qterm[0] == token[0] and \
@@ -189,6 +196,7 @@ def match_query(query, sent):
                 # if idx and there is idx match act
                 if qterm[2] is not None:
                     if qterm[2] >= token[2] - last:
+                        print 'IDX MATCH!'
                         last, start, full_query, last_matched, negation, \
                          qmatch = update_cache(token, qmatch, full_query)
                         # check here if the qterm was the last in a query
@@ -214,9 +222,10 @@ def match_query(query, sent):
                     matches.append(qmatch)
                 break
         # check if a query term was ever matched, if not, break while
-        if not last_matched:
-            start += 1
-            break
+        #if not last_matched:
+        #    print 'NEVER MATCHED, BREAKING!'
+        #    start += 1
+        #    break
     return matches
 
 

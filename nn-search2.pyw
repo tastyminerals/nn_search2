@@ -8,6 +8,7 @@ from __future__ import division
 from collections import Counter
 import os
 import platform
+import re
 import sys
 import threading as thr
 import multiprocessing as mproc
@@ -1182,6 +1183,7 @@ class NNSearch(ttk.Frame):
 
         Args:
             | *matched* -- Ordereddict of matched tokens
+            | *pos* -- True if single token
 
         """
         # This is a big tree. This is a red car.
@@ -1189,7 +1191,6 @@ class NNSearch(ttk.Frame):
         view3_text = ''
         view3_text_pos = ''
         match_cnt = 0
-        print matched
         for tokens in matched.values():
             # single token match
             if pos:
@@ -1198,9 +1199,13 @@ class NNSearch(ttk.Frame):
                 for token in tokens:
                     match_cnt += 1
                     matched_substr.append(': '.join([str(match_cnt),
-                                          token[0]]))
+                                                    token[0]]))
                     matched_substr_pos.append(': '.join([str(match_cnt),
                                               '_'.join([token[0], token[1]])]))
+                if not matched_substr:
+                    continue
+                if not matched_substr_pos:
+                    continue
                 text = '\n'.join(matched_substr)
                 text_pos = '\n'.join(matched_substr_pos)
                 view3_text = '\n'.join([view3_text, text])
@@ -1209,8 +1214,12 @@ class NNSearch(ttk.Frame):
             else:
                 match_cnt += 1
                 matched_substr = ' '.join([token[0] for token in tokens])
-                matched_substr_pos = ' '.join(['_'.join([token[0], token[1]])
-                                              for token in tokens])
+                matched_substr_pos = ' '.join(['_'.join([token[0],
+                                              token[1]]) for token in tokens])
+                if not matched_substr:
+                    continue
+                if not matched_substr_pos:
+                    continue
                 text = ': '.join([str(match_cnt), matched_substr])
                 text_pos = ': '.join([str(match_cnt), matched_substr_pos])
                 view3_text = '\n'.join([view3_text, text])
@@ -1241,20 +1250,22 @@ class NNSearch(ttk.Frame):
         if pos:
             self.insert_text(self.view1_text_pos)
         else:
-            if self.loaded_text:
-                self.insert_text(self.loaded_text)
-            else:
-                self.insert_text(self.process_results[0])
+            self.insert_text(self.process_results[0])
         # start_mark = '1.0'
+        print self.process_results[1]
+        print '-----------------------------------'
+        print matched
+        print '-----------------------------------'
         for tokens in matched.values():
             if not tokens:
                 continue
             sent_limit = True
             for token in tokens:
                 if not pos:
-                    token = ''.join([r'\y', token[0], r'\y'])
+                    token = ''.join([r'\y', re.escape(token[0]), r'\y'])
                 else:
-                    token = ''.join([r'\y', token[0], '_', token[1], r'\y'])
+                    token = ''.join([r'\y', re.escape(token[0]), '_',
+                                     re.escape(token[1]), r'\y'])
                 # get start index, search returns only first match
                 temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                              regexp=True)
@@ -1276,6 +1287,7 @@ class NNSearch(ttk.Frame):
                     start_mark = temp_mark
                     start = end_mark + '+1c'  # plus one character
                     first = False
+                print tokens, token, start_mark, end_mark
                 self.Text.tag_add('style', start_mark, end_mark)
 
     def mark_tokens2(self, matched, single, pos):
@@ -1311,9 +1323,10 @@ class NNSearch(ttk.Frame):
             sent_limit = True
             for token in tokens:
                 if not pos:
-                    token = ''.join([r'\y', token[0], r'\y'])
+                    token = ''.join([r'\y', re.escape(token[0]), r'\y'])
                 else:
-                    token = ''.join([r'\y', token[0], '_', token[1], r'\y'])
+                    token = ''.join([r'\y', re.escape(token[0]), '_',
+                                     re.escape(token[1]), r'\y'])
                 # get start index, search returns only first match
                 temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                              regexp=True)
@@ -1365,9 +1378,10 @@ class NNSearch(ttk.Frame):
             sent_limit = True
             for token in tokens:
                 if not pos:
-                    token = ''.join([r'\y', token[0], r'\y'])
+                    token = ''.join([r'\y', re.escape(token[0]), r'\y'])
                 else:
-                    token = ''.join([r'\y', token[0], '_', token[1], r'\y'])
+                    token = ''.join([r'\y', re.escape(token[0]), '_',
+                                     re.escape(token[1]), r'\y'])
                 # get start index, search returns only first match
                 temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                              regexp=True)
