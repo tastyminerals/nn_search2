@@ -58,6 +58,10 @@ class NNSearch(ttk.Frame):
         self.num_rlabl = '{0}\n{1}\n{2}\n---------\n{3}\n{4}\n{5}\n{6}'
         # right label headers for search stats pop-up window
         self.ss_rlabl = '{0}\n{1}\n{2}\n'
+        # pos-tagger vars
+        self.pos_loaded_text = ''
+        self.pos_dir_path = ''
+        self.pos_out_dir_path = ''
         # build UI
         self.clean_up()
         ttk.Frame.__init__(self, master)
@@ -151,14 +155,22 @@ class NNSearch(ttk.Frame):
             print('Nothing to copy.')
         return 'break'
 
-    def ctrl_d(self):
+    def ctrl_d(self, callback=False):
         """
-        Delete selected text.
+        Delete character.
         """
         if self.Entry is self.focus_get():
             self.Entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
         elif self.Text is self.focus_get():
             self.Text.delete(tk.SEL_FIRST, tk.SEL_LAST)
+        return 'break'
+
+    def ctrl_s(self, callback=False):
+        """
+        Save text in the Entry widget.
+        """
+        if self.Text is self.focus_get():
+            self.save_data()
         return 'break'
 
     def ctrl_x(self, callback=False):
@@ -231,6 +243,147 @@ class NNSearch(ttk.Frame):
         for par in para:
             self.Text.insert(tk.END, par)
         self.Text.insert(tk.END, '\n')
+
+    def load_file(self):
+        """
+        Load a file specified by the user.
+        """
+        types = (("txt file", "*.txt"),
+                 ("Microsoft Word file", ("*.doc", "*.docx")),
+                 ("PDF file", "*.pdf"),
+                 ("All files", "*.*"))
+        fpath = tkf.askopenfilename(filetypes=types)
+        try:
+            loaded_text = model.read_input_file(fpath)
+        except TypeError:  # when clicked Load and didn't choose any file
+            return
+        except (OSError, IOError):
+            msg = "Can not open the specified file!"
+            self.show_message(msg, 'warning.png')
+            return
+        self.pos_loaded_text = loaded_text
+        self.pos_indir_butt.config(state='disabled')
+        self.pos_dir_path = ''
+        # update icon
+        self.pos_icon1 = itk.PhotoImage(file=self.img_path('set.png'))
+        self.pos_infile_labl.configure(image=self.pos_icon1, compound='center')
+        self.pos_infile_labl.grid(sticky='we', row=0, column=1)
+
+    def load_input_dir(self):
+        """
+        Load a directory specified by the user.
+        """
+        self.pos_dir_path = tkf.askdirectory()
+        # lock input file button of pos-tagger
+        self.pos_infile_butt.config(state='disabled')
+        self.pos_out_dir_path = ''
+        # update icon
+        self.pos_icon2 = itk.PhotoImage(file=self.img_path('set.png'))
+        self.pos_indir_labl.configure(image=self.pos_icon2, compound='center')
+
+    def load_output_dir(self):
+        """
+        Load a directory specified by the user.
+        """
+        self.pos_out_dir_path = tkf.askdirectory()
+        # update icon
+        self.pos_icon3 = itk.PhotoImage(file=self.img_path('set.png'))
+        self.pos_outdir_labl.configure(image=self.pos_icon3, compound='center')
+
+    def check_pos_tagger_save_results(self):
+        pass
+
+    def run_pos_tagger_thread(self):
+        pass
+
+    def pos_tagger_win(self):
+        """
+        Display a pos-tagger window.
+        Implement pos-tagger using TextBlob's averaged perceptron.
+        """
+        self.tagger_win = tk.Toplevel()
+        self.tagger_win.title('POS-tagger')
+        self.tagger_win.resizable(0, 0)
+        pos_taggerFr = ttk.Frame(self.tagger_win, borderwidth=2,
+                                 relief='groove')
+        pos_taggerFr.grid(sticky='nsew')
+        pos_taggerFrInn0 = ttk.Frame(pos_taggerFr, borderwidth=2,
+                                     relief='groove')
+        pos_taggerFrInn0.grid(row=0, column=0, sticky='nsew')
+        self.ifile = itk.PhotoImage(file=self.img_path('input_file.png'))
+        self.pos_infile_butt = ttk.Button(pos_taggerFrInn0, padding=(2, 2),
+                                          compound='left',
+                                          image=self.ifile, text='Input file',
+                                          command=self.load_file)
+        self.pos_infile_butt.grid(sticky='we', pady=2, padx=2)
+        # input file label
+        self.pos_icon1 = itk.PhotoImage(file=self.img_path('unset.png'))
+        self.pos_infile_labl = ttk.Label(pos_taggerFrInn0,
+                                         image=self.pos_icon1,
+                                         compound='center',
+                                         font='TkDefaultFont 10')
+        self.pos_infile_labl.grid(sticky='we', row=0, column=1)
+        # input file Button
+        self.idir = itk.PhotoImage(file=self.img_path('input_dir.png'))
+        self.pos_indir_butt = ttk.Button(pos_taggerFrInn0, padding=(2, 2),
+                                         compound='left',
+                                         image=self.idir,
+                                         text='Input directory',
+                                         command=self.load_input_dir)
+        self.pos_indir_butt.grid(sticky='we', padx=2)
+        # input dir label
+        self.pos_icon2 = itk.PhotoImage(file=self.img_path('unset.png'))
+        self.pos_indir_labl = ttk.Label(pos_taggerFrInn0,
+                                        image=self.pos_icon2,
+                                        compound='center',
+                                        font='TkDefaultFont 10')
+        self.pos_indir_labl.grid(sticky='we', row=1, column=1)
+        # output dir Button
+        self.odir = itk.PhotoImage(file=self.img_path('out_dir.png'))
+        self.pos_outdir_butt = ttk.Button(pos_taggerFrInn0, padding=(2, 2),
+                                          compound='left',
+                                          image=self.odir,
+                                          text='Output directory',
+                                          command=self.load_output_dir)
+        self.pos_outdir_butt.grid(sticky='we', pady=2, padx=2)
+        # output dir label
+        self.pos_icon3 = itk.PhotoImage(file=self.img_path('unset.png'))
+        self.pos_outdir_labl = ttk.Label(pos_taggerFrInn0,
+                                         image=self.pos_icon3,
+                                         compound='center',
+                                         font='TkDefaultFont 10')
+        self.pos_outdir_labl.grid(sticky='we', row=2, column=1)
+
+        pos_taggerFrInn1 = ttk.Frame(pos_taggerFr, borderwidth=2,
+                                     relief='groove')
+        pos_taggerFrInn1.grid(row=0, column=1, sticky='nsew')
+        # Process and stop buttons
+        pos_taggerFrInn2 = ttk.Frame(pos_taggerFr, borderwidth=2,
+                                     relief='groove')
+        pos_taggerFrInn2.grid(row=1, column=0, sticky='nsew')
+        self.rtager = itk.PhotoImage(file=self.img_path('run_tagger.png'))
+        self.pos_run_butt = ttk.Button(pos_taggerFrInn2, padding=(3, 3),
+                                       compound='left',
+                                       image=self.rtager,
+                                       text='Process',
+                                       command=self.tagger_win.destroy)
+        self.pos_run_butt.grid(row=0, column=0, sticky='we', pady=2)
+        self.stagger = itk.PhotoImage(file=self.img_path('stop_tagger.png'))
+        self.pos_stop_butt = ttk.Button(pos_taggerFrInn2, padding=(-10, 3),
+                                        compound='left',
+                                        image=self.stagger,
+                                        text='Stop',
+                                        command=self.tagger_win.destroy)
+        self.pos_stop_butt.grid(row=0, column=1, sticky='we', pady=2)
+
+        pos_taggerFrInn4 = ttk.Frame(pos_taggerFr, height=10, borderwidth=2,
+                                     relief='flat')
+        pos_taggerFrInn4.grid(row=2, column=0, sticky='ns')
+        self.pos_butt = ttk.Button(pos_taggerFr, padding=(0, 0), text='Close',
+                                   command=self.tagger_win.destroy)
+        self.pos_butt.grid(sticky='w')
+        self.centrify_widget(self.tagger_win)
+        # process loaded data
 
     def centrify_widget(self, widget):
         """
@@ -348,7 +501,7 @@ class NNSearch(ttk.Frame):
         Unlock UI widgets.
         """
         if self.process_thread.is_alive():
-            self.after(10, self.check_process_thread_save_results)
+            self.after(50, self.check_process_thread_save_results)
         else:
             self.process_thread.join()
             # get the results of model processing
@@ -363,6 +516,7 @@ class NNSearch(ttk.Frame):
         Run progress bar.
         """
         self.prog_win = tk.Toplevel()
+        self.prog_win.wm_attributes('-topmost', 1)  # keep window topmost
         self.prog_win.title('Processing')
         self.prog_win.resizable(0, 0)
         self.progFr = ttk.Frame(self.prog_win, borderwidth=2, relief='flat')
@@ -1112,32 +1266,25 @@ class NNSearch(ttk.Frame):
                 self.Text.tag_add('style', start_mark, end_mark)
 
     def highlight1(self):
+        """
+        Apply highlighting style for view 1
+        """
         self.Text.tag_configure('style', foreground='#000000',
                                 background='#C0FA82')
 
     def highlight2(self):
+        """
+        Apply highlighting style view 2
+        """
         self.Text.tag_configure('style', foreground='#000000',
                                 background="#BCFC77",
                                 font='TkDefaultFont 10 bold')
 
     def highlight3(self):
+        """
+        Apply highlighting style view 3
+        """
         self.Text.tag_configure('style', font='TkDefaultFont 11 bold')
-
-    def pos_tagger(self):
-        """
-        Display a pos-tagger window.
-        Implement pos-tagger using TextBlob's averaged perceptron.
-        """
-        pos_tagger = tk.Toplevel()
-        pos_tagger.title('POS-tagger')
-        pos_tagger.resizable(0, 0)
-        pos_taggerFr = ttk.Frame(pos_tagger, borderwidth=2, relief='groove')
-        pos_taggerFr.grid(sticky='nsew')
-        pos_butt = ttk.Button(pos_taggerFr, padding=(0, 0), text='Close',
-                              command=pos_tagger.destroy)
-        pos_butt.grid()
-        # pos_tagger
-
 
     def show_about(self):
         """
@@ -1253,7 +1400,7 @@ class NNSearch(ttk.Frame):
                                           menu=self.Menu2)
         self.tagger = itk.PhotoImage(file=self.img_path('wand.png'))
         self.Menu2.add_command(label="POS-tagger", image=self.tagger,
-                               compound='left', command=self.pos_tagger)
+                               compound='left', command=self.pos_tagger_win)
         put_resizable(self.MenuButton2, 0, 2, 1, 1, 'n')
         # make "Help" menu
         self.Menu3 = tk.Menu(self.MenuFrm, tearoff=False)
@@ -1274,6 +1421,7 @@ class NNSearch(ttk.Frame):
         self.Entry = ttk.Entry(self.EntryFrm, font='TkDefaultFont 12')
         self.Entry.grid(row=1, column=0, columnspan=1, **options)
         self.Entry.bind('<Control-a>', self.ctrl_a)
+        self.Entry.bind('<Control-d>', self.ctrl_d)
         self.Entry.bind('<Control-z>', self.ctrl_z)
         self.Entry.bind('<Control-u>', self.ctrl_u)
         self.Entry.bind('<Return>', self.press_return, '+')
@@ -1295,6 +1443,8 @@ class NNSearch(ttk.Frame):
                             takefocus=0)
         put_resizable(self.Text, 2, 0, 1, 1, 'nsew')
         self.Text.bind('<Control-a>', self.ctrl_a)
+        self.Text.bind('<Control-d>', self.ctrl_d)
+        self.Text.bind('<Control-s>', self.ctrl_s)
         self.Text.bind('<Control-z>', self.ctrl_z)
         self.Text.bind('<Control-u>', self.ctrl_u)
         self.Text.edit_modified(False)  # set Text widget -- not modified

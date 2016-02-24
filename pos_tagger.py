@@ -5,59 +5,44 @@ Standalone POS-tagger implementation using TextBlob's averaged perceptron.
 """
 import argparse
 import codecs
-import docx
 import os
 import re
 import sys
 import unicodedata
 from itertools import izip_longest
 from string import punctuation as punct
-from cStringIO import StringIO
 from textblob import Blobber
 from textblob_aptagger import PerceptronTagger
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
 
 
-def filter_files(file_list):
+def read_file(fpath):
     """
-    Filter out all non-text files.
+    Read the specified file.
     """
-    valid_ext = ['.txt', '.docx', '.pdf']
-    return [f for f in file_list if os.path.splitext(f)[-1] in valid_ext]
+    try:
+        with codecs.open(fpath, 'r', encoding='utf-8') as fopened:
+            fdata = normalize_text(fopened.read())
+    except (OSError, IOError):
+        print 'Can not process "{0}", skipping'.format(fpath)
+        return None
+    return fdata
 
 
-def pdf_read(pdf):
+def write_file(out_path, tagged_text):
     """
-    Use PDFMiner to extract text from pdf file.
-    <PDFMiner even though more low-level but pretty good tool to read pdfs>
+    Write the results of processing to file.
 
     Args:
-        *pdf* (str) -- path to pdf file
-
-    Returns:
-        *text* (str) -- a text extracted from pdf
-
+        | *out_path* (str) -- output file path
+        | *tagged_text* (str) -- pos-tagged data
     """
-    # initalizing objects
-    res_manager = PDFResourceManager()
-    strio = StringIO()
-    lps = LAParams()
-    device = TextConverter(res_manager, strio, codec='utf-8', laparams=lps)
-    interpreter = PDFPageInterpreter(res_manager, device)
-    # opening a pdf file with 'rb' mode for reading binary files
-    pdf_file = file(pdf, 'rb')
-    for page in PDFPage.get_pages(pdf_file, maxpages=0, password='',
-                                  caching=True, check_extractable=True):
-        interpreter.process_page(page)
-    # finishing up
-    pdf_file.close()
-    device.close()
-    text = strio.getvalue()
-    strio.close()
-    return text
+    try:
+        with codecs.open(out_path, 'w', encoding='utf-8') as fnew:
+            fnew.write(tagged_text)
+    except (OSError, IOError):
+        print 'Can not write "{0}"!\n'.format(out_path) +\
+              'Make sure there is enough free space on disk.'
+        sys.exit(1)
 
 
 def normalize_text(text):
@@ -86,35 +71,6 @@ def normalize_text(text):
     return ascii_text
 
 
-def read_input_file(fpath):
-    """
-    Determine the file extension and act accordingly.
-    Read the file and return its contents.
-
-    Args:
-        *fpath* (str) -- file path
-
-    Returns:
-        *contents* (str) -- file contents
-
-    """
-    fext = os.path.splitext(fpath)[-1]
-    # read docx file
-    if re.match(r'.docx', fext):
-        doc = docx.Document(fpath)
-        contents = ''
-        for par in doc.paragraphs:
-            contents = '\n'.join([contents, par.text])
-    # read pdf file
-    elif re.match(r'.pdf', fext):
-        contents = pdf_read(fpath)
-    # read txt of file without any extension
-    elif re.match(r'.txt', fext) or not fext:
-        with codecs.open(fpath, 'r', encoding='utf-8') as fopened:
-            contents = fopened.read()
-    return normalize_text(contents)
-
-
 def tag(text):
     """
     Process given text with PerceptronTagger.
@@ -123,12 +79,11 @@ def tag(text):
         | *text* (str) -- raw text data
 
     Returns:
-        | *ptagged_text* (str) -- tagged text
+        | *full_text* (str) -- tagged text
 
     """
     blob = Blobber(pos_tagger=PerceptronTagger())
     parsed_text = blob(text)
-
     # add excluded punctuation back into the sentences
     full_tagged_sents = {}
     for i, sent in enumerate(parsed_text.sentences):
@@ -141,8 +96,11 @@ def tag(text):
                 full_tagged_sents[i].append(token1 + (idx, ))
             idx += 1
     # convert to str
-    print full_tagged_sents
-    return 0
+    full_text = ''
+    for vals in full_tagged_sents.values():
+        sent = ' '.join(['_'.join([token[0], token[1]]) for token in vals])
+        full_text = ' '.join([full_text, sent])
+    return full_text
 
 
 def main(args):
@@ -150,22 +108,31 @@ def main(args):
     Create directories and save the results.
     Handle given arguments accordingly.
     """
+    if not os.path.exists(args.out):
+        os.mkdir(args.out)
     if args.file:
-        fdata = read_input_file(args.file)
-        tagged = tag(fdata)
+        print 'Processing "{0}"'.format(args.file)
+        out_path = os.path.join(args.out,
+                                'tagged_' + os.path.basename(args.file))
+        data = read_file(args.file)
+        tagged_text = tag(data)
+        write_file(out_path, tagged_text)
     elif args.dir:
-        files = os.listdir(os.path.join(os.getcwd(), args.dir))
-        ffiles = filter_files(files)
-        tagged_data = []
-        for text_file in ffiles:
-            fdata = read_input_file(text_file)
-            tag(fdata)
-            tagged_data.append()
+        files = [os.path.join(args.dir, fname) for fname
+                 in os.listdir(args.dir)]
+        for text_file in files:
+            print 'Processing "{0}"'.format(text_file)
+            out_path = os.path.join(args.out,
+                                    'tagged_' + os.path.basename(text_file))
+            data = read_file(text_file)
+            if not data:
+                continue
+            tagged_text = tag(data)
+            write_file(out_path, tagged_text)
     else:
         print 'Please provide a directory or a filename to process!'
         sys.exit(1)
-
-
+    print 'POS-tagging complete!'
 
 
 if __name__ == '__main__':
@@ -175,13 +142,14 @@ if __name__ == '__main__':
     faster and more accurate than NLTK's and pattern's default implementations.
     """)
     prs.add_argument('-d', '--dir',
-                     help='Specify a directory with text files to process',
+                     help='Specify a directory with text files to process.',
                      required=False)
     prs.add_argument('-f', '--file',
                      help='Specify a text file to process.',
                      required=False)
     prs.add_argument('-o', '--out',
                      help='Specify output directory.',
+                     default=os.path.join(os.getcwd(), 'output'),
                      required=False)
     arguments = prs.parse_args()
     main(arguments)
