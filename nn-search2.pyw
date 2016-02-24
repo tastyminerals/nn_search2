@@ -1775,6 +1775,10 @@ class NNSearch(ttk.Frame):
 def main():
     root = tk.Tk()
     root.title('nn-search 2.0')
+    # set a custom window icon
+    win_icon_path = os.path.join(os.getcwd(), 'data', 'icons', 'nn-search.ico')
+    img = itk.PhotoImage(file=win_icon_path)
+    root.tk.call('wm', 'iconphoto', root._w, img)
     # root.geometry("1000x630")  # gui size at startup
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
