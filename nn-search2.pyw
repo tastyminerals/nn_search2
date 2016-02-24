@@ -69,8 +69,6 @@ class NNSearch(ttk.Frame):
         self.model_results = None
         self.process_results = None
         self.matches = None
-        # precache text before inserting in order to reduce recalculation
-        self.precached = [False, False]  # for Text widget text caching
         self.view1_text_pos = ''
         self.view2_text = ''
         self.view2_text_pos = ''
@@ -136,13 +134,9 @@ class NNSearch(ttk.Frame):
         elif not matches:
             self.Text.tag_delete('style')  # reset highighting
             return
-        # precache results before inserting
-        if not self.precached[0]:
-            self.precache_text_view12(matches)
-            self.precached[0] = True
-        if not self.precached[1]:
-            self.precache_text_view3(matches)
-            self.precached[1] = True
+        # prepare results and add pos-tags to results
+        self.prepare_view12(matches)
+        self.prepare_view3(matches, high_type)
         # insert the results
         self.insert_matches(matches, high_type)
 
@@ -651,7 +645,7 @@ class NNSearch(ttk.Frame):
         function is to display a progress bar while running model functions in
         a separate thread>.
         """
-        # if Text modified, update Name and Size, reset precached bools
+        # if Text modified, update Name and Size
         if self.Text.edit_modified() or self.is_file_loaded:
             # update the file stats
             loaded_text = self.Text.get("1.0", 'end-1c')
@@ -659,7 +653,6 @@ class NNSearch(ttk.Frame):
             acc_size = round(len(loaded_text) / 1024, 1)
             self.stats1.config(text="Size: {0}kb".format(acc_size))
             # reset Text precaching
-            self.precached = [False, False]
         else:
             self.show_message('No data provided!', 'error.png')
             self.set_processed(False)
@@ -1125,7 +1118,7 @@ class NNSearch(ttk.Frame):
         Insert and highlight text matches according to selected UI options.
 
         Args:
-            | *matched* -- dict of matched tokens
+            | *matched* -- Orderedict of matched tokens
             | *hl_type* -- type of highlighting, single token or range
 
         """
@@ -1142,7 +1135,7 @@ class NNSearch(ttk.Frame):
             self.mark_tokens3(matched, hl_type, pos_tags)
             self.highlight3()
 
-    def precache_text_view12(self, matched):
+    def prepare_view12(self, matched):
         """
         Precache text data for various text views.
         <This is done in order to stop recalculating text each time during
@@ -1152,13 +1145,14 @@ class NNSearch(ttk.Frame):
             | *matched* -- dict of matched tokens
 
         """
-        # precache for view1
+        # There is a big tree. The road is long. The sea is wid. The sky is blue.
+        # prepare for view1
         view1_text_pos = ''
         for key, values in self.process_results[1].items():
             text = ['_'.join([value[0], value[1]]) for value in values]
-            view1_text_pos = ' '.join([' '.join(text), view1_text_pos])
-        self.view1_text_pos = view1_text_pos
-        # precache for view2
+            view1_text_pos = ' '.join([view1_text_pos, ' '.join(text)])
+        self.view1_text_pos = view1_text_pos.lstrip(' ')
+        # prepare for view2
         # first see which sent has query matches and include only those
         matched_ids = [k for k in matched if matched[k]]
         view2_text = ''
@@ -1169,7 +1163,7 @@ class NNSearch(ttk.Frame):
             text = ': '.join([str(sent_id), sent])
             view2_text = '\n\n'.join([view2_text, text])
         self.view2_text = view2_text.lstrip('\n\n')   # remove first \n\n
-        # precache for view2 with POS-tags
+        # prepare for view2 with POS-tags
         view2_text = ''
         for sent_id, sent_lst in self.process_results[1].items():
             if sent_id not in matched_ids:
@@ -1180,34 +1174,49 @@ class NNSearch(ttk.Frame):
             view2_text = '\n\n'.join([view2_text, text])
         self.view2_text_pos = view2_text.lstrip('\n\n')
 
-    def precache_text_view3(self, matched):
+    def prepare_view3(self, matched, pos):
         """
         Precache text data for various text views.
         <This is done in order to stop recalculating text each time during
         results insertion.>
 
         Args:
-            | *matched* -- dict of matched tokens
+            | *matched* -- Ordereddict of matched tokens
 
         """
-        # precache for view3
+        # This is a big tree. This is a red car.
+        # prepare text for view3, plain and with pos-tags
         view3_text = ''
+        view3_text_pos = ''
         match_cnt = 0
+        print matched
         for tokens in matched.values():
-            for token in tokens:
-                match_cnt += 1
-                text = ': '.join([str(match_cnt), token[0]])
+            # single token match
+            if pos:
+                matched_substr = []
+                matched_substr_pos = []
+                for token in tokens:
+                    match_cnt += 1
+                    matched_substr.append(': '.join([str(match_cnt),
+                                          token[0]]))
+                    matched_substr_pos.append(': '.join([str(match_cnt),
+                                              '_'.join([token[0], token[1]])]))
+                text = '\n'.join(matched_substr)
+                text_pos = '\n'.join(matched_substr_pos)
                 view3_text = '\n'.join([view3_text, text])
+                view3_text_pos = '\n'.join([view3_text_pos, text_pos])
+            # range of tokens match
+            else:
+                match_cnt += 1
+                matched_substr = ' '.join([token[0] for token in tokens])
+                matched_substr_pos = ' '.join(['_'.join([token[0], token[1]])
+                                              for token in tokens])
+                text = ': '.join([str(match_cnt), matched_substr])
+                text_pos = ': '.join([str(match_cnt), matched_substr_pos])
+                view3_text = '\n'.join([view3_text, text])
+                view3_text_pos = '\n'.join([view3_text_pos, text_pos])
         self.view3_text = view3_text.lstrip('\n')
-        # precache for view3 with POS-tags
-        view3_text = ''
-        match_cnt = 0
-        for tokens in matched.values():
-            for token in tokens:
-                match_cnt += 1
-                text = ''.join([str(match_cnt), ': ', token[0], '_', token[1]])
-                view3_text = '\n'.join([view3_text, text])
-        self.view3_text_pos = view3_text.lstrip('\n')
+        self.view3_text_pos = view3_text_pos.lstrip('\n')
 
     def mark_tokens1(self, matched, single, pos):
         """
@@ -1811,7 +1820,7 @@ class NNSearch(ttk.Frame):
 
 def main():
     root = tk.Tk()
-    root.title('nn-search 2.0')
+    root.title('nn-search2')
     # set a custom window icon
     win_icon_path = os.path.join(os.getcwd(), 'data', 'icons', 'nn-search.ico')
     set_win_icon(root, win_icon_path)

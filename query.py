@@ -3,6 +3,7 @@
 """
 This module handles various query operations.
 """
+from collections import OrderedDict as od
 import re
 import model
 
@@ -75,7 +76,7 @@ def find_matches(query, sents):
             (u'tree', u'NN', 3)]}``
 
     Returns:
-        | *matched_dic* -- dict of matched tokens per sentence idx
+        | *matched_lst* -- a list of matched tokens per sentence
         | *single_marker* -- True if matching single tokens
 
     """
@@ -83,7 +84,7 @@ def find_matches(query, sents):
     single_marker = True if len(query) == 1 else False
     if not query:
         return None, single_marker
-    matched_dic = {}
+    matched_dic = od()
     for sent_idx in sents:
         matched_dic[sent_idx] = [item1 for item0 in
                                  match_query(query, sents[sent_idx])
@@ -95,7 +96,8 @@ def find_matches(query, sents):
 def match_query(query, sent):
     """
     Run user query through the sentences and find all matched substrings.
-    <The function is huge, run a quick test in utests/ if you change anything.>
+    <The function is huge, make sure you clearly understand what you're doing
+    before changing anything.>
 
     Args:
         | *query* -- a list of preprocessed query tuples
