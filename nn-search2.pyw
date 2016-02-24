@@ -7,6 +7,7 @@ Created on Fri Nov 06 20:00:00 2015
 from __future__ import division
 from collections import Counter
 import os
+import platform
 import sys
 import threading as thr
 import multiprocessing as mproc
@@ -21,6 +22,24 @@ import shutil
 import model
 import query
 import pos_tagger
+
+
+# Set various platform dependent variables.
+if platform.system() == 'Windows':
+    # Helvetica, Times, Arial, Georgia, Tahoma, Verdana
+    TKFONT = 'Helvetica 10'
+    TKTEXT_FONT = 'Verdana 10'
+else:
+    TKFONT = 'TkDefaultFont 10'
+    TKTEXT_FONT = 'Sans 10'
+
+
+def set_win_icon(window, icon_path):
+    """
+    Set a custom icon for a given window.
+    """
+    img = itk.PhotoImage(file=icon_path)
+    window.tk.call('wm', 'iconphoto', window._w, img)
 
 
 class NNSearch(ttk.Frame):
@@ -324,7 +343,7 @@ class NNSearch(ttk.Frame):
             self.pos_butt.config(state='normal')
             msg = 'POS-tagging complete!\n' +\
                   'Check the results in the "output" directory\n' +\
-                  ' or the directory you specified.'
+                  'or the directory you specified.'
             self.show_message(msg, 'pos_done.png')
 
     def kill_pos_proc(self):
@@ -376,6 +395,8 @@ class NNSearch(ttk.Frame):
         """
         self.tagger_win = tk.Toplevel()
         self.tagger_win.title('POS-tagger')
+        # set custom window icon
+        set_win_icon(self.tagger_win, self.img_path('wand.png'))
         # self.tagger_win.lift()
         self.tagger_win.wm_attributes('-topmost', True)
         self.tagger_win.resizable(0, 0)
@@ -401,7 +422,7 @@ class NNSearch(ttk.Frame):
                                          image=self.pos_icon1,
                                          compound='left',
                                          text='Not set',
-                                         font='TkDefaultFont 10')
+                                         font=TKFONT)
         self.pos_infile_labl.grid(row=0, column=1, sticky='we')
         # input file Button
         self.idir = itk.PhotoImage(file=self.img_path('input_dir.png'))
@@ -417,7 +438,7 @@ class NNSearch(ttk.Frame):
                                         image=self.pos_icon2,
                                         compound='left',
                                         text='Not set',
-                                        font='TkDefaultFont 10')
+                                        font=TKFONT)
         self.pos_indir_labl.grid(row=2, column=1, sticky='we')
         # output dir Button
         self.odir = itk.PhotoImage(file=self.img_path('out_dir.png'))
@@ -433,7 +454,7 @@ class NNSearch(ttk.Frame):
                                          image=self.pos_icon3,
                                          compound='left',
                                          text='Not set',
-                                         font='TkDefaultFont 10')
+                                         font=TKFONT)
         self.pos_outdir_labl.grid(row=3, column=1, sticky='we')
 
         # Process button
@@ -493,6 +514,8 @@ class NNSearch(ttk.Frame):
 
         """
         message = tk.Toplevel()
+        # set custom window icon
+        set_win_icon(message, self.img_path('warning.png'))
         message.title('Warning!')
         if top:
             message.wm_attributes('-topmost', 1)
@@ -501,7 +524,7 @@ class NNSearch(ttk.Frame):
         warnFr0.grid(sticky='nsew')
         warnFr1 = ttk.Frame(warnFr0, borderwidth=2, relief='groove')
         warnFr1.grid(sticky='nsew')
-        ttk.Label(warnFr1, font='TkDefaultFont 10', text=msg).grid()
+        ttk.Label(warnFr1, font='TkDefaultFont 12', text=msg).grid()
         self.err_img = itk.PhotoImage(file=self.img_path(icon))
         ttk.Label(warnFr1, image=self.err_img).grid()
         ttk.Button(warnFr0, padding=(0, 2), text='OK',
@@ -600,13 +623,15 @@ class NNSearch(ttk.Frame):
         Run progress bar.
         """
         self.prog_win = tk.Toplevel()
+        # set custom window icon
+        set_win_icon(self.prog_win, self.img_path('cup.png'))
         self.prog_win.wm_attributes('-topmost', 1)  # keep window topmost
         self.prog_win.title('Processing')
         self.prog_win.resizable(0, 0)
         self.progFr = ttk.Frame(self.prog_win, borderwidth=2, relief='flat')
         self.progFr.grid(sticky='nsew')
         msg = "Exercise some patience..."
-        ttk.Label(self.progFr, font='TkDefaultFont 10', text=msg).grid()
+        ttk.Label(self.progFr, font=TKFONT, text=msg).grid()
         self.prog_img = itk.PhotoImage(file=self.img_path('cup.png'))
         ttk.Label(self.progFr, image=self.prog_img).grid()
         self.progress_bar = ttk.Progressbar(self.progFr, orient=tk.HORIZONTAL,
@@ -729,6 +754,8 @@ class NNSearch(ttk.Frame):
                                            self.textstats.get('corr'))
         # create a pop-up window, use self instances, we need to update them
         self.stats_win = tk.Toplevel()
+        # set custom window icon
+        set_win_icon(self.stats_win, self.img_path('stats.png'))
         # centering window position
         self.stats_win.title("Statistics")
         self.stats_win.resizable(0, 0)
@@ -745,7 +772,7 @@ class NNSearch(ttk.Frame):
                     '-------------------------------\n' +\
                     'Lexical diversity [0,1]:\nSubjectivity [0,1]: \n' +\
                     'Polarity [-1,1]: \nCorrectness [0,1]: \n'
-        self.ltext = ttk.Label(self.statsFrInn1, font='TkDefaultFont 10',
+        self.ltext = ttk.Label(self.statsFrInn1, font=TKFONT,
                                text=num_llabl)
         self.ltext.grid()
         self.rtext = ttk.Label(self.statsFrInn2, font='TkDefaultFont 10 bold',
@@ -764,6 +791,8 @@ class NNSearch(ttk.Frame):
         ids, tags, desc = self.penn_treebank
         header = ids[0], tags[0], desc[0]
         penn_win = tk.Toplevel()
+        # set custom window icon
+        set_win_icon(penn_win, self.img_path('info.png'))
         penn_win.title('Penn Treebank POS-tags')
         penn_win.resizable(0, 0)
         # creating Frames for headers
@@ -789,11 +818,11 @@ class NNSearch(ttk.Frame):
                   text=header[1]).grid()
         ttk.Label(pennFrInnHead2, font='TkDefaultFont 10 bold',
                   text=header[2]).grid()
-        ttk.Label(pennFrInn0, font='TkDefaultFont 10',
+        ttk.Label(pennFrInn0, font=TKFONT,
                   text='\n'.join(ids[1:])).grid()
         ttk.Label(pennFrInn1, font='TkDefaultFont 10 bold',
                   text='\n'.join(tags[1:])).grid()
-        ttk.Label(pennFrInn2, font='TkDefaultFont 10',
+        ttk.Label(pennFrInn2, font=TKFONT,
                   text='\n'.join(desc[1:])).grid()
         # create Close button
         penn_butt = ttk.Button(pennFr, padding=(0, 0), text='Close',
@@ -870,10 +899,10 @@ class NNSearch(ttk.Frame):
         graphFr0Inn2 = ttk.Frame(graphFr0Inn, borderwidth=2, relief='groove')
         graphFr0Inn2.grid(row=0, column=2, sticky='nsew')
         # insert POS-tags, counts and ratios
-        ttk.Label(graphFr0Inn0, font='TkDefaultFont 10', text=self.tgs).grid()
+        ttk.Label(graphFr0Inn0, font=TKFONT, text=self.tgs).grid()
         ttk.Label(graphFr0Inn1, font='TkDefaultFont 10 bold',
                   text=self.tgs_cnts).grid()
-        ttk.Label(graphFr0Inn2, font='TkDefaultFont 10',
+        ttk.Label(graphFr0Inn2, font=TKFONT,
                   text=self.ratios).grid()
         # insert POS-tags plot
         plot1_path = os.path.join('_graphs', self.current_fname + '.png')
@@ -928,13 +957,13 @@ class NNSearch(ttk.Frame):
         ngramFrInn5 = ttk.Frame(ngramsFr, borderwidth=2, relief='groove')
         ngramFrInn5.grid(row=1, column=5, sticky='nsew')
         # inserting ngram counts
-        ttk.Label(ngramFrInn0, font='TkDefaultFont 10', text=top5).grid()
+        ttk.Label(ngramFrInn0, font=TKFONT, text=top5).grid()
         ttk.Label(ngramFrInn1, font='TkDefaultFont 10 bold',
                   text=top5_cnts).grid()
-        ttk.Label(ngramFrInn2, font='TkDefaultFont 10', text=ngram2).grid()
+        ttk.Label(ngramFrInn2, font=TKFONT, text=ngram2).grid()
         ttk.Label(ngramFrInn3, font='TkDefaultFont 10 bold',
                   text=ngram2_cnts).grid()
-        ttk.Label(ngramFrInn4, font='TkDefaultFont 10', text=ngram3).grid()
+        ttk.Label(ngramFrInn4, font=TKFONT, text=ngram3).grid()
         ttk.Label(ngramFrInn5, font='TkDefaultFont 10 bold',
                   text=ngram3_cnts).grid()
         # update and reset window size, tkinter will adjust
@@ -956,6 +985,8 @@ class NNSearch(ttk.Frame):
         """
         # create a Toplevel first, we will update it later
         self.graphs_win = tk.Toplevel()
+        # set custom window icon
+        set_win_icon(self.graphs_win, self.img_path('stats2.png'))
         self.graphs_win.title('Graphs')
         if self.processed and not self.graphs_ready:
             self.stats_butt2.config(state='disabled')
@@ -963,8 +994,8 @@ class NNSearch(ttk.Frame):
                                 relief='groove')
             self.waitFr.grid(sticky='nsew')
             ttk.Label(self.waitFr,
-                      font='TkDefaultFont 10 bold',
-                      text='Wait...\nCreating plots...').grid()
+                      font='TkDefaultFont 12',
+                      text='Wait... Creating plots...').grid()
             self.wait_img = itk.PhotoImage(file=self.img_path('cup.png'))
             ttk.Label(self.waitFr, image=self.wait_img).grid()
             self.centrify_widget(self.graphs_win)
@@ -1061,6 +1092,8 @@ class NNSearch(ttk.Frame):
                                        self.sstats.get('Matched length ratio'))
         # build a Toplevel window
         self.sstats_win = tk.Toplevel()
+        # set custom window icon
+        set_win_icon(self.sstats_win, self.img_path('stats3.png'))
         # centering window position
         self.sstats_win.resizable(0, 0)
         self.sstats_win.title("Search statistics")
@@ -1074,8 +1107,8 @@ class NNSearch(ttk.Frame):
                                       relief='groove')
         self.sstatsFrInn2.grid(row=0, column=1, sticky='ns')
         ss_llabl = 'Tokens matched:\nMatched length:\n' +\
-                   'Matched length ratio[0,1]:\n'
-        self.ss_ltext = ttk.Label(self.sstatsFrInn1, font='TkDefaultFont 10',
+                   'Matched length / full text [0,1]:\n'
+        self.ss_ltext = ttk.Label(self.sstatsFrInn1, font=TKFONT,
                                   text=ss_llabl)
         self.ss_ltext.grid()
         self.ss_rtext = ttk.Label(self.sstatsFrInn2, font='TkDefaultFont 10 bold',
@@ -1379,6 +1412,8 @@ class NNSearch(ttk.Frame):
                  'tastyminerals@gmail.com ']
         about_win = tk.Toplevel()
         about_win.title('About')
+        # set custom window icon
+        set_win_icon(about_win, self.img_path('info.png'))
         about_win.resizable(0, 0)
         # creating Frames for headers
         aboutFr = ttk.Frame(about_win, borderwidth=2, relief='groove')
@@ -1390,7 +1425,7 @@ class NNSearch(ttk.Frame):
                   text=about[0]).grid()
         self.nn_icon = itk.PhotoImage(file=self.img_path('nn-search.png'))
         ttk.Label(aboutFrInn0, image=self.nn_icon).grid()
-        ttk.Label(aboutFrInn0, font='TkDefaultFont 10',
+        ttk.Label(aboutFrInn0, font=TKFONT,
                   text=about[1]).grid(sticky='we')
         email = about[2]
         email_str = tk.StringVar()
@@ -1495,6 +1530,8 @@ class NNSearch(ttk.Frame):
         self.Menu3.add_command(label="Help", image=self.help, compound='left',
                                command=None)
         self.about = itk.PhotoImage(file=self.img_path('info.png'))
+        self.Menu3.add_command(label="POS-tags", image=self.about,
+                               compound='left', command=self.show_tags_help)
         self.Menu3.add_command(label="About", image=self.about,
                                compound='left', command=self.show_about)
         put_resizable(self.MenuButton3, 0, 3, 1, 1, 'n')
@@ -1521,7 +1558,7 @@ class NNSearch(ttk.Frame):
         self.TextFrm = ttk.Frame(self.Main, borderwidth=2, relief='groove')
         put_resizable(self.TextFrm, 2, 0, 1, 1, 'nsew')
         # make text widget
-        self.Text = tk.Text(self.TextFrm, font='TkDefaultFont 10', height=35,
+        self.Text = tk.Text(self.TextFrm, font=TKTEXT_FONT, height=35,
                             width=100,
                             undo=True,
                             takefocus=0)
@@ -1777,8 +1814,7 @@ def main():
     root.title('nn-search 2.0')
     # set a custom window icon
     win_icon_path = os.path.join(os.getcwd(), 'data', 'icons', 'nn-search.ico')
-    img = itk.PhotoImage(file=win_icon_path)
-    root.tk.call('wm', 'iconphoto', root._w, img)
+    set_win_icon(root, win_icon_path)
     # root.geometry("1000x630")  # gui size at startup
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)

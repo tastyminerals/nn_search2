@@ -10,6 +10,7 @@ from collections import Counter, OrderedDict as od
 import csv
 from itertools import izip_longest
 import os
+import platform
 import random
 import re
 import subprocess as sb
@@ -19,7 +20,8 @@ from string import punctuation as punct
 from cStringIO import StringIO
 
 import docx
-import hunspell
+if not platform.system() == 'Windows':
+    import hunspell
 import matplotlib
 matplotlib.use('Agg')  # fixing threading issue on Windows
 import matplotlib.pyplot as plt
@@ -193,16 +195,19 @@ def get_stats(model_queue, tblob):
     # get subjectivity [0.0, 1.0], 0.0 - objective, 1.0 - subjective
     polarity = round(tblob.sentiment[0], 2)
     subjectivity = round(tblob.sentiment[1], 2)
-
-    # calculate text correctness
-    hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
-                               '/usr/share/hunspell/en_US.aff')
-    correct = [hspell.spell(token) for token in tblob.words]
-    try:
-        correctness = 1 - correct.count(False) / correct.count(True)
-        correctness = round(correctness, 2)
-    except ZeroDivisionError:
-        correctness = 0.0
+    
+    if not platform.system() == 'Windows':
+        # calculate text correctness
+        hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
+                                   '/usr/share/hunspell/en_US.aff')
+        correct = [hspell.spell(token) for token in tblob.words]
+        try:
+            correctness = 1 - correct.count(False) / correct.count(True)
+            correctness = round(correctness, 2)
+        except ZeroDivisionError:
+            correctness = 0.0
+    else:
+        correctness = 'Unix only'
 
     stats = {}
     stats['tokens'] = token_cnt

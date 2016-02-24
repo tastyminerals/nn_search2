@@ -1,0 +1,3 @@
+# TODO
+add Help
+when Query is empty and POS-tags option is checked, hitting <Return> should add POS-tags to the Text field.
