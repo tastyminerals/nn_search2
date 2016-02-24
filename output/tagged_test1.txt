@@ -1,0 +1,11 @@
+What_WP 's_VBZ Tkinter_JJR ?_PUNC
+The_DT Tkinter_NNP module_NN (_PUNC Tk_NNP interface_NN )_PUNC is_VBZ the_DT standard_JJ Python_NNP interface_NN to_TO the_DT Tk_NNP GUI_NNP toolkit_NN from_IN Scriptics_NNP (_PUNC formerly_RB developed_VBN by_IN Sun_NNP Labs_NNPS )_PUNC ._PUNC
+Both_DT Tk_NNP and_CC Tkinter_NNP are_VBP available_JJ on_IN most_JJS Unix_JJ platforms_NNS ,_PUNC well_RB as_IN on_IN Windows_NNP and_CC Macintosh_NNP systems_NNS ._PUNC
+Starting_VBG with_IN the_DT 8.0_CD release_NN ,_PUNC offers_VBZ native_JJ look_NN and_CC feel_VB on_IN all_DT platforms_NNS ._PUNC
+Tkinter_NNP consists_VBZ of_IN a_DT number_NN of_IN modules_NNS ._PUNC
+The_DT Tk_NNP interface_NN is_VBZ provided_VBN by_IN a_DT binary_JJ extension_NN module_NN named_VBN _tkinter_NN ._PUNC
+This_DT module_NN contains_VBZ the_DT low-level_JJ interface_NN to_TO Tk_NNP ,_PUNC should_MD never_RB be_VB used_VBN directly_RB by_IN application_NN programmers_NNS ._PUNC
+It_PRP is_VBZ usually_RB a_DT shared_JJ library_NN (_PUNC or_CC DLL_NNP )_PUNC ,_PUNC might_MD in_IN some_DT cases_NNS be_VB statically_RB linked_VBN with_IN the_DT Python_NNP interpreter_NN ._PUNC
+The_DT public_JJ interface_NN is_VBZ provided_VBN through_IN a_DT number_NN of_IN Python_NNP modules_NNS ._PUNC
+The_DT most_RBS important_JJ interface_NN module_NN is_VBZ the_DT Tkinter_NNP module_NN itself_PRP ._PUNC
+To_TO use_VB Tkinter_NNP ,_PUNC you_PRP need_VBP to_TO do_VB is_VBZ to_TO import_VB the_DT Tkinter_NNP module_NN

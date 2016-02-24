@@ -98,7 +98,9 @@ setup(
             'nn-search/data/icons/help.png',
             'nn-search/data/icons/info.png',
             'nn-search/data/icons/load.png',
-            'nn-search/data/icons/page_save.png',
+            'nn-search/data/icons/input_file.png',
+            'nn-search/data/icons/input_dir.png',
+            'nn-search/data/icons/out_dir.png',
             'nn-search/data/icons/paste.png',
             'nn-search/data/icons/pos-tagging.png',
             'nn-search/data/icons/proc.png',
@@ -114,11 +116,16 @@ setup(
             'nn-search/data/icons/view3.png',
             'nn-search/data/icons/wand.png',
             'nn-search/data/icons/warning.png',
+            'nn-search/data/icons/thunder.png',
+            'nn-search/data/icons/pos_done.png',
+            'nn-search/data/icons/set.png',
+            'nn-search/data/icons/run_tagger.png',
+            'nn-search/data/icons/stop_tagger.png',
+            'nn-search/data/icons/unset.png',
+            'nn-search/data/icons/warning.png',
             'nn-search/data/icons/nn-search.png',
-            'nn-search/data/icons/nn-search.ico',
-            ])
+            'nn-search/data/icons/nn-search.ico'
     ],
-
     setup_requires=['pytest-runner'],
     tests_require=['pytest']
 )

@@ -21,6 +21,7 @@ from cStringIO import StringIO
 import docx
 import hunspell
 import matplotlib
+matplotlib.use('Agg')  # fixing threading issue on Windows
 import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import matplotlib.colors as colors
@@ -213,7 +214,6 @@ def get_stats(model_queue, tblob):
     stats['subj'] = subjectivity
     stats['corr'] = correctness
     model_queue.put(stats)
-    #return stats
 
 
 def get_penn_treebank():
@@ -243,6 +243,7 @@ def get_graphs_data(model_queue, tags_dic, current_fname, process_res):
         | *process_res* (TextBlob) -- TextBlob object
 
     """
+    plt.ioff()  # fixing threading on Windows
     # make plots and sort POS-tags
     ordered_pos = plot_tags(tags_dic, current_fname)
     # get most frequent words/ngrams counts

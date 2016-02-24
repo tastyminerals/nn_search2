@@ -9,6 +9,7 @@ from collections import Counter
 import os
 import sys
 import threading as thr
+import multiprocessing as mproc
 import ttk
 import Tkinter as tk
 import tkFileDialog as tkf
@@ -21,6 +22,7 @@ import model
 import query
 import pos_tagger
 
+
 class NNSearch(ttk.Frame):
 
     def __init__(self, master):
@@ -32,13 +34,14 @@ class NNSearch(ttk.Frame):
         self.sstats_ready = False  # do not recalc search stats
         self.textstats = {}
         self.sstats = {}
-        # processing vars
+        # processing threads
         self.processed = False  # clicked 'Process!' button
         self.model_queue = Queue.PriorityQueue()
         self.process_thread = None
         self.stats_thread = None
         self.graphs_thread = None
         self.sstats_thread = None
+        self.pos_tagger_proc = None
         # text and file vars
         self.loaded_text = None
         self.is_file_loaded = False
@@ -59,6 +62,7 @@ class NNSearch(ttk.Frame):
         # right label headers for search stats pop-up window
         self.ss_rlabl = '{0}\n{1}\n{2}\n'
         # pos-tagger vars
+        self.pos_fpath = ''
         self.pos_loaded_text = ''
         self.pos_dir_path = ''
         self.pos_out_dir_path = ''
@@ -252,9 +256,9 @@ class NNSearch(ttk.Frame):
                  ("Microsoft Word file", ("*.doc", "*.docx")),
                  ("PDF file", "*.pdf"),
                  ("All files", "*.*"))
-        fpath = tkf.askopenfilename(filetypes=types)
+        self.pos_fpath = tkf.askopenfilename(filetypes=types)
         try:
-            loaded_text = model.read_input_file(fpath)
+            loaded_text = model.read_input_file(self.pos_fpath)
         except TypeError:  # when clicked Load and didn't choose any file
             return
         except (OSError, IOError):
@@ -262,11 +266,16 @@ class NNSearch(ttk.Frame):
             self.show_message(msg, 'warning.png')
             return
         self.pos_loaded_text = loaded_text
+        # lock input file button of pos-tagger
         self.pos_indir_butt.config(state='disabled')
+        # unlock Process and Stop buttons
+        self.pos_run_butt.config(state='normal')
+        self.pos_stop_butt.config(state='normal')
         self.pos_dir_path = ''
         # update icon
         self.pos_icon1 = itk.PhotoImage(file=self.img_path('set.png'))
-        self.pos_infile_labl.configure(image=self.pos_icon1, compound='center')
+        self.pos_infile_labl.configure(image=self.pos_icon1, text='OK',
+                                       compound='left')
         self.pos_infile_labl.grid(sticky='we', row=0, column=1)
 
     def load_input_dir(self):
@@ -276,10 +285,15 @@ class NNSearch(ttk.Frame):
         self.pos_dir_path = tkf.askdirectory()
         # lock input file button of pos-tagger
         self.pos_infile_butt.config(state='disabled')
+        # unlock Process and Stop buttons
+        self.pos_run_butt.config(state='normal')
+        self.pos_stop_butt.config(state='normal')
         self.pos_out_dir_path = ''
+        self.pos_loaded_text = ''
         # update icon
         self.pos_icon2 = itk.PhotoImage(file=self.img_path('set.png'))
-        self.pos_indir_labl.configure(image=self.pos_icon2, compound='center')
+        self.pos_indir_labl.configure(image=self.pos_icon2, text='OK',
+                                      compound='left')
 
     def load_output_dir(self):
         """
@@ -288,13 +302,72 @@ class NNSearch(ttk.Frame):
         self.pos_out_dir_path = tkf.askdirectory()
         # update icon
         self.pos_icon3 = itk.PhotoImage(file=self.img_path('set.png'))
-        self.pos_outdir_labl.configure(image=self.pos_icon3, compound='center')
+        self.pos_outdir_labl.configure(image=self.pos_icon3, text='OK',
+                                       compound='left')
 
     def check_pos_tagger_save_results(self):
-        pass
+        """
+        Checking if the thread is alive and informing the user.
+        """
+        if self.pos_tagger_proc.is_alive():
+            self.after(200, self.check_pos_tagger_save_results)
+        elif self.pos_tagger_proc.exitcode != 0:
+            self.pos_run_butt.config(text='Process', image=self.pos_runic,
+                                     state='normal')
+            self.pos_butt.config(state='normal')
+            msg = 'POS-tagging terminated!'
+            self.show_message(msg, 'thunder.png')
+        else:
+            self.pos_tagger_proc.join()
+            self.pos_run_butt.config(text='Process', image=self.pos_runic,
+                                     state='normal')
+            self.pos_butt.config(state='normal')
+            msg = 'POS-tagging complete!\n' +\
+                  'Check the results in the "output" directory\n' +\
+                  ' or the directory you specified.'
+            self.show_message(msg, 'pos_done.png')
 
-    def run_pos_tagger_thread(self):
-        pass
+    def kill_pos_proc(self):
+        """
+        Kill spawned pos-tagger process.
+        """
+        self.pos_tagger_proc.terminate()
+        self.pos_run_butt.config(text='Process', image=self.pos_runic,
+                         state='normal')
+        self.pos_butt.config(state='normal')
+
+    def pos_tagger_run(self):
+        """
+        Run pos-tagger on the specified files.
+        """
+        out_dir = self.pos_out_dir_path or os.path.join(os.getcwd(), 'output')
+        self.thunder = itk.PhotoImage(file=self.img_path('thunder.png'))
+        self.pos_run_butt.config(text='Working...', image=self.thunder,
+                                 state='disabled')
+        self.pos_butt.config(state='disabled')
+        if self.pos_loaded_text:
+            in_file_data = {self.pos_fpath: self.pos_loaded_text}
+            args = [in_file_data, None, out_dir]
+            # spawn a new process
+            self.pos_tagger_proc = mproc.Process(target=pos_tagger.main,
+                                                 args=(args, True))
+            self.pos_tagger_proc.start()
+            self.after(200, self.check_pos_tagger_save_results)
+        elif self.pos_dir_path:
+            files = [os.path.join(self.pos_dir_path, fname) for fname
+                     in os.listdir(self.pos_dir_path)]
+            in_dir_data = {}
+            for text_file in files:
+                fname = os.path.basename(text_file)
+                loaded_text = model.read_input_file(text_file)
+                in_dir_data[fname] = loaded_text
+            args = [None, in_dir_data, out_dir]
+            # spawn a new process
+            self.pos_tagger_proc = mproc.Process(target=pos_tagger.main,
+                                                 args=(args, True))
+            self.pos_tagger_proc.start()
+            # lock and change Process button
+            self.after(200, self.check_pos_tagger_save_results)
 
     def pos_tagger_win(self):
         """
@@ -303,26 +376,33 @@ class NNSearch(ttk.Frame):
         """
         self.tagger_win = tk.Toplevel()
         self.tagger_win.title('POS-tagger')
+        # self.tagger_win.lift()
+        self.tagger_win.wm_attributes('-topmost', True)
         self.tagger_win.resizable(0, 0)
         pos_taggerFr = ttk.Frame(self.tagger_win, borderwidth=2,
                                  relief='groove')
         pos_taggerFr.grid(sticky='nsew')
+        # add a header
+        msg = 'Standalone POS-tagger'
+        ttk.Label(pos_taggerFr, font='TkDefaultFont 10 bold',
+                  text=msg).grid(row=0)
         pos_taggerFrInn0 = ttk.Frame(pos_taggerFr, borderwidth=2,
                                      relief='groove')
-        pos_taggerFrInn0.grid(row=0, column=0, sticky='nsew')
+        pos_taggerFrInn0.grid(row=1, column=0, sticky='nsew')
         self.ifile = itk.PhotoImage(file=self.img_path('input_file.png'))
         self.pos_infile_butt = ttk.Button(pos_taggerFrInn0, padding=(2, 2),
                                           compound='left',
                                           image=self.ifile, text='Input file',
                                           command=self.load_file)
-        self.pos_infile_butt.grid(sticky='we', pady=2, padx=2)
+        self.pos_infile_butt.grid(row=0, column=0, sticky='we', pady=2, padx=2)
         # input file label
         self.pos_icon1 = itk.PhotoImage(file=self.img_path('unset.png'))
         self.pos_infile_labl = ttk.Label(pos_taggerFrInn0,
                                          image=self.pos_icon1,
-                                         compound='center',
+                                         compound='left',
+                                         text='Not set',
                                          font='TkDefaultFont 10')
-        self.pos_infile_labl.grid(sticky='we', row=0, column=1)
+        self.pos_infile_labl.grid(row=0, column=1, sticky='we')
         # input file Button
         self.idir = itk.PhotoImage(file=self.img_path('input_dir.png'))
         self.pos_indir_butt = ttk.Button(pos_taggerFrInn0, padding=(2, 2),
@@ -330,14 +410,15 @@ class NNSearch(ttk.Frame):
                                          image=self.idir,
                                          text='Input directory',
                                          command=self.load_input_dir)
-        self.pos_indir_butt.grid(sticky='we', padx=2)
+        self.pos_indir_butt.grid(row=2, column=0, sticky='we', padx=2)
         # input dir label
         self.pos_icon2 = itk.PhotoImage(file=self.img_path('unset.png'))
         self.pos_indir_labl = ttk.Label(pos_taggerFrInn0,
                                         image=self.pos_icon2,
-                                        compound='center',
+                                        compound='left',
+                                        text='Not set',
                                         font='TkDefaultFont 10')
-        self.pos_indir_labl.grid(sticky='we', row=1, column=1)
+        self.pos_indir_labl.grid(row=2, column=1, sticky='we')
         # output dir Button
         self.odir = itk.PhotoImage(file=self.img_path('out_dir.png'))
         self.pos_outdir_butt = ttk.Button(pos_taggerFrInn0, padding=(2, 2),
@@ -345,45 +426,45 @@ class NNSearch(ttk.Frame):
                                           image=self.odir,
                                           text='Output directory',
                                           command=self.load_output_dir)
-        self.pos_outdir_butt.grid(sticky='we', pady=2, padx=2)
+        self.pos_outdir_butt.grid(row=3, column=0, sticky='we', pady=2, padx=2)
         # output dir label
         self.pos_icon3 = itk.PhotoImage(file=self.img_path('unset.png'))
         self.pos_outdir_labl = ttk.Label(pos_taggerFrInn0,
                                          image=self.pos_icon3,
-                                         compound='center',
+                                         compound='left',
+                                         text='Not set',
                                          font='TkDefaultFont 10')
-        self.pos_outdir_labl.grid(sticky='we', row=2, column=1)
+        self.pos_outdir_labl.grid(row=3, column=1, sticky='we')
 
+        # Process button
         pos_taggerFrInn1 = ttk.Frame(pos_taggerFr, borderwidth=2,
                                      relief='groove')
-        pos_taggerFrInn1.grid(row=0, column=1, sticky='nsew')
-        # Process and stop buttons
-        pos_taggerFrInn2 = ttk.Frame(pos_taggerFr, borderwidth=2,
-                                     relief='groove')
-        pos_taggerFrInn2.grid(row=1, column=0, sticky='nsew')
-        self.rtager = itk.PhotoImage(file=self.img_path('run_tagger.png'))
-        self.pos_run_butt = ttk.Button(pos_taggerFrInn2, padding=(3, 3),
+        pos_taggerFrInn1.grid(row=2, column=0, sticky='nsew')
+        self.pos_runic = itk.PhotoImage(file=self.img_path('run_tagger.png'))
+        self.pos_run_butt = ttk.Button(pos_taggerFrInn1, padding=(3, 3),
                                        compound='left',
-                                       image=self.rtager,
+                                       image=self.pos_runic,
                                        text='Process',
-                                       command=self.tagger_win.destroy)
+                                       command=self.pos_tagger_run)
         self.pos_run_butt.grid(row=0, column=0, sticky='we', pady=2)
-        self.stagger = itk.PhotoImage(file=self.img_path('stop_tagger.png'))
-        self.pos_stop_butt = ttk.Button(pos_taggerFrInn2, padding=(-10, 3),
+        self.pos_run_butt.config(state='disabled')
+        # Stop button
+        self.pos_stopic = itk.PhotoImage(file=self.img_path('stop_tagger.png'))
+        self.pos_stop_butt = ttk.Button(pos_taggerFrInn1, padding=(3, 3),
                                         compound='left',
-                                        image=self.stagger,
+                                        image=self.pos_stopic,
                                         text='Stop',
-                                        command=self.tagger_win.destroy)
+                                        command=self.kill_pos_proc)
         self.pos_stop_butt.grid(row=0, column=1, sticky='we', pady=2)
-
-        pos_taggerFrInn4 = ttk.Frame(pos_taggerFr, height=10, borderwidth=2,
+        self.pos_stop_butt.config(state='disabled')
+        # Close button
+        pos_taggerFrInn2 = ttk.Frame(pos_taggerFr, borderwidth=2, height=15,
                                      relief='flat')
-        pos_taggerFrInn4.grid(row=2, column=0, sticky='ns')
+        pos_taggerFrInn2.grid(row=3, column=0, sticky='nsew')
         self.pos_butt = ttk.Button(pos_taggerFr, padding=(0, 0), text='Close',
                                    command=self.tagger_win.destroy)
         self.pos_butt.grid(sticky='w')
         self.centrify_widget(self.tagger_win)
-        # process loaded data
 
     def centrify_widget(self, widget):
         """
@@ -401,23 +482,26 @@ class NNSearch(ttk.Frame):
         ypos = height/2 - xy[1]/2
         widget.geometry("%dx%d+%d+%d" % (xy + (xpos, ypos)))
 
-    def show_message(self, msg, icon):
+    def show_message(self, msg, icon, top=True):
         """
         Show a warning window with a given message.
 
         Args:
             | *msg* (str) -- a message to display
             | *icon* (str) -- icon name
+            | *top* (bool) -- make message window on top
 
         """
         message = tk.Toplevel()
         message.title('Warning!')
+        if top:
+            message.wm_attributes('-topmost', 1)
         message.resizable(0, 0)
         warnFr0 = ttk.Frame(message, borderwidth=2, relief='groove')
         warnFr0.grid(sticky='nsew')
         warnFr1 = ttk.Frame(warnFr0, borderwidth=2, relief='groove')
         warnFr1.grid(sticky='nsew')
-        ttk.Label(warnFr1, font='TkDefaultFont 10 bold', text=msg).grid()
+        ttk.Label(warnFr1, font='TkDefaultFont 10', text=msg).grid()
         self.err_img = itk.PhotoImage(file=self.img_path(icon))
         ttk.Label(warnFr1, image=self.err_img).grid()
         ttk.Button(warnFr0, padding=(0, 2), text='OK',
@@ -563,7 +647,7 @@ class NNSearch(ttk.Frame):
                                          args=(self.model_queue, loaded_text))
         self.process_thread.start()
         # check if model_thread finished
-        self.after(10, self.check_process_thread_save_results)
+        self.after(50, self.check_process_thread_save_results)
         self.set_processed(True)
         self.set_stats_ready(False)
         self.set_graphs_ready(False)
@@ -578,7 +662,7 @@ class NNSearch(ttk.Frame):
         self.lock_toplevel(self.stats_win_butt, True)
         self.stats_butt1.config(state='disabled')
         if self.stats_thread.is_alive():
-            self.after(10, self.check_stats_thread_save_results)
+            self.after(50, self.check_stats_thread_save_results)
         else:
             self.stats_thread.join()
             # get the results of model processing
@@ -625,7 +709,7 @@ class NNSearch(ttk.Frame):
                      'corr')
             self.textstats = dict((stat, 'Wait...') for stat in stats)
             # check if model_thread finished
-            self.after(10, self.check_stats_thread_save_results)
+            self.after(50, self.check_stats_thread_save_results)
         elif not self.processed and (self.is_file_loaded or
                                      self.Text.edit_modified()):
             self.show_message('Please click "Process!" button',
@@ -719,12 +803,12 @@ class NNSearch(ttk.Frame):
 
     def check_graphs_thread_save_results(self):
         """
-        Check every 10ms if model thread is alive.
+        Check every 100ms if model thread is alive.
         While displaying waiting label in Toplevel.
         Unlock UI widgets.
         """
         if self.graphs_thread.is_alive():
-            self.after(10, self.check_graphs_thread_save_results)
+            self.after(100, self.check_graphs_thread_save_results)
         else:
             self.graphs_thread.join()
             # get the results of model processing
@@ -894,7 +978,7 @@ class NNSearch(ttk.Frame):
                                                   self.process_results))
             self.graphs_thread.start()
             # check if model_thread finished
-            self.after(10, self.check_graphs_thread_save_results)
+            self.after(100, self.check_graphs_thread_save_results)
         elif not self.processed and (self.is_file_loaded
                                      or self.Text.edit_modified()):
             self.graphs_win.destroy()
@@ -1292,7 +1376,7 @@ class NNSearch(ttk.Frame):
         """
         about = ['nn-search v.2.0.0',
                  'Built with nltk, TextBlob and matplotlib',
-                 'tastyminerals@gmail.com']
+                 'tastyminerals@gmail.com ']
         about_win = tk.Toplevel()
         about_win.title('About')
         about_win.resizable(0, 0)
@@ -1312,7 +1396,7 @@ class NNSearch(ttk.Frame):
         email_str = tk.StringVar()
         email_str.set(email)
         contact = tk.Entry(aboutFrInn0, state='readonly', relief='flat',
-                           fg='#0000FF', textvariable=email_str)
+                           fg='#0000FF', width=22, textvariable=email_str)
         contact.grid()
         about_butt = ttk.Button(aboutFr, padding=(0, 0), text='Close',
                                 command=about_win.destroy)

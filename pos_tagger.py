@@ -99,35 +99,74 @@ def tag(text):
     full_text = ''
     for vals in full_tagged_sents.values():
         sent = ' '.join(['_'.join([token[0], token[1]]) for token in vals])
-        full_text = ' '.join([full_text, sent])
-    return full_text
+        full_text = '\n'.join([full_text, sent])
+    return full_text.lstrip('\n')
 
 
-def main(args):
+def main(args, ui_call=False):
     """
     Create directories and save the results.
     Handle given arguments accordingly.
+    Args:
+        | *ui_call* (bool) -- True if main called from withing UI
+        | *in_file_data* (dict) -- dict of type {fname: 'file data'}
+        | *in_dir_data* (dict) -- dict of type {fname: 'file data'}
+
+    <Processing various file types in batch mode is supported only via UI.
+    I want ``pos_tagger.py`` to have only TextBlob and nltk as dependencies.>
+
     """
-    if not os.path.exists(args.out):
-        os.mkdir(args.out)
-    if args.file:
-        print 'Processing "{0}"'.format(args.file)
-        out_path = os.path.join(args.out,
-                                'tagged_' + os.path.basename(args.file))
-        data = read_file(args.file)
+    in_file = None
+    in_file_data = None
+    in_dir = None
+    in_dir_data = None
+    if not ui_call:
+        in_file = args.file
+        in_dir = args.dir
+        out_dir = args.out
+    else:
+        in_file_data, in_dir_data, out_dir = args
+
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    # console single mode
+    if in_file:
+        print 'Processing "{0}"'.format(in_file)
+        out_path = os.path.join(out_dir,
+                                'tagged_' + os.path.basename(in_file))
+        data = read_file(in_file)
         tagged_text = tag(data)
         write_file(out_path, tagged_text)
-    elif args.dir:
-        files = [os.path.join(args.dir, fname) for fname
-                 in os.listdir(args.dir)]
+    # ui single mode
+    elif in_file_data:
+        in_fname = in_file_data.keys()[0]
+        print 'Processing "{0}"'.format(in_fname)
+        out_path = os.path.join(out_dir, 'tagged_' + os.path.basename(in_fname))
+        tagged_text = tag(in_file_data[in_fname])
+        write_file(out_path, tagged_text)
+    # console batch mode
+    elif in_dir:
+        files = [os.path.join(in_dir, fname) for fname
+                 in os.listdir(in_dir)]
+        # only plain text files are supported in console batch mode!
         for text_file in files:
             print 'Processing "{0}"'.format(text_file)
-            out_path = os.path.join(args.out,
+            out_path = os.path.join(out_dir,
                                     'tagged_' + os.path.basename(text_file))
             data = read_file(text_file)
             if not data:
                 continue
             tagged_text = tag(data)
+            write_file(out_path, tagged_text)
+    # UI batch mode
+    elif in_dir_data:
+        for fname, fdata in in_dir_data.items():
+            if not fdata:
+                continue
+            print 'Processing "{0}"'.format(fname)
+            out_path = os.path.join(out_dir,
+                                    'tagged_' + os.path.basename(fname))
+            tagged_text = tag(fdata)
             write_file(out_path, tagged_text)
     else:
         print 'Please provide a directory or a filename to process!'
