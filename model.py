@@ -145,9 +145,6 @@ def process_text(*args):
     full_tagged_sents = {}
     for i, sent in enumerate(parsed_text.sentences):
         parsed_tokens = sent.tokens
-        for tag in sent.tags:
-            print tag
-
         parsed_tgs_dic = dict(((tag[0], tag[1]) for tag in sent.tags))
         full_tagged_sents[i] = []
         idx = 0

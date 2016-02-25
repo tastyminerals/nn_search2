@@ -135,7 +135,6 @@ def match_query(query, sent):
     matches = []
     sent_len = len(sent)
     token = [None, None, 0]  # use dummy token for first iteration
-    print sent
     while start != sent_len:
         full_query = len(query)  # used to check whether the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
@@ -181,8 +180,9 @@ def match_query(query, sent):
                                 qmatch = update_cache(token, qmatch, full_query)
                             # check here if the qterm was the last in a query
                             if full_query == 0:
-                                # if it was append a qmatch before we break
-                                matches.append(qmatch)
+                                # if it was append, incl a range between matches
+                                s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                                matches.append(sent[s:e+1])
                                 last_matched = True
                                 break
                             break
@@ -197,8 +197,9 @@ def match_query(query, sent):
                             = update_cache(token, qmatch, full_query)
                         # check here if the qterm was the last in a query
                         if full_query == 0:
-                            # if it was append a qmatch before we break
-                            matches.append(qmatch)
+                            # if it was append, incl a range between matches
+                            s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                            matches.append(sent[s:e+1])
                             last_matched = True
                             break
                         break
@@ -215,7 +216,9 @@ def match_query(query, sent):
                     qmatch = update_cache(token, qmatch, full_query)
                 # check again if we have fully matched the query
                 if full_query == 0:
-                    matches.append(qmatch)
+                    # if it was append, incl a range between matches
+                    s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                    matches.append(sent[s:e+1])
                 break
         # Check if a query term was ever matched
         # We handling various cases of breaking out of the loop here.

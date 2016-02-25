@@ -1236,34 +1236,36 @@ class NNSearch(ttk.Frame):
             if not tokens:
                 continue
             sent_limit = True
-            for token in tokens:
-                if not pos:
-                    token = ''.join([r'\y', re.escape(token[0]), r'\y'])
-                else:
-                    token = ''.join([r'\y', re.escape(token[0]), '_',
-                                     re.escape(token[1]), r'\y'])
-                # get start index, search returns only first match
-                temp_mark = self.Text.search(token, start, stopindex=tk.END,
-                                             regexp=True)
-                if not temp_mark:
-                    break
-                token_len = len(token) - 4
-                end_mark = '%s+%dc' % (temp_mark, token_len)
-                # highlight range or single token
-                if single:
-                    start_mark = temp_mark
-                # break highlight between sents
-                if sent_limit:
-                    start_mark = temp_mark
-                    sent_limit = False
-                # remember last matched position
-                start = end_mark
-                # mark first token
-                if first:
-                    start_mark = temp_mark
-                    start = end_mark + '+1c'  # plus one character
-                    first = False
-                self.Text.tag_add('style', start_mark, end_mark)
+            if not pos:
+                matched_str = ' '.join([tok[0] for tok in tokens])
+                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
+                token_len = len(matched_str)
+            else:
+                matched_str = ' '.join(['_'.join([tok[0], tok[1]])
+                                        for tok in tokens])
+                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
+                token_len = len(matched_str)
+            # get start index, search returns only first match
+            temp_mark = self.Text.search(token, start, stopindex=tk.END,
+                                         regexp=True)
+            if not temp_mark:
+                break
+            end_mark = '%s+%dc' % (temp_mark, token_len)
+            # highlight range or single token
+            if single:
+                start_mark = temp_mark
+            # break highlight between sents
+            if sent_limit:
+                start_mark = temp_mark
+                sent_limit = False
+            # remember last matched position
+            start = end_mark
+            # mark first token
+            if first:
+                start_mark = temp_mark
+                start = end_mark + '+1c'  # plus one character
+                first = False
+            self.Text.tag_add('style', start_mark, end_mark)
 
     def mark_tokens2(self, matched, single, pos):
         """
@@ -1297,34 +1299,36 @@ class NNSearch(ttk.Frame):
             if not tokens:
                 continue
             sent_limit = True
-            for token in tokens:
-                if not pos:
-                    token = ''.join([r'\y', re.escape(token[0]), r'\y'])
-                else:
-                    token = ''.join([r'\y', re.escape(token[0]), '_',
-                                     re.escape(token[1]), r'\y'])
-                # get start index, search returns only first match
-                temp_mark = self.Text.search(token, start, stopindex=tk.END,
-                                             regexp=True)
-                if not temp_mark:
-                    break
-                token_len = len(token) - 4
-                end_mark = '%s+%dc' % (temp_mark, token_len)
-                # highlight range or single token
-                if single:
-                    start_mark = temp_mark
-                # break highlight between sents
-                if sent_limit:
-                    start_mark = temp_mark
-                    sent_limit = False
-                # remember last matched position
-                start = end_mark
-                # mark first token
-                if first:
-                    start_mark = temp_mark
-                    start = end_mark + '+ 1c'  # plus one character
-                    first = False
-                self.Text.tag_add('style', start_mark, end_mark)
+            if not pos:
+                matched_str = ' '.join([tok[0] for tok in tokens])
+                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
+                token_len = len(matched_str)
+            else:
+                matched_str = ' '.join(['_'.join([tok[0], tok[1]])
+                                        for tok in tokens])
+                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
+                token_len = len(matched_str)
+            # get start index, search returns only first match
+            temp_mark = self.Text.search(token, start, stopindex=tk.END,
+                                         regexp=True)
+            if not temp_mark:
+                break
+            end_mark = '%s+%dc' % (temp_mark, token_len)
+            # highlight range or single token
+            if single:
+                start_mark = temp_mark
+            # break highlight between sents
+            if sent_limit:
+                start_mark = temp_mark
+                sent_limit = False
+            # remember last matched position
+            start = end_mark
+            # mark first token
+            if first:
+                start_mark = temp_mark
+                start = end_mark + '+ 1c'  # plus one character
+                first = False
+            self.Text.tag_add('style', start_mark, end_mark)
 
     def mark_tokens3(self, matched, single, pos):
         """

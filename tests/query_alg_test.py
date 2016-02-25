@@ -58,10 +58,11 @@ SENT1 = {0: [(u'The', u'DT', 0), (u'Prose', u'NNP', 1), (u'or', u'CC', 2),
              (u'written', u'VBN', 6), (u'in', u'IN', 7), (u'the', u'DT', 8),
              (u'early', u'JJ', 9), (u'13th', u'JJ', 10), (u'century', u'NN', 11),
              (u'by', u'IN', 12), (u'Snorri', u'NNP', 13), (u'Sturluson', u'NNP', 14),
-             (u',', 'PUNC', 15), (u'was', u'VBD', 16), (u'a', u'DT', 17),
-             (u'leading', u'VBG', 18), (u'skald', u'NN', 19),
-             (u'chieftain', u'NN', 20), (u',', 'PUNC', 21), (u'diplomat', u'NN', 22),
-             (u',', 'PUNC', 23), (u'Iceland', u'NNP', 24), (u'.', 'PUNC', 25)],
+             (u',', 'PUNC', 15), (u'who', u'WP', 16), (u'was', u'VBD', 17),
+             (u'a', u'DT', 18), (u'leading', u'VBG', 19), (u'skald', u'NN', 20),
+             (u',', 'PUNC', 21), (u'chieftain', u'NN', 22), (u',', 'PUNC', 23),
+             (u'and', u'CC', 24), (u'diplomat', u'NN', 25), (u'in', u'IN', 26),
+             (u'Iceland', u'NNP', 27), (u'.', 'PUNC', 28)],
         1: [(u'It', u'PRP', 0), (u'may', u'MD', 1), (u'be', u'VB', 2),
             (u'thought', u'VBN', 3), (u'of', u'IN', 4), (u'primarily', u'RB', 5),
             (u'as', u'IN', 6), (u'a', u'DT', 7), (u'handbook', u'NN', 8),
@@ -71,6 +72,7 @@ SENT1 = {0: [(u'The', u'DT', 0), (u'Prose', u'NNP', 1), (u'or', u'CC', 2),
 
 #TEST_QUERIES1 = [[(None, 'DT', None, False), (None, 'NN', 2, False)]]
 TEST_QUERIES1 = [[(None, 'DT', None, False)]]
+#TEST_QUERIES1 = [[(None, 'NNP', None, False), (None, 'NNP', 2, False), (None, 'VBD', 2, False)]]
 
 def match_query(query, sent):
     """
@@ -86,26 +88,6 @@ def match_query(query, sent):
         | *matched* -- a list of tuples of matched sentence substrings
 
     """
-    def check_limits(last_matched, query, start, sent_len):
-        # Check if a query term was ever matched
-        # We handling various cases of breaking out of the loop here.
-        # Check if we have any matches and see if the first qterm has no limit.
-        print 'CHECKING END', query, last_matched
-        if not last_matched and not query[0][2]:
-            # check if the last term has a limit and compare qterm sum + limit
-            # with the sent length, break if it is bigger
-            print 'CHECK LAST QTERM', start + query[-1][2] + len(query), sent_len
-            if query[-1][2] and start + query[-1][2] + len(query) >= sent_len:
-                print 'NEVER MATCHED!!!'
-                start = sent_len
-                return True
-        # now qterm has a limit and we need to make sure that the sent was fully
-        # checked by comparing the start idx with the last token idx
-        elif not last_matched and query[0][2]:
-            start += 1
-            return True
-        return False
-
     def update_cache(token, qmatch, full_query, neg=False):
         """
         Update temp cache that accumulates successful query matches.
@@ -191,7 +173,9 @@ def match_query(query, sent):
                             # check here if the qterm was the last in a query
                             if full_query == 0:
                                 # if it was append a qmatch before we break
-                                matches.append(qmatch)
+                                print '================', [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                                s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                                matches.append(sent[s:e+1])
                                 print '>>>0', last_matched
                                 last_matched = True
                                 print '>>>1', last_matched
@@ -212,7 +196,9 @@ def match_query(query, sent):
                         if full_query == 0:
                             print 'FULL QUER MATCH!'
                             # if it was append a qmatch before we break
-                            matches.append(qmatch)
+                            print '================', [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                            s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                            matches.append(sent[s:e+1])
                             print '>>>2', last_matched
                             last_matched = True
                             print '>>>3', last_matched
@@ -232,7 +218,9 @@ def match_query(query, sent):
                 # check again if we have fully matched the query
                 if full_query == 0:
                     print 'FULL QUER MATCH!'
-                    matches.append(qmatch)
+                    print '================', [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                    s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                    matches.append(sent[s:e+1])
                 break
         # Check if a query term was ever matched
         # We handling various cases of breaking out of the loop here.
