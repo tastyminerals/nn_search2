@@ -137,7 +137,7 @@ class NNSearch(ttk.Frame):
             return
         # prepare results and add pos-tags to results
         self.prepare_view12(matches)
-        self.prepare_view3(matches, high_type)
+        self.prepare_view3(matches)
         # insert the results
         self.insert_matches(matches, high_type)
 
@@ -1153,9 +1153,11 @@ class NNSearch(ttk.Frame):
             text = ['_'.join([value[0], value[1]]) for value in values]
             view1_text_pos = ' '.join([view1_text_pos, ' '.join(text)])
         self.view1_text_pos = view1_text_pos.lstrip(' ')
+
         # prepare for view2
         # first see which sent has query matches and include only those
-        matched_ids = [k for k in matched if matched[k]]
+        matched_ids =  [sent_id for sent_id in matched
+                        for tokens in matched[sent_id] if tokens]
         view2_text = ''
         for sent_id, sent_lst in self.process_results[1].items():
             if sent_id not in matched_ids:
@@ -1175,7 +1177,7 @@ class NNSearch(ttk.Frame):
             view2_text = '\n\n'.join([view2_text, text])
         self.view2_text_pos = view2_text.lstrip('\n\n')
 
-    def prepare_view3(self, matched, pos):
+    def prepare_view3(self, matched):
         """
         Precache text data for various text views.
         <This is done in order to stop recalculating text each time during
@@ -1183,49 +1185,26 @@ class NNSearch(ttk.Frame):
 
         Args:
             | *matched* -- Ordereddict of matched tokens
-            | *pos* -- True if single token
 
         """
-        # This is a big tree. This is a red car.
         # prepare text for view3, plain and with pos-tags
-        view3_text = ''
-        view3_text_pos = ''
-        match_cnt = 0
-        for tokens in matched.values():
-            # single token match
-            if pos:
-                matched_substr = []
-                matched_substr_pos = []
-                for token in tokens:
-                    match_cnt += 1
-                    matched_substr.append(': '.join([str(match_cnt),
-                                                    token[0]]))
-                    matched_substr_pos.append(': '.join([str(match_cnt),
-                                              '_'.join([token[0], token[1]])]))
-                if not matched_substr:
-                    continue
-                if not matched_substr_pos:
-                    continue
-                text = '\n'.join(matched_substr)
-                text_pos = '\n'.join(matched_substr_pos)
-                view3_text = '\n'.join([view3_text, text])
-                view3_text_pos = '\n'.join([view3_text_pos, text_pos])
-            # range of tokens match
-            else:
-                match_cnt += 1
-                matched_substr = ' '.join([token[0] for token in tokens])
-                matched_substr_pos = ' '.join(['_'.join([token[0],
-                                              token[1]]) for token in tokens])
-                if not matched_substr:
-                    continue
-                if not matched_substr_pos:
-                    continue
-                text = ': '.join([str(match_cnt), matched_substr])
-                text_pos = ': '.join([str(match_cnt), matched_substr_pos])
-                view3_text = '\n'.join([view3_text, text])
-                view3_text_pos = '\n'.join([view3_text_pos, text_pos])
-        self.view3_text = view3_text.lstrip('\n')
-        self.view3_text_pos = view3_text_pos.lstrip('\n')
+        cnt = 0
+        view3_plain = []
+        view3_pos = []
+        for sent_lst in matched.values():
+            for tokens in sent_lst:
+                cnt += 1
+                # plain
+                view3_plain.append(': '.join([str(cnt),
+                                              ' '.join([token[0]
+                                                        for token in tokens])]))
+                # pos-tags included
+                view3_pos.append(': '.join([str(cnt),
+                                            ' '.join(['_'.join([token[0],
+                                                                token[1]])
+                                                      for token in tokens])]))
+                self.view3_text = '\n'.join(view3_plain)
+                self.view3_text_pos = '\n'.join(view3_pos)
 
     def mark_tokens1(self, matched, single, pos):
         """
@@ -1252,11 +1231,8 @@ class NNSearch(ttk.Frame):
         else:
             self.insert_text(self.process_results[0])
         # start_mark = '1.0'
-        print self.process_results[1]
-        print '-----------------------------------'
-        print matched
-        print '-----------------------------------'
-        for tokens in matched.values():
+        sents_matches = [toks for sent_lst in matched.values() for toks in sent_lst]
+        for tokens in sents_matches:
             if not tokens:
                 continue
             sent_limit = True
@@ -1287,7 +1263,6 @@ class NNSearch(ttk.Frame):
                     start_mark = temp_mark
                     start = end_mark + '+1c'  # plus one character
                     first = False
-                print tokens, token, start_mark, end_mark
                 self.Text.tag_add('style', start_mark, end_mark)
 
     def mark_tokens2(self, matched, single, pos):
@@ -1317,7 +1292,8 @@ class NNSearch(ttk.Frame):
             self.Text.insert('1.0', self.view2_text_pos)
         else:
             self.Text.insert('1.0', self.view2_text)
-        for tokens in matched.values():
+        sents_matches = [toks for sent_lst in matched.values() for toks in sent_lst]
+        for tokens in sents_matches:
             if not tokens:
                 continue
             sent_limit = True
@@ -1372,7 +1348,8 @@ class NNSearch(ttk.Frame):
             self.Text.insert('1.0', self.view3_text_pos)
         else:
             self.Text.insert('1.0', self.view3_text)
-        for tokens in matched.values():
+        sents_matches = [toks for sent_lst in matched.values() for toks in sent_lst]
+        for tokens in sents_matches:
             if not tokens:
                 continue
             sent_limit = True

@@ -86,11 +86,8 @@ def find_matches(query, sents):
         return None, single_marker
     matched_dic = od()
     for sent_idx in sents:
-        matched_dic[sent_idx] = [item1 for item0 in
-                                 match_query(query, sents[sent_idx])
-                                 for item1 in item0]
+        matched_dic[sent_idx] = match_query(query, sents[sent_idx])
     return matched_dic, single_marker
-    # This is a green tree. The tree is big.
 
 
 def match_query(query, sent):
@@ -132,56 +129,55 @@ def match_query(query, sent):
         if not neg:
             qmatch.append(token)
         return [last, start, full_query, last_matched, negation, qmatch]
-    print 'query:', query
-    print 'sent:', sent
-    start = 0
-    last = 0
+    start = 0  # starting idx
+    last = 0  # last iterated idx
     negation = False
     matches = []
-    while start != len(sent):
-        print 'WHILE loop'
+    sent_len = len(sent)
+    token = [None, None, 0]  # use dummy token for first iteration
+    while start != sent_len:
         full_query = len(query)  # used to check whether the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
         for qterm in query:
-            print 'QTERM loop'
             # if ! negation, we must break into while and restart query loop
             if negation:
-                print 'NEGATION BREAKING TO WHILE'
                 negation = False
                 break
+            # check limit stretch
+            if sent_len - token[2] == 1:
+                start = sent_len
+                break
+            # True if last qterm match was found, also remember last mastch idx
             last_matched = False
             for token in sent[start:]:
-                print 'token loop, iterating:', qterm, 'with token:', token
                 # first check if qterm index allows further search
                 if qterm[2] is not None and qterm[2] < token[2] - last:
-                    print 'EARLY BREAK!', start, len(sent)
                     # if negation, we add to qmatch and break
                     if qterm[3]:
                         last, start, full_query, last_matched, negation, \
-                         qmatch = update_cache(token, qmatch, full_query)
+                            qmatch = update_cache(token, qmatch, full_query)
                         break
                     last = token[2] + 1
-                    print 'ABOUT TO BREAK!'
                     break
                 # if word and there is no word match just proceed to next token
                 if qterm[0] is not None and not qterm[0] == token[0] and \
-                   not qterm[3]:
+                        not qterm[3]:
                     continue
                 # if tag and there is no tag match just proceed to next token
                 if qterm[1] is not None and not qterm[1] == token[1] and \
-                   not qterm[3]:
+                        not qterm[3]:
                     continue
                 # check ! negation and handle all options accordingly
                 if qterm[3] and (qterm[0] == token[0] or qterm[1] == token[1]):
                     if qterm[2] is not None:
                         if qterm[2] >= token[2] - last:
                             last, start, full_query, last_matched, negation, \
-                             qmatch = update_cache(token, qmatch,
-                                                   full_query, True)
+                                qmatch = update_cache(token, qmatch,
+                                                      full_query, True)
                             break
                         else:
                             last, start, full_query, last_matched, negation, \
-                             qmatch = update_cache(token, qmatch, full_query)
+                                qmatch = update_cache(token, qmatch, full_query)
                             # check here if the qterm was the last in a query
                             if full_query == 0:
                                 # if it was append a qmatch before we break
@@ -190,15 +186,14 @@ def match_query(query, sent):
                                 break
                             break
                     else:
-                        last, start, full_query, last_matched, negation, \
-                         qmatch = update_cache(token, qmatch, full_query, True)
+                        last, start, full_query, last_matched, negation, qmatch\
+                            = update_cache(token, qmatch, full_query, True)
                         break
                 # if idx and there is idx match act
                 if qterm[2] is not None:
                     if qterm[2] >= token[2] - last:
-                        print 'IDX MATCH!'
-                        last, start, full_query, last_matched, negation, \
-                         qmatch = update_cache(token, qmatch, full_query)
+                        last, start, full_query, last_matched, negation, qmatch\
+                            = update_cache(token, qmatch, full_query)
                         # check here if the qterm was the last in a query
                         if full_query == 0:
                             # if it was append a qmatch before we break
@@ -211,8 +206,8 @@ def match_query(query, sent):
                         break
                 # check here for ! negation node, disallow adding to qmatch
                 if qterm[3]:
-                    last, start, full_query, last_matched, negation, \
-                     qmatch = update_cache(token, qmatch, full_query, True)
+                    last, start, full_query, last_matched, negation, qmatch = \
+                        update_cache(token, qmatch, full_query, True)
                     break
                 # if idx limit does not exist, add token to qmatch cache
                 last, start, full_query, last_matched, negation, \
@@ -221,11 +216,20 @@ def match_query(query, sent):
                 if full_query == 0:
                     matches.append(qmatch)
                 break
-        # check if a query term was ever matched, if not, break while
-        #if not last_matched:
-        #    print 'NEVER MATCHED, BREAKING!'
-        #    start += 1
-        #    break
+        # Check if a query term was ever matched
+        # We handling various cases of breaking out of the loop here.
+        # Check if we have any matches and see if the first qterm has no limit.
+        if not last_matched and not query[0][2]:
+            # check if the last term has a limit and compare qterm sum + limit
+            # with the sent length, break if it is bigger
+            if query[-1][2] and start + query[-1][2] + len(query) >= sent_len:
+                start = sent_len
+                break
+        # now qterm has a limit and we need to make sure that the sent was fully
+        # checked by comparing the start idx with the last token idx
+        elif not last_matched and query[0][2]:
+            start += 1
+            break
     return matches
 
 

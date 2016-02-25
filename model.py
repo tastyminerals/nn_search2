@@ -5,7 +5,6 @@ A collection of text processing methods used by nn-search.
 This module also handles user query parsing, text preprocessing and text stats.
 """
 from __future__ import division
-from colors import COLLECTION
 from collections import Counter, OrderedDict as od
 import csv
 from itertools import izip_longest
@@ -14,11 +13,9 @@ import platform
 import random
 import re
 import subprocess as sb
-import sys
 import unicodedata
 from string import punctuation as punct
 from cStringIO import StringIO
-
 import docx
 if not platform.system() == 'Windows':
     import hunspell
@@ -34,6 +31,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
+from colors import COLLECTION
 
 
 def pdf_read(pdf):
@@ -154,7 +152,8 @@ def process_text(*args):
                 full_tagged_sents[i].append((token2, 'PUNC', idx))
             elif token1:
                 full_tagged_sents[i].append(token1 + (idx, ))
-            idx += 1
+            if token1 is not None:
+                idx += 1
     model_queue.put([parsed_text, full_tagged_sents])
 
 
@@ -195,7 +194,7 @@ def get_stats(model_queue, tblob):
     # get subjectivity [0.0, 1.0], 0.0 - objective, 1.0 - subjective
     polarity = round(tblob.sentiment[0], 2)
     subjectivity = round(tblob.sentiment[1], 2)
-    
+
     if not platform.system() == 'Windows':
         # calculate text correctness
         hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
