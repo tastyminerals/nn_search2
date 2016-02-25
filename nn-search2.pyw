@@ -479,7 +479,7 @@ class NNSearch(ttk.Frame):
         pos_taggerFrInn2.grid(row=3, column=0, sticky='nsew')
         self.pos_butt = ttk.Button(pos_taggerFr, padding=(0, 0), text='Close',
                                    command=self.tagger_win.destroy)
-        self.pos_butt.grid(sticky='w')
+        self.pos_butt.grid(sticky='ns')
         self.centrify_widget(self.tagger_win)
 
     def centrify_widget(self, widget):
@@ -775,7 +775,7 @@ class NNSearch(ttk.Frame):
         self.stats_win_butt = ttk.Button(self.statsFr, text='Close',
                                          padding=(0, 0),
                                          command=self.stats_win.destroy)
-        self.stats_win_butt.grid(sticky='w')
+        self.stats_win_butt.grid(sticky='ns')
         self.centrify_widget(self.stats_win)
 
     def show_tags_help(self):
@@ -852,16 +852,16 @@ class NNSearch(ttk.Frame):
         # create Frames for Toplevel window
         graphFr = ttk.Frame(self.graphs_win, borderwidth=2, relief='groove')
         graphFr.grid(row=0, column=0, sticky='nsew')
-        closeFr = ttk.Frame(self.graphs_win, borderwidth=2, relief='groove')
-        closeFr.grid(row=1, column=0, sticky='nsew')
-        graphFr0 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
+        graphFrInn = ttk.Frame(graphFr, borderwidth=2, relief='groove')
+        graphFrInn.grid(row=1, column=0, sticky='nsew')
+        graphFr0 = ttk.Frame(graphFrInn, borderwidth=2, relief='groove')
         graphFr0.grid(row=0, column=0, sticky='nsew')
         graphFr0Inn = ttk.Frame(graphFr0, borderwidth=2, relief='groove')
         graphFr0Inn.grid(row=1, column=0, sticky='nsew')
-        graphFr1 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
+        graphFr1 = ttk.Frame(graphFrInn, borderwidth=2, relief='groove')
         graphFr1.grid(row=0, column=1, sticky='nsew')
         # graphFr2 will contain two inner Frames for pie charts and ngram cnts
-        graphFr2 = ttk.Frame(graphFr, borderwidth=2, relief='groove')
+        graphFr2 = ttk.Frame(graphFrInn, borderwidth=2, relief='groove')
         graphFr2.grid(row=0, column=2, sticky='nsew')
         graphFrInn0 = ttk.Frame(graphFr2, borderwidth=2, relief='groove')
         graphFrInn0.grid(row=0, column=0, sticky='nsew')
@@ -876,9 +876,9 @@ class NNSearch(ttk.Frame):
                               compound='left', command=self.show_tags_help)
         tag_help.grid(row=0, sticky='we')
         # add Close button
-        close_butt = ttk.Button(closeFr, padding=(0, 0), text='Close',
+        close_butt = ttk.Button(graphFr, padding=(0, 0), text='Close',
                                 command=self.graphs_win.destroy)
-        close_butt.grid(sticky='w')
+        close_butt.grid(sticky='ns')
         # extract POS-tags, occurences, calculate ratio
         self.tgs = '\n'.join([k for k in self.srt_tags])
         self.tgs_cnts = '\n'.join([str(v) for v in self.srt_tags.values()])
@@ -1111,7 +1111,7 @@ class NNSearch(ttk.Frame):
         self.sstats_win_butt = ttk.Button(self.sstatsFr, text='Close',
                                           padding=(0, 0),
                                           command=self.sstats_win.destroy)
-        self.sstats_win_butt.grid(sticky='w')
+        self.sstats_win_butt.grid(sticky='ns')
         self.centrify_widget(self.sstats_win)
 
     def insert_matches(self, matched, hl_type):
