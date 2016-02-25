@@ -141,19 +141,24 @@ def process_text(*args):
     model_queue, text = args
     blob = Blobber(pos_tagger=PerceptronTagger())
     parsed_text = blob(text)
-
     # add excluded punctuation back into the sentences
     full_tagged_sents = {}
     for i, sent in enumerate(parsed_text.sentences):
+        parsed_tokens = sent.tokens
+        for tag in sent.tags:
+            print tag
+
+        parsed_tgs_dic = dict(((tag[0], tag[1]) for tag in sent.tags))
         full_tagged_sents[i] = []
         idx = 0
-        for token1, token2 in izip_longest(sent.tags, sent.tokens):
-            if token2 in punct:
-                full_tagged_sents[i].append((token2, 'PUNC', idx))
-            elif token1:
-                full_tagged_sents[i].append(token1 + (idx, ))
-            if token1 is not None:
-                idx += 1
+        for token in parsed_tokens:
+            tag = parsed_tgs_dic.get(token)
+            if tag:
+                full_tagged_sents[i].append((token, tag, idx))
+            # missing punct detected
+            else:
+                full_tagged_sents[i].append((token, 'PUNC', idx))
+            idx += 1
     model_queue.put([parsed_text, full_tagged_sents])
 
 

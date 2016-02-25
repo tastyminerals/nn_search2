@@ -135,6 +135,7 @@ def match_query(query, sent):
     matches = []
     sent_len = len(sent)
     token = [None, None, 0]  # use dummy token for first iteration
+    print sent
     while start != sent_len:
         full_query = len(query)  # used to check whether the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
