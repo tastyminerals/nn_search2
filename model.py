@@ -26,7 +26,8 @@ import matplotlib.cm as cmx
 import matplotlib.colors as colors
 from nltk.corpus import stopwords
 from textblob import Blobber, Word
-# from textblob_aptagger import PerceptronTagger
+from textblob_aptagger import PerceptronTagger
+from textblob.taggers import NLTKTagger
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
@@ -139,8 +140,8 @@ def process_text(*args):
 
     """
     model_queue, text = args
-    # blob = Blobber(pos_tagger=PerceptronTagger())
-    blob = Blobber()
+    blob = Blobber(pos_tagger=PerceptronTagger())
+    # blob = Blobber()
     parsed_text = blob(text)
     # add excluded punctuation back into the sentences
     full_tagged_sents = {}
