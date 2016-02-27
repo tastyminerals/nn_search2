@@ -1,0 +1,7 @@
+matplotlib>=1.5.1
+Pillow>=3.1.0
+nltk>=3.1
+textblob>=0.11.0
+docx>=0.2.4
+hunspell>=0.3.3
+pdfminer>=20140328

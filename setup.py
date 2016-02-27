@@ -16,8 +16,9 @@ from os import path
 
 HERE = path.abspath(path.dirname(__file__))
 
+
 # Get the long description from the README file
-with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
+with open(path.join(HERE, 'README'), encoding='utf-8') as f:
           long_description = f.read()
 
 setup(
@@ -30,7 +31,7 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version='2.0.0',
 
-    description='nn-search2 -- POS-tags searching tool',
+    description='nn-search2 -- part-of-speech tagging and search tool',
     long_description=long_description,
 
     # The project's main homepage.
@@ -79,52 +80,50 @@ setup(
 
     # these are only dependencies that can be installed via pip
     install_requires=['matplotlib>=1.5.1', 'Pillow>=3.1.0', 'nltk>=3.1',
-                      'textblob>=0.11.0', 'textblob-aptagger>=0.2.0',
-                      'docx>=0.2.4', 'hunspell>=0.3.3', 'pdfminer>=20140328'],
+                      'textblob>=0.11.0', 'docx>=0.2.4', 'hunspell>=0.3.3',
+                      'pdfminer>=20140328'],
 
-    # other dependencies are: Tk 8.6.4-1,
+    # other dependencies are: tk 8.6.4-1,
 
     data_files=[
-        ('penn', ['/nn-search/data/penn_tags.csv']),
+        ('penn', ['data/penn_tags.csv']),
         ('icons', [
-            'nn-search/data/icons/cog.png',
-            'nn-search/data/icons/copy.png',
-            'nn-search/data/icons/cross.png',
-            'nn-search/data/icons/cup.png',
-            'nn-search/data/icons/cut.png',
-            'nn-search/data/icons/disk.png',
-            'nn-search/data/icons/error.png',
-            'nn-search/data/icons/exit.png',
-            'nn-search/data/icons/help.png',
-            'nn-search/data/icons/info.png',
-            'nn-search/data/icons/load.png',
-            'nn-search/data/icons/input_file.png',
-            'nn-search/data/icons/input_dir.png',
-            'nn-search/data/icons/out_dir.png',
-            'nn-search/data/icons/paste.png',
-            'nn-search/data/icons/pos-tagging.png',
-            'nn-search/data/icons/proc.png',
-            'nn-search/data/icons/redo.png',
-            'nn-search/data/icons/sad.png',
-            'nn-search/data/icons/search.png',
-            'nn-search/data/icons/stats2.png',
-            'nn-search/data/icons/stats3.png',
-            'nn-search/data/icons/stats.png',
-            'nn-search/data/icons/undo.png',
-            'nn-search/data/icons/view1.png',
-            'nn-search/data/icons/view2.png',
-            'nn-search/data/icons/view3.png',
-            'nn-search/data/icons/wand.png',
-            'nn-search/data/icons/warning.png',
-            'nn-search/data/icons/thunder.png',
-            'nn-search/data/icons/pos_done.png',
-            'nn-search/data/icons/set.png',
-            'nn-search/data/icons/run_tagger.png',
-            'nn-search/data/icons/stop_tagger.png',
-            'nn-search/data/icons/unset.png',
-            'nn-search/data/icons/warning.png',
-            'nn-search/data/icons/nn-search.png',
-            'nn-search/data/icons/nn-search.ico'
+            'data/icons/copy.png',
+            'data/icons/cup.png',
+            'data/icons/cut.png',
+            'data/icons/disk.png',
+            'data/icons/error.png',
+            'data/icons/exit.png',
+            'data/icons/help.png',
+            'data/icons/info.png',
+            'data/icons/load.png',
+            'data/icons/input_file.png',
+            'data/icons/input_dir.png',
+            'data/icons/out_dir.png',
+            'data/icons/paste.png',
+            'data/icons/proc.png',
+            'data/icons/redo.png',
+            'data/icons/sad.png',
+            'data/icons/search.png',
+            'data/icons/stats2.png',
+            'data/icons/stats3.png',
+            'data/icons/stats.png',
+            'data/icons/undo.png',
+            'data/icons/view1.png',
+            'data/icons/view2.png',
+            'data/icons/view3.png',
+            'data/icons/wand.png',
+            'data/icons/warning.png',
+            'data/icons/thunder.png',
+            'data/icons/pos_done.png',
+            'data/icons/set.png',
+            'data/icons/run_tagger.png',
+            'data/icons/stop_tagger.png',
+            'data/icons/unset.png',
+            'data/icons/warning.png',
+            'data/icons/nn-search.png',
+            'data/icons/nn-search.ico'
+        ])
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest']

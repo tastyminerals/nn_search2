@@ -1,0 +1,26 @@
+Metadata-Version: 1.1
+Name: nn-search2
+Version: 2.0.0
+Summary: nn-search2 -- part-of-speech tagging and search tool
+Home-page: https://github.com/tastyminerals/nn-search.git
+Author: ['Pavel Shkadzko']
+Author-email: ['tastyminerals@gmail.com']
+License: MIT
+Description: **nn-search2** is a part-of-speech tagging and text search application.
+        It uses state-of-the-art pos-tagger based on Averaged Perceptron which provides
+        fast and accurate results.
+        Above that, one of the main **nn-search2** features is full text part-of-speech
+        search extended with word ranges such that you can find chains of nouns, verbs,
+        adjectives and phrases or even fixed expressions.
+        
+Keywords: part-of-speech tagging
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Topic :: Education
+Classifier: Topic :: Text Processing :: Linguistic
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 2 :: Only

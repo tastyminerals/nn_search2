@@ -12,7 +12,7 @@ import unicodedata
 from itertools import izip_longest
 from string import punctuation as punct
 from textblob import Blobber
-from textblob_aptagger import PerceptronTagger
+# from textblob_aptagger import PerceptronTagger
 
 
 def read_file(fpath):
@@ -82,7 +82,8 @@ def tag(text):
         | *full_text* (str) -- tagged text
 
     """
-    blob = Blobber(pos_tagger=PerceptronTagger())
+    # blob = Blobber(pos_tagger=PerceptronTagger())
+    blob = Blobber()
     parsed_text = blob(text)
     # add excluded punctuation back into the sentences
     full_tagged_sents = {}

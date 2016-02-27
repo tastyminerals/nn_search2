@@ -92,7 +92,7 @@ def find_matches(query, sents):
 
 def match_query(query, sent):
     """
-    Run user query through the sentences and find all matched substrings.
+    Run user query through the sentence and find all matched substrings.
     <The function is huge, make sure you clearly understand what you're doing
     before changing anything.>
 
@@ -136,7 +136,7 @@ def match_query(query, sent):
     sent_len = len(sent)
     token = [None, None, 0]  # use dummy token for first iteration
     while start != sent_len:
-        full_query = len(query)  # used to check whether the query fully matched
+        full_query = len(query)  # used to check if the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
         for qterm in query:
             # if ! negation, we must break into while and restart query loop
@@ -177,28 +177,32 @@ def match_query(query, sent):
                             break
                         else:
                             last, start, full_query, last_matched, negation, \
-                                qmatch = update_cache(token, qmatch, full_query)
+                                qmatch = update_cache(token, qmatch,
+                                                      full_query)
                             # check here if the qterm was the last in a query
                             if full_query == 0:
-                                # if it was append, incl a range between matches
-                                s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                                # incl a range between first and last matches
+                                s, e = [sent.index(qmatch[0]),
+                                        sent.index(qmatch[-1])]
                                 matches.append(sent[s:e+1])
                                 last_matched = True
                                 break
                             break
                     else:
-                        last, start, full_query, last_matched, negation, qmatch\
-                            = update_cache(token, qmatch, full_query, True)
+                        last, start, full_query, last_matched, negation, \
+                            qmatch = update_cache(token, qmatch, full_query,
+                                                  True)
                         break
                 # if idx and there is idx match act
                 if qterm[2] is not None:
                     if qterm[2] >= token[2] - last:
-                        last, start, full_query, last_matched, negation, qmatch\
-                            = update_cache(token, qmatch, full_query)
+                        last, start, full_query, last_matched, negation, \
+                            qmatch = update_cache(token, qmatch, full_query)
                         # check here if the qterm was the last in a query
                         if full_query == 0:
                             # if it was append, incl a range between matches
-                            s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
+                            s, e = [sent.index(qmatch[0]),
+                                               sent.index(qmatch[-1])]
                             matches.append(sent[s:e+1])
                             last_matched = True
                             break
@@ -229,8 +233,8 @@ def match_query(query, sent):
             if query[-1][2] and start + query[-1][2] + len(query) >= sent_len:
                 start = sent_len
                 break
-        # now qterm has a limit and we need to make sure that the sent was fully
-        # checked by comparing the start idx with the last token idx
+        # now qterm has a limit and we need to make sure that the sent was
+        # fully checked by comparing the start idx with the last token idx
         elif not last_matched and query[0][2]:
             start += 1
             break
