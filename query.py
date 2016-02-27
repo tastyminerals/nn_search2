@@ -202,7 +202,7 @@ def match_query(query, sent):
                         if full_query == 0:
                             # if it was append, incl a range between matches
                             s, e = [sent.index(qmatch[0]),
-                                               sent.index(qmatch[-1])]
+                                    sent.index(qmatch[-1])]
                             matches.append(sent[s:e+1])
                             last_matched = True
                             break

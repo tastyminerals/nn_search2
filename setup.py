@@ -22,7 +22,7 @@ with open(path.join(HERE, 'README'), encoding='utf-8') as f:
           long_description = f.read()
 
 setup(
-    windows=['nn-search2.pyw'],
+    # windows=['nn-search2.pyw'],
     console=['nn-search2.pyw'],
     name='nn-search2',
 
@@ -71,7 +71,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['contrib', 'docs', 'unittests']),
+    #packages=find_packages(exclude=['contrib', 'docs', 'unittests']),
+    packages=(['win_deps']),
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
@@ -80,8 +81,8 @@ setup(
 
     # these are only dependencies that can be installed via pip
     install_requires=['matplotlib>=1.5.1', 'Pillow>=3.1.0', 'nltk>=3.1',
-                      'textblob>=0.11.0', 'docx>=0.2.4', 'hunspell>=0.3.3',
-                      'pdfminer>=20140328'],
+                      'textblob>=0.11.0', 'textblob_aptagger>=0.2.0',
+                      'docx>=0.2.4', 'hunspell>=0.3.3', 'pdfminer>=20140328'],
 
     # other dependencies are: tk 8.6.4-1,
 
