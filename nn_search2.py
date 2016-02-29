@@ -1160,11 +1160,13 @@ class NNSearch(ttk.Frame):
         matched_ids =  [sent_id for sent_id in matched
                         for tokens in matched[sent_id] if tokens]
         view2_text = ''
+        i = 0
         for sent_id, sent_lst in self.process_results[1].items():
             if sent_id not in matched_ids:
                 continue
+            i += 1
             sent = ' '.join([token[0] for token in sent_lst])
-            text = ': '.join([str(sent_id), sent])
+            text = ': '.join([str(i), sent])
             view2_text = '\n\n'.join([view2_text, text])
         self.view2_text = view2_text.lstrip('\n\n')   # remove first \n\n
         # prepare for view2 with POS-tags
@@ -1234,6 +1236,11 @@ class NNSearch(ttk.Frame):
         # start_mark = '1.0'
         sents_matches = [toks for sent_lst in matched.values()
                          for toks in sent_lst]
+        # token word can occur before previous, but start>current word idx
+        #sents_matches.sort()
+        #ungrouped = [tok[0][0] for tok in sents_matches]
+        #from itertools import groupby
+        #groups = [list(lst) for _, lst in groupby(ungrouped)]
         for tokens in sents_matches:
             if not tokens:
                 continue
@@ -1250,6 +1257,7 @@ class NNSearch(ttk.Frame):
             # get start index, search returns only first match
             temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                          regexp=True)
+
             if not temp_mark:
                 break
             end_mark = '%s+%dc' % (temp_mark, token_len)
