@@ -66,7 +66,7 @@ def preprocess_query(query):
 
 def find_matches(query, sents):
     """
-    Iterate over a sentences dict and find query matches for each sentence.
+    Iterate over a sentence dict and find query matches for each sentence.
     Decide what to highlight, single tokens or a range of tokens.
 
     Args:
@@ -129,6 +129,7 @@ def match_query(query, sent):
         if not neg:
             qmatch.append(token)
         return [last, start, full_query, last_matched, negation, qmatch]
+
     start = 0  # starting idx
     last = 0  # last iterated idx
     negation = False

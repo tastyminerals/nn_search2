@@ -1,5 +1,0 @@
-# TODO
-recalculate search stats after search has been clicked!
-fix search stats length, it calcs the legnth of matched tokens
-add Help
-when Query is empty and POS-tags option is checked, hitting <Return> should add POS-tags to the Text field.

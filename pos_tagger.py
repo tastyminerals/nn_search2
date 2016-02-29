@@ -142,7 +142,8 @@ def main(args, ui_call=False):
     elif in_file_data:
         in_fname = in_file_data.keys()[0]
         print 'Processing "{0}"'.format(in_fname)
-        out_path = os.path.join(out_dir, 'tagged_' + os.path.basename(in_fname))
+        out_path = os.path.join(out_dir, 'tagged_' +
+                                os.path.basename(in_fname))
         tagged_text = tag(in_file_data[in_fname])
         write_file(out_path, tagged_text)
     # console batch mode
