@@ -37,3 +37,4 @@ Id,Tag,Description
 34,WP,Wh-pronoun
 35,WP$,Possessive wh-pronoun
 36,WRB,Wh-adverb
+37,PUNC,punctuation symbol

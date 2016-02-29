@@ -9,10 +9,8 @@ import os
 import re
 import sys
 import unicodedata
-from itertools import izip_longest
-from string import punctuation as punct
-from textblob import Blobber
-from textblob_aptagger import PerceptronTagger
+import nltk
+from nltk.tag.perceptron import PerceptronTagger
 
 
 def read_file(fpath):
@@ -70,7 +68,6 @@ def normalize_text(text):
     ascii_text = unicodedata.normalize('NFKD', utext).encode('ascii', 'ignore')
     return ascii_text
 
-
 def tag(text):
     """
     Process given text with PerceptronTagger.
@@ -82,26 +79,20 @@ def tag(text):
         | *full_text* (str) -- tagged text
 
     """
-    blob = Blobber(pos_tagger=PerceptronTagger())
-    # blob = Blobber()
-    parsed_text = blob(text)
-    # add excluded punctuation back into the sentences
-    full_tagged_sents = {}
-    for i, sent in enumerate(parsed_text.sentences):
-        full_tagged_sents[i] = []
-        idx = 0
-        for token1, token2 in izip_longest(sent.tags, sent.tokens):
-            if token2 in punct:
-                full_tagged_sents[i].append((token2, 'PUNC', idx))
-            elif token1:
-                full_tagged_sents[i].append(token1 + (idx, ))
-            idx += 1
-    # convert to str
-    full_text = ''
-    for vals in full_tagged_sents.values():
-        sent = ' '.join(['_'.join([token[0], token[1]]) for token in vals])
-        full_text = '\n'.join([full_text, sent])
-    return full_text.lstrip('\n')
+    tagger = PerceptronTagger()
+    tagset = None
+    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+    sents_tokenized = sent_detector.tokenize(text)
+    tokenized = []
+    for sent in sents_tokenized:
+        tokenized.append(nltk.tokenize.word_tokenize(sent, language='english'))
+    tagged_text = ''
+    for sent_toks in tokenized:
+        pos_text = nltk.tag._pos_tag(sent_toks, None, tagger)
+        joined_tags = ['_'.join([pos[0], 'PUNC' if pos[1] in punctuation
+                                 else pos[1]]) for pos in pos_text]
+        tagged_text = '\n'.join([tagged_text, ' '.join(joined_tags)])
+    return tagged_text.lstrip('\n')
 
 
 def main(args, ui_call=False):

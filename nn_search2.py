@@ -782,6 +782,7 @@ class NNSearch(ttk.Frame):
         """
         Show a pop-up window with Penn Treebank POS-tags description.
         """
+        # TODO! use nltk.help.upenn_tagset()
         ids, tags, desc = self.penn_treebank
         header = ids[0], tags[0], desc[0]
         penn_win = tk.Toplevel()
@@ -1820,7 +1821,7 @@ def main():
     root = tk.Tk()
     root.title('nn-search2')
     # set a custom window icon
-    win_icon_path = os.path.join(os.getcwd(), 'data', 'icons', 'nn-search.ico')
+    win_icon_path = os.path.join('data', 'icons', 'nn-search.ico')
     set_win_icon(root, win_icon_path)
     # root.geometry("1000x630")  # gui size at startup
     root.columnconfigure(0, weight=1)
@@ -1829,7 +1830,7 @@ def main():
     root.update()
     # ttk_theme = ttk.Style()
     # you can use ttk themes here ('clam', 'alt', 'classic', 'default')
-    # ttk_theme.theme_use('default')
+    # ttk_theme.theme_use('clam')
     gui = NNSearch(root)
     gui.mainloop()
 

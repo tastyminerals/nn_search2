@@ -7,14 +7,13 @@ This module also handles user query parsing, text preprocessing and text stats.
 from __future__ import division
 from collections import Counter, OrderedDict as od
 import csv
-from itertools import izip_longest
 import os
 import platform
 import random
 import re
+from string import punctuation
 import subprocess as sb
 import unicodedata
-from string import punctuation as punct
 from cStringIO import StringIO
 import docx
 if not platform.system() == 'Windows':
@@ -24,16 +23,22 @@ matplotlib.use('Agg')  # fixing threading issue on Windows
 import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import matplotlib.colors as colors
+import nltk
 from nltk.corpus import stopwords
-from textblob import Blobber, Word
-#from textblob_aptagger import PerceptronTagger
-from textblob.taggers import NLTKTagger
-from textblob.taggers import NLTKTagger
+from nltk.tag.perceptron import PerceptronTagger
+from textblob import TextBlob
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from colors import COLLECTION
+
+
+NLTK_PENN = (u'CC', u'CD', u'DT', u'EX', u'FW', u'IN', u'JJ', u'JJR', u'JJS',
+             u'LS', u'MD', u'NN', u'NNP', u'NNPS', u'NNS', u'PDT', u'POS',
+             u'PRP', u'PRP$', u'RB', u'RBR', u'RBS', u'RP', u'SYM', u'TO',
+             u'UH', u'VB', u'VBD', u'VBG', u'VBN', u'VBP', u'VBZ', u'WDT',
+             u'WP', u'WP$', u'WRB')
 
 
 def pdf_read(pdf):
@@ -140,29 +145,24 @@ def process_text(*args):
           *{send num: {word num: (word, POS-tag)}}*
 
     """
+    # TextBlob runs POS-tagging
     model_queue, text = args
-
-    nltk_tagger = NLTKTagger()
-    #blob = Blobber(pos_tagger=PerceptronTagger())
-    blob = Blobber(pos_tagger=nltk_tagger)
-    # blob = Blobber()
-    parsed_text = blob(text)
-    # add excluded punctuation back into the sentences
-    full_tagged_sents = {}
-    for i, sent in enumerate(parsed_text.sentences):
-        parsed_tokens = sent.tokens
-        parsed_tgs_dic = dict(((tag[0], tag[1]) for tag in sent.tags))
-        full_tagged_sents[i] = []
-        idx = 0
-        for token in parsed_tokens:
-            tag = parsed_tgs_dic.get(token)
-            if tag:
-                full_tagged_sents[i].append((token, tag, idx))
-            # missing punct detected
-            else:
-                full_tagged_sents[i].append((token, 'PUNC', idx))
-            idx += 1
-    model_queue.put([parsed_text, full_tagged_sents])
+    parsed_text = TextBlob(text)
+    # POS-tagging with nltk again because TextBlob sent.tags is too slow
+    tagger = PerceptronTagger()
+    tagset = None
+    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+    sents_tokenized = sent_detector.tokenize(text)
+    tokenized = []
+    for sent in sents_tokenized:
+        tokenized.append(nltk.tokenize.word_tokenize(sent, language='english'))
+    pos_sents = {}
+    for i, sent_toks in enumerate(tokenized):
+        pos_text = nltk.tag._pos_tag(sent_toks, None, tagger)
+        joined_tags = [(pos[0], 'PUNC' if pos[1] not in NLTK_PENN
+                                 else pos[1], i) for i, pos in enumerate(pos_text)]
+        pos_sents[i] = joined_tags
+    model_queue.put([parsed_text, pos_sents])
 
 
 def get_stats(model_queue, tblob):
