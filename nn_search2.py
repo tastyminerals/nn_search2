@@ -1222,6 +1222,11 @@ class NNSearch(ttk.Frame):
             | *pos* -- True if add POS-tags
 
         """
+        def fnode(*args):
+            start_mark = ''.join([str(args[0]), '.', str(args[1])])
+            end_mark = ''.join([str(args[0]), '.', str(args[2])])
+            return start_mark, end_mark
+
         # This is a green tree. The tree is big. The monument is black.
         self.Text.tag_delete('style')  # reset highighting
         start = '1.0'
@@ -1237,10 +1242,26 @@ class NNSearch(ttk.Frame):
         sents_matches = [toks for sent_lst in matched.values()
                          for toks in sent_lst]
         # token word can occur before previous, but start>current word idx
-        #sents_matches.sort()
-        #ungrouped = [tok[0][0] for tok in sents_matches]
-        #from itertools import groupby
-        #groups = [list(lst) for _, lst in groupby(ungrouped)]
+        # we use python re to get the match indeces instead of Text.search
+        text = self.Text.get('1.0', tk.END).encode('utf-8')
+        lines = [line for line in text.split('\n') if line]
+        for tokens in sents_matches:
+            if not tokens:
+                continue
+            if not pos:
+                matched_str = ' '.join([tok[0] for tok in tokens])
+            else:
+                matched_str = ' '.join(['_'.join([tok[0], tok[1]])
+                                        for tok in tokens])
+            token = ''.join([r'\b', re.escape(matched_str), r'\b'])
+            matches = [fnode(i, m.start(), m.end()) for i, line
+                       in enumerate(lines, 1)
+                       for m in re.finditer(token, line)]
+
+        for start_mark, end_mark in matches:
+            self.Text.tag_add('style', start_mark, end_mark)
+
+        """
         for tokens in sents_matches:
             if not tokens:
                 continue
@@ -1257,7 +1278,6 @@ class NNSearch(ttk.Frame):
             # get start index, search returns only first match
             temp_mark = self.Text.search(token, start, stopindex=tk.END,
                                          regexp=True)
-
             if not temp_mark:
                 break
             end_mark = '%s+%dc' % (temp_mark, token_len)
@@ -1275,7 +1295,7 @@ class NNSearch(ttk.Frame):
                 start_mark = temp_mark
                 start = end_mark + '+1c'  # plus one character
                 first = False
-            self.Text.tag_add('style', start_mark, end_mark)
+        """
 
     def mark_tokens2(self, matched, single, pos):
         """
@@ -1339,6 +1359,7 @@ class NNSearch(ttk.Frame):
                 start_mark = temp_mark
                 start = end_mark + '+ 1c'  # plus one character
                 first = False
+            print start_mark, end_mark
             self.Text.tag_add('style', start_mark, end_mark)
 
     def mark_tokens3(self, matched, single, pos):
