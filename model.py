@@ -76,6 +76,7 @@ def normalize_text(text):
     """
     Remove non-utf8 characters.
     Convert text to ascii.
+    Remove all text formatting.
 
     <If you throw some utf-8 text to English POS-tagger, it might fail because
     even some English texts might contain weird chars, accents and diacritics.>
@@ -95,7 +96,9 @@ def normalize_text(text):
         print err
     # converting to ascii
     ascii_text = unicodedata.normalize('NFKD', utext).encode('ascii', 'ignore')
-    return ascii_text
+    # remove formatting
+    stripped_text = ' '.join(re.sub(r'\n', '', ascii_text).split())
+    return stripped_text
 
 
 def read_input_file(fpath):
@@ -156,11 +159,11 @@ def process_text(*args):
     tokenized = []
     for sent in sents_tokenized:
         tokenized.append(nltk.tokenize.word_tokenize(sent, language='english'))
-    pos_sents = {}
+    pos_sents = od()
     for i, sent_toks in enumerate(tokenized):
         pos_text = nltk.tag._pos_tag(sent_toks, None, tagger)
-        joined_tags = [(pos[0], 'PUNC' if pos[1] not in NLTK_PENN
-                                 else pos[1], i) for i, pos in enumerate(pos_text)]
+        joined_tags = [(pos[0], 'PUNC' if pos[1] not in NLTK_PENN else pos[1],
+                        n) for n, pos in enumerate(pos_text)]
         pos_sents[i] = joined_tags
     model_queue.put([parsed_text, pos_sents])
 
@@ -366,7 +369,6 @@ def get_search_stats(model_queue, matches, text):
         | *mratio* -- ratio of matched characters
 
     """
-    print 'SS MACTHES', matches
     # get number of matches
     mcnt = sum([len(vals) for vals in matches.values() if vals])
 

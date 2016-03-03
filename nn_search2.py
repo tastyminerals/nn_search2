@@ -36,11 +36,16 @@ else:
 
 
 def set_win_icon(window, icon_path):
-    """
-    Set a custom icon for a given window.
-    """
+    """Set a custom icon for a given window."""
     img = itk.PhotoImage(file=icon_path)
     window.tk.call('wm', 'iconphoto', window._w, img)
+
+
+def fnode(*args):
+    """Convert re matches into Tkinter format"""
+    start_mark = ''.join([str(args[0]), '.', str(args[1])])
+    end_mark = ''.join([str(args[0]), '.', str(args[2])])
+    return start_mark, end_mark
 
 
 class NNSearch(ttk.Frame):
@@ -126,7 +131,7 @@ class NNSearch(ttk.Frame):
             self.show_message(msg, 'error.png')
             return
         # find query matches
-        matches, high_type = query.find_matches(valid, self.fully_tagged_sents)
+        matches = query.find_matches(valid, self.fully_tagged_sents)
         self.matches = matches
         if matches and not any([m for m in matches.values() if m]):
             msg = 'No matches found \n revise you query'
@@ -141,7 +146,7 @@ class NNSearch(ttk.Frame):
         # reset search stats
         self.set_search_stats_ready(False)
         # insert the results
-        self.insert_matches(matches, high_type)
+        self.highlighter(matches)
 
     def ctrl_a(self, callback=False):
         """
@@ -172,7 +177,7 @@ class NNSearch(ttk.Frame):
                 self.clipboard_append(text)
             return 'break'
         except TypeError:
-            print('Nothing to copy.')
+            print 'Nothing to copy.'
         return 'break'
 
     def ctrl_d(self, callback=False):
@@ -255,18 +260,35 @@ class NNSearch(ttk.Frame):
             tkMessageBox.showinfo('nn-search 2.0', 'Nothing to redo.')
             return
 
-    def insert_text(self, text):
+    def ctrl_r(self, callback=False):
+        """Run Process if hit Ctrl+r"""
+        try:
+            # checking which text widget has focus
+            if self.Entry is self.focus_get():
+                self.process_command()
+            elif self.Text is self.focus_get():
+                self.process_command()
+            return 'break'
+        except (tk.TclError, AttributeError):
+            tkMessageBox.showinfo('nn-search 2.0', 'Can not run "Process".')
+            return
+
+    def insert_text(self, text, plain=False):
         """
         Insert given text into the Text widget.
+
+        Args:
+            | *text* -- text to be inserted
+            | *plain* -- if True no preprocessing for paragraphs is done.
         """
         para = text.split('\n\n')
         for par in para:
             self.Text.insert(tk.END, par)
         self.Text.insert(tk.END, '\n')
 
-    def load_file(self):
+    def pos_tagger_load_file(self):
         """
-        Load a file specified by the user.
+        Load a file specified by the user in pos-tagger tool.
         """
         types = (("txt file", "*.txt"),
                  ("Microsoft Word file", ("*.doc", "*.docx")),
@@ -411,7 +433,7 @@ class NNSearch(ttk.Frame):
         self.pos_infile_butt = ttk.Button(pos_taggerFrInn0, padding=(2, 2),
                                           compound='left',
                                           image=self.ifile, text='Input file',
-                                          command=self.load_file)
+                                          command=self.pos_tagger_load_file)
         self.pos_infile_butt.grid(row=0, column=0, sticky='we', pady=2, padx=2)
         # input file label
         self.pos_icon1 = itk.PhotoImage(file=self.img_path('unset.png'))
@@ -1118,28 +1140,6 @@ class NNSearch(ttk.Frame):
         self.sstats_win_butt.grid(sticky='ns')
         self.centrify_widget(self.sstats_win)
 
-    def insert_matches(self, matched, hl_type):
-        """
-        Insert and highlight text matches according to selected UI options.
-
-        Args:
-            | *matched* -- Orderedict of matched tokens
-            | *hl_type* -- type of highlighting, single token or range
-
-        """
-        # This is a green tree. The tree is big. The monument is black.
-        pos_tags, text_view = self.get_opts()
-        # if view is 1, no need to insert text, it has been loaded already
-        if text_view == 1:
-            self.mark_tokens1(matched, hl_type, pos_tags)
-            self.highlight1()
-        elif text_view == 2:
-            self.mark_tokens2(matched, hl_type, pos_tags)
-            self.highlight2()
-        elif text_view == 3:
-            self.mark_tokens3(matched, hl_type, pos_tags)
-            self.highlight3()
-
     def prepare_view12(self, matched):
         """
         Precache text data for various text views.
@@ -1202,7 +1202,7 @@ class NNSearch(ttk.Frame):
                 # plain
                 view3_plain.append(': '.join([str(cnt),
                                               ' '.join([token[0] for token
-                                                         in tokens])]))
+                                                        in tokens])]))
                 # pos-tags included
                 view3_pos.append(': '.join([str(cnt),
                                             ' '.join(['_'.join([token[0],
@@ -1211,40 +1211,64 @@ class NNSearch(ttk.Frame):
                 self.view3_text = '\n'.join(view3_plain)
                 self.view3_text_pos = '\n'.join(view3_pos)
 
-    def mark_tokens1(self, matched, single, pos):
+    def highlighter(self, matched):
         """
-        Using results of a query match add text tags.
-        Highlighting view 1, just plain loaded text.
-        <tk.Text.search returns only the beginning of a match, thats why we
-        need to '+%dc' to the starting match index.>
+        Reload Text field view.
+        Invoke marker, which finds matched string occurrences and returns
+        indeces for Tkinter tags.
+        Highlight strings tagged by Tkinter according to view type.
+        """
+        # get text view options
+        pos_tags, text_view = self.get_opts()
+        # reset highighting
+        self.Text.tag_delete('style')
+        # reload text
+        self.Text.delete('1.0', 'end')  # remove text
+        if text_view == 1:
+            if pos_tags:
+                self.insert_text(self.view1_text_pos)
+            else:
+                self.insert_text(self.process_results[0])
+            # find matched token indeces for Tkinter to tag
+            self.marker(matched, pos_tags)
+            # highlight
+            self.Text.tag_configure('style', foreground='#000000',
+                                    background='#C0FA82')
+        elif text_view == 2:
+            if pos_tags:
+                self.Text.insert('1.0', self.view2_text_pos)
+            else:
+                self.Text.insert('1.0', self.view2_text)
+            # find matched token indeces for Tkinter to tag
+            self.marker(matched, pos_tags)
+            # highlight
+            self.Text.tag_configure('style', foreground='#000000',
+                                    background="#BCFC77",
+                                    font='TkDefaultFont 10 bold')
+        elif text_view == 3:
+            if pos_tags:
+                self.Text.insert('1.0', self.view3_text_pos)
+            else:
+                self.Text.insert('1.0', self.view3_text)
+            # find matched tokens indeces for Tkinter to tag
+            self.marker(matched, pos_tags)
+            # highlight
+            self.Text.tag_configure('style', font='TkDefaultFont 11 bold')
+
+    def marker(self, matched, pos):
+        """
+        Find all matches occurences in the text and return their start and end
+        indeces converted for Tkinter.
 
         Args:
             | *matched* -- dict of matched results
-            | *single* -- True if single match
             | *pos* -- True if add POS-tags
-
         """
-        def fnode(*args):
-            start_mark = ''.join([str(args[0]), '.', str(args[1])])
-            end_mark = ''.join([str(args[0]), '.', str(args[2])])
-            return start_mark, end_mark
-
-        # This is a green tree. The tree is big. The monument is black.
-        self.Text.tag_delete('style')  # reset highighting
-        end_mark = '1.0'
-        # reload text
-        self.Text.delete('1.0', 'end')  # remove text
-        if pos:
-            self.insert_text(self.view1_text_pos)
-        else:
-            self.insert_text(self.process_results[0])
-        # start_mark = '1.0'
         sents_matches = [toks for sent_lst in matched.values()
                          for toks in sent_lst]
-        # token word can occur before previous, but start>current word idx
-        # we use python re to get the match indeces instead of Text.search
+        # use python re to get the match indeces instead of Text.search
         text = self.Text.get('1.0', tk.END).encode('utf-8')
-        lines = [line for line in text.split('\n') if line]
+        lines = [line for line in text.split('\n')]
         matches = []
         for tokens in sents_matches:
             if not tokens:
@@ -1261,149 +1285,6 @@ class NNSearch(ttk.Frame):
         matches = [m for match in matches for m in match]  # flatten list
         for start_mark, end_mark in matches:
             self.Text.tag_add('style', start_mark, end_mark)
-
-    def mark_tokens2(self, matched, single, pos):
-        """
-        Using results of a query match add text tags.
-        Highlighting view 2, formatted text into sentence blocks.
-        <tk.Text.search returns only the beginning of a match, thats why we
-        need to '+%dc' to the starting match index.>
-
-        Args:
-            | *matched* -- dict of matched results
-            | *single* -- True if single match
-            | *pos* -- True if add POS-tags
-
-        """
-        self.Text.tag_delete('style')  # reset highighting
-        start = '1.0'
-        first = True
-        view2_text = ''
-        for sent_id, sent_lst in self.process_results[1].items():
-            sent = ' '.join([token[0] for token in sent_lst])
-            text = ': '.join([str(sent_id), sent])
-            view2_text = '\n\n'.join([view2_text, text])
-        # reload text
-        self.Text.delete('1.0', 'end')  # remove text
-        if pos:
-            self.Text.insert('1.0', self.view2_text_pos)
-        else:
-            self.Text.insert('1.0', self.view2_text)
-        sents_matches = [toks for sent_lst in matched.values()
-                         for toks in sent_lst]
-        for tokens in sents_matches:
-            if not tokens:
-                continue
-            sent_limit = True
-            if not pos:
-                matched_str = ' '.join([tok[0] for tok in tokens])
-                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
-                token_len = len(matched_str)
-            else:
-                matched_str = ' '.join(['_'.join([tok[0], tok[1]])
-                                        for tok in tokens])
-                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
-                token_len = len(matched_str)
-            # get start index, search returns only first match
-            temp_mark = self.Text.search(token, start, stopindex=tk.END,
-                                         regexp=True)
-            if not temp_mark:
-                break
-            end_mark = '%s+%dc' % (temp_mark, token_len)
-            # highlight range or single token
-            if single:
-                start_mark = temp_mark
-            # break highlight between sents
-            if sent_limit:
-                start_mark = temp_mark
-                sent_limit = False
-            # remember last matched position
-            start = end_mark
-            # mark first token
-            if first:
-                start_mark = temp_mark
-                start = end_mark + '+ 1c'  # plus one character
-                first = False
-            print start_mark, end_mark
-            self.Text.tag_add('style', start_mark, end_mark)
-
-    def mark_tokens3(self, matched, single, pos):
-        """
-        Using results of a query match add text tags.
-        Highlighting view 3, display only matched tokens.
-        <tk.Text.search returns only the beginning of a match, thats why we
-        need to '+%dc' to the starting match index.>
-
-        Args:
-            | *matched* -- dict of matched results
-            | *single* -- True if single match
-            | *pos* -- True if add POS-tags
-
-        """
-        self.Text.tag_delete('style')  # reset highighting
-        start = '1.0'
-        first = True
-        # reload text
-        self.Text.delete('1.0', 'end')  # remove text
-        if pos:
-            self.Text.insert('1.0', self.view3_text_pos)
-        else:
-            self.Text.insert('1.0', self.view3_text)
-        sents_matches = [toks for sent_lst in matched.values()
-                         for toks in sent_lst]
-        for tokens in sents_matches:
-            if not tokens:
-                continue
-            sent_limit = True
-            for token in tokens:
-                if not pos:
-                    token = ''.join([r'\y', re.escape(token[0]), r'\y'])
-                else:
-                    token = ''.join([r'\y', re.escape(token[0]), '_',
-                                     re.escape(token[1]), r'\y'])
-                # get start index, search returns only first match
-                temp_mark = self.Text.search(token, start, stopindex=tk.END,
-                                             regexp=True)
-                if not temp_mark:
-                    break
-                token_len = len(token) - 4
-                end_mark = '%s+%dc' % (temp_mark, token_len)
-                # highlight range or single token
-                if single:
-                    start_mark = temp_mark
-                # break highlight between sents
-                if sent_limit:
-                    start_mark = temp_mark
-                    sent_limit = False
-                # remember last matched position
-                start = end_mark
-                # mark first token
-                if first:
-                    start_mark = temp_mark
-                    start = end_mark + '+ 1c'  # plus one character
-                    first = False
-                self.Text.tag_add('style', start_mark, end_mark)
-
-    def highlight1(self):
-        """
-        Apply highlighting style for view 1
-        """
-        self.Text.tag_configure('style', foreground='#000000',
-                                background='#C0FA82')
-
-    def highlight2(self):
-        """
-        Apply highlighting style view 2
-        """
-        self.Text.tag_configure('style', foreground='#000000',
-                                background="#BCFC77",
-                                font='TkDefaultFont 10 bold')
-
-    def highlight3(self):
-        """
-        Apply highlighting style view 3
-        """
-        self.Text.tag_configure('style', font='TkDefaultFont 11 bold')
 
     def show_about(self):
         """
@@ -1548,6 +1429,7 @@ class NNSearch(ttk.Frame):
         self.Entry.bind('<Control-z>', self.ctrl_z)
         self.Entry.bind('<Control-u>', self.ctrl_u)
         self.Entry.bind('<Return>', self.press_return, '+')
+        self.Entry.bind('<Control-r>', self.ctrl_r)
         self.Entry.focus()  # <Return> enable when entry widget in focus
         # make search button
         self.search = itk.PhotoImage(file=self.img_path('search.png'))
@@ -1570,6 +1452,7 @@ class NNSearch(ttk.Frame):
         self.Text.bind('<Control-s>', self.ctrl_s)
         self.Text.bind('<Control-z>', self.ctrl_z)
         self.Text.bind('<Control-u>', self.ctrl_u)
+        self.Text.bind('<Control-r>', self.ctrl_r)
         self.Text.edit_modified(False)  # set Text widget -- not modified
         # make a scrollbar for text widget
         self.scroll = ttk.Scrollbar(self.TextFrm, command=self.Text.yview)

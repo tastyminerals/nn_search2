@@ -77,17 +77,14 @@ def find_matches(query, sents):
 
     Returns:
         | *matched_lst* -- a list of matched tokens per sentence
-        | *single_marker* -- True if matching single tokens
 
     """
-    # decide between a range and a single token
-    single_marker = True if len(query) == 1 else False
     if not query:
-        return None, single_marker
+        return None
     matched_dic = od()
     for sent_idx in sents:
         matched_dic[sent_idx] = match_query(query, sents[sent_idx])
-    return matched_dic, single_marker
+    return matched_dic
 
 
 def match_query(query, sent):
