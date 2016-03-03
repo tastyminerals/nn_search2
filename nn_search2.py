@@ -1157,8 +1157,8 @@ class NNSearch(ttk.Frame):
 
         # prepare for view2
         # first see which sent has query matches and include only those
-        matched_ids =  [sent_id for sent_id in matched
-                        for tokens in matched[sent_id] if tokens]
+        matched_ids = [sent_id for sent_id in matched
+                       for tokens in matched[sent_id] if tokens]
         view2_text = ''
         i = 0
         for sent_id, sent_lst in self.process_results[1].items():
@@ -1199,8 +1199,8 @@ class NNSearch(ttk.Frame):
                 cnt += 1
                 # plain
                 view3_plain.append(': '.join([str(cnt),
-                                            ' '.join([token[0]
-                                                      for token in tokens])]))
+                                              ' '.join([token[0] for token
+                                                         in tokens])]))
                 # pos-tags included
                 view3_pos.append(': '.join([str(cnt),
                                             ' '.join(['_'.join([token[0],
@@ -1229,8 +1229,6 @@ class NNSearch(ttk.Frame):
 
         # This is a green tree. The tree is big. The monument is black.
         self.Text.tag_delete('style')  # reset highighting
-        start = '1.0'
-        first = True
         end_mark = '1.0'
         # reload text
         self.Text.delete('1.0', 'end')  # remove text
@@ -1245,6 +1243,7 @@ class NNSearch(ttk.Frame):
         # we use python re to get the match indeces instead of Text.search
         text = self.Text.get('1.0', tk.END).encode('utf-8')
         lines = [line for line in text.split('\n') if line]
+        matches = []
         for tokens in sents_matches:
             if not tokens:
                 continue
@@ -1254,48 +1253,12 @@ class NNSearch(ttk.Frame):
                 matched_str = ' '.join(['_'.join([tok[0], tok[1]])
                                         for tok in tokens])
             token = ''.join([r'\b', re.escape(matched_str), r'\b'])
-            matches = [fnode(i, m.start(), m.end()) for i, line
-                       in enumerate(lines, 1)
-                       for m in re.finditer(token, line)]
-
+            matches.append([fnode(i, m.start(), m.end()) for i, line
+                            in enumerate(lines, 1)
+                            for m in re.finditer(token, line)])
+        matches = [m for match in matches for m in match]  # flatten list
         for start_mark, end_mark in matches:
             self.Text.tag_add('style', start_mark, end_mark)
-
-        """
-        for tokens in sents_matches:
-            if not tokens:
-                continue
-            sent_limit = True
-            if not pos:
-                matched_str = ' '.join([tok[0] for tok in tokens])
-                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
-                token_len = len(matched_str)
-            else:
-                matched_str = ' '.join(['_'.join([tok[0], tok[1]])
-                                        for tok in tokens])
-                token = ''.join([r'\y', re.escape(matched_str), r'\y'])
-                token_len = len(matched_str)
-            # get start index, search returns only first match
-            temp_mark = self.Text.search(token, start, stopindex=tk.END,
-                                         regexp=True)
-            if not temp_mark:
-                break
-            end_mark = '%s+%dc' % (temp_mark, token_len)
-            # highlight range or single token
-            if single:
-                start_mark = temp_mark
-            # break highlight between sents
-            if sent_limit:
-                start_mark = temp_mark
-                sent_limit = False
-            # remember last matched position
-            start = end_mark
-            # mark first token
-            if first:
-                start_mark = temp_mark
-                start = end_mark + '+1c'  # plus one character
-                first = False
-        """
 
     def mark_tokens2(self, matched, single, pos):
         """
