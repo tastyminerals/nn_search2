@@ -138,6 +138,8 @@ class NNSearch(ttk.Frame):
         # prepare results and add pos-tags to results
         self.prepare_view12(matches)
         self.prepare_view3(matches)
+        # reset search stats
+        self.set_search_stats_ready(False)
         # insert the results
         self.insert_matches(matches, high_type)
 
@@ -1061,7 +1063,7 @@ class NNSearch(ttk.Frame):
             self.show_message(msg, 'warning.png')
             return
         # handle exceptions
-        if self.processed and not self.sstats_ready:
+        if not self.sstats_ready:
             self.model_queue = Queue.PriorityQueue()
             # now handle the Process button command
             text = self.Text.get('1.0', tk.END)
