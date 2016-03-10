@@ -135,13 +135,14 @@ def match_query(query, sent):
     while start != sent_len:
         full_query = len(query)  # used to check if the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
-        for qterm in query:
+        for qnum, qterm in enumerate(query):
             # if ! negation, we must break into while and restart query loop
             if negation:
                 negation = False
                 break
             # check if qterm idx allows any further search
-            if qterm[2] is not None and (last + qterm[2] > qterm[2]):
+            if qnum == 0 and qterm[2] is not None and (last + qterm[2] >
+                                                       qterm[2]):
                 start = sent_len
                 break
             # check limit stretch

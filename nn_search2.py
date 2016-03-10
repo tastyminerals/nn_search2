@@ -101,7 +101,7 @@ class NNSearch(ttk.Frame):
         self.rowconfigure(2, weight=1)
         self.rowconfigure(3, weight=1)
         master.minsize(height=300, width=400)
-        self.build_gui()
+        self._build_gui()
         # read Penn Treebank tags description
         self.penn_treebank = model.get_penn_treebank()
 
@@ -1323,7 +1323,7 @@ class NNSearch(ttk.Frame):
         about_butt.grid()
         self.centrify_widget(about_win)
 
-    def build_gui(self):
+    def _build_gui(self):
         """
         Create user interface including all necessary components like Frames,
         Buttons, Labels etc.
