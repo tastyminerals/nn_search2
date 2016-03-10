@@ -1270,6 +1270,7 @@ class NNSearch(ttk.Frame):
         text = self.Text.get('1.0', tk.END).encode('utf-8')
         lines = [line for line in text.split('\n')]
         matches = []
+        print sents_matches
         for tokens in sents_matches:
             if not tokens:
                 continue
@@ -1278,7 +1279,8 @@ class NNSearch(ttk.Frame):
             else:
                 matched_str = ' '.join(['_'.join([tok[0], tok[1]])
                                         for tok in tokens])
-            token = ''.join([r'\b', re.escape(matched_str), r'\b'])
+            # token = ''.join([r'\b', re.escape(matched_str), r'\b'])
+            token = re.escape(matched_str)
             matches.append([fnode(i, m.start(), m.end()) for i, line
                             in enumerate(lines, 1)
                             for m in re.finditer(token, line)])

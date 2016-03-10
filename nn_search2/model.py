@@ -97,7 +97,7 @@ def normalize_text(text):
     # converting to ascii
     ascii_text = unicodedata.normalize('NFKD', utext).encode('ascii', 'ignore')
     # remove formatting
-    stripped_text = ' '.join(re.sub(r'\n', '', ascii_text).split())
+    stripped_text = ' '.join(re.sub(r'\n', ' ', ascii_text).split())
     return stripped_text
 
 

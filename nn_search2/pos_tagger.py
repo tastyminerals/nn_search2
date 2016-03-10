@@ -1,13 +1,14 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Standalone POS-tagger implementation using TextBlob's averaged perceptron.
+Standalone POS-tagger using NLTK's Averaged Perceptron.
 """
 import argparse
 import codecs
 import os
 import re
 import sys
+from string import punctuation
 import unicodedata
 import nltk
 from nltk.tag.perceptron import PerceptronTagger

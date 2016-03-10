@@ -126,7 +126,6 @@ def match_query(query, sent):
         if not neg:
             qmatch.append(token)
         return [last, start, full_query, last_matched, negation, qmatch]
-
     start = 0  # starting idx
     last = 0  # last iterated idx
     negation = False
