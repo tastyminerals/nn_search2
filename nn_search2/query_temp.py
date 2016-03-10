@@ -126,6 +126,7 @@ def match_query(query, sent):
         if not neg:
             qmatch.append(token)
         return [last, start, full_query, last_matched, negation, qmatch]
+
     start = 0  # starting idx
     last = 0  # last iterated idx
     negation = False
@@ -133,20 +134,28 @@ def match_query(query, sent):
     sent_len = len(sent)
     token = [None, None, 0]  # use dummy token for first iteration
     while start != sent_len:
+        print 'WHILE LOOP STARTS'
         full_query = len(query)  # used to check if the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
         for qterm in query:
+            print('Taking qterm', qterm)
             # if ! negation, we must break into while and restart query loop
             if negation:
                 negation = False
                 break
-            # check limit stretch
+            # check if qterm idx allows any further search
+            if qterm[2] is not None and (last + qterm[2] > qterm[2]):
+                start = sent_len
+                break
+            # check sent limit
+            print('Checking limit stretch:', sent_len - token[2])
             if sent_len - token[2] == 1:
                 start = sent_len
                 break
             # True if last qterm match was found, also remember last mastch idx
             last_matched = False
             for token in sent[start:]:
+                print('SENT LOOP START with token:', token)
                 # first check if qterm index allows further search
                 if qterm[2] is not None and qterm[2] < token[2] - last:
                     # if negation, we add to qmatch and break
@@ -192,6 +201,7 @@ def match_query(query, sent):
                         break
                 # if idx and there is idx match act
                 if qterm[2] is not None:
+                    print 'FOUND IDX'
                     if qterm[2] >= token[2] - last:
                         last, start, full_query, last_matched, negation, \
                             qmatch = update_cache(token, qmatch, full_query)
@@ -202,6 +212,7 @@ def match_query(query, sent):
                                     sent.index(qmatch[-1])]
                             matches.append(sent[s:e+1])
                             last_matched = True
+                            print('IDX MATCH!')
                             break
                         break
                     # if idx limit does not allow a match, break
@@ -217,6 +228,7 @@ def match_query(query, sent):
                     qmatch = update_cache(token, qmatch, full_query)
                 # check again if we have fully matched the query
                 if full_query == 0:
+                    print('FULL QUERY MATCH')
                     # if it was append, incl a range between matches
                     s, e = [sent.index(qmatch[0]), sent.index(qmatch[-1])]
                     matches.append(sent[s:e+1])

@@ -10,3 +10,7 @@ SENTS = [
          (u'text', 'JJ', 6), (u'search', 'NN', 7), (u'application', 'NN', 8),
          (u'.', 'PUNC', 9)]}
     ]
+
+GOLD = [
+        {0: [[(u'**nn-search2**', 'NN', 0)]]}
+    ]

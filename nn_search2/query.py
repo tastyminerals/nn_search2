@@ -140,6 +140,10 @@ def match_query(query, sent):
             if negation:
                 negation = False
                 break
+            # check if qterm idx allows any further search
+            if qterm[2] is not None and (last + qterm[2] > qterm[2]):
+                start = sent_len
+                break
             # check limit stretch
             if sent_len - token[2] == 1:
                 start = sent_len
