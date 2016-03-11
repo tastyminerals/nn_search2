@@ -133,20 +133,41 @@ class NNSearch(ttk.Frame):
         # find query matches
         matches = query.find_matches(valid, self.fully_tagged_sents)
         self.matches = matches
+        pos, view = self.get_opts()
         if matches and not any([m for m in matches.values() if m]):
             msg = 'No matches found \n revise you query'
             self.show_message(msg, 'sad.png')
             return
-        elif not matches:
-            self.Text.tag_delete('style')  # reset highighting
+        # if POS-tags selected, add POS-tags to text
+        elif not matches and pos and view == 1:
+            self.Text.tag_delete('style')
+            self.prepare_view1()
+            self.highlighter(matches)
             return
-        # prepare results and add pos-tags to results
-        self.prepare_view12(matches)
-        self.prepare_view3(matches)
-        # reset search stats
-        self.set_search_stats_ready(False)
-        # insert the results
-        self.highlighter(matches)
+        elif not matches and not pos and view == 1:
+            self.Text.tag_delete('style')
+            self.prepare_view1()
+            self.highlighter(matches)
+        elif not matches and view == 2:
+            self.Text.tag_delete('style')
+            self.prepare_view2(matches)
+            self.highlighter(matches)
+            return
+        elif not matches and view == 3:
+            self.Text.tag_delete('style')
+            self.prepare_view3(matches)
+            self.highlighter(matches)
+            return
+        elif matches:
+            # prepare results and add pos-tags to results
+            self.prepare_view1()
+            self.prepare_view2(matches)
+            self.prepare_view3(matches)
+            # reset search stats
+            self.set_search_stats_ready(False)
+            # insert the results
+            self.highlighter(matches)
+
 
     def ctrl_a(self, callback=False):
         """
@@ -1155,7 +1176,22 @@ class NNSearch(ttk.Frame):
         self.sstats_win_butt.grid(sticky='ns')
         self.centrify_widget(self.sstats_win)
 
-    def prepare_view12(self, matched):
+    def prepare_view1(self):
+        """
+        Prepare text for various text views.
+        <Just a separate method that formats text accrodingly for each view.>
+        """
+        # prepare for view1
+        self.view1_text = model.normalize_text(self.process_results[0].raw)
+
+        # prepare for view1 with POS-tags
+        view1_text_pos = ''
+        for key, values in self.process_results[1].items():
+            text = ['_'.join([value[0], value[1]]) for value in values]
+            view1_text_pos = ' '.join([view1_text_pos, ' '.join(text)])
+        self.view1_text_pos = view1_text_pos.lstrip(' ')
+
+    def prepare_view2(self, matched):
         """
         Prepare text for various text views.
         <Just a separate method that formats text accrodingly for each view.>
@@ -1164,16 +1200,11 @@ class NNSearch(ttk.Frame):
             | *matched* -- dict of matched tokens
 
         """
-        # prepare for view1
-        self.view1_text = model.normalize_text(self.process_results[0].raw)
-
-        view1_text_pos = ''
-        for key, values in self.process_results[1].items():
-            text = ['_'.join([value[0], value[1]]) for value in values]
-            view1_text_pos = ' '.join([view1_text_pos, ' '.join(text)])
-        print view1_text_pos
-        self.view1_text_pos = view1_text_pos.lstrip(' ')
-
+        # show a warning because view2 depends on matched terms
+        if not matched:
+            msg = 'Please provide a search query!'
+            self.show_message(msg, 'warning.png', True)
+            return
         # prepare for view2
         # first see which sent has query matches and include only those
         matched_ids = [sent_id for sent_id in matched
@@ -1208,6 +1239,11 @@ class NNSearch(ttk.Frame):
             | *matched* -- Ordereddict of matched tokens
 
         """
+        # show a warning because view2 depends on matched terms
+        if not matched:
+            msg = 'Please provide a search query!'
+            self.show_message(msg, 'warning.png', True)
+            return
         # prepare text for view3, plain and with pos-tags
         cnt = 0
         view3_plain = []
@@ -1233,9 +1269,15 @@ class NNSearch(ttk.Frame):
         Invoke marker, which finds matched string occurrences and returns
         indeces for Tkinter tags.
         Highlight strings tagged by Tkinter according to view type.
+
+        Args:
+            *matched* -- dict of matched results
+
         """
-        # get text view options
         pos_tags, text_view = self.get_opts()
+        # if no matched results and view is 2 or 3, don't do anything
+        if not matched and text_view != 1:
+            return
         # reset highighting
         self.Text.tag_delete('style')
         # reload text
@@ -1245,31 +1287,34 @@ class NNSearch(ttk.Frame):
                 self.insert_text(self.view1_text_pos)
             else:
                 self.insert_text(self.view1_text)
-            # find matched token indeces for Tkinter to tag
-            self.marker(matched, pos_tags)
-            # highlight
-            self.Text.tag_configure('style', foreground='#000000',
-                                    background='#C0FA82')
+            if matched:
+                # find matched token indeces for Tkinter to tag
+                self.marker(matched, pos_tags)
+                # highlight
+                self.Text.tag_configure('style', foreground='#000000',
+                                        background='#C0FA82')
         elif text_view == 2:
             if pos_tags:
                 self.Text.insert('1.0', self.view2_text_pos)
             else:
                 self.Text.insert('1.0', self.view2_text)
-            # find matched token indeces for Tkinter to tag
-            self.marker(matched, pos_tags)
-            # highlight
-            self.Text.tag_configure('style', foreground='#000000',
-                                    background="#BCFC77",
-                                    font='TkDefaultFont 10 bold')
+            if matched:
+                # find matched token indeces for Tkinter to tag
+                self.marker(matched, pos_tags)
+                # highlight
+                self.Text.tag_configure('style', foreground='#000000',
+                                        background="#BCFC77",
+                                        font='TkDefaultFont 10 bold')
         elif text_view == 3:
             if pos_tags:
                 self.Text.insert('1.0', self.view3_text_pos)
             else:
                 self.Text.insert('1.0', self.view3_text)
-            # find matched tokens indeces for Tkinter to tag
-            self.marker(matched, pos_tags)
-            # highlight
-            self.Text.tag_configure('style', font='TkDefaultFont 11 bold')
+            if matched:
+                # find matched tokens indeces for Tkinter to tag
+                self.marker(matched, pos_tags)
+                # highlight
+                self.Text.tag_configure('style', font='TkDefaultFont 11 bold')
 
     def marker(self, matched, pos):
         """
