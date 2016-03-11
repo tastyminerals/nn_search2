@@ -1,0 +1,477 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nn_search2.model &mdash; nn_search2 2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="nn_search2 2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for nn_search2.model</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python2</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A collection of text processing methods used by nn-search.</span>
+<span class="sd">This module also handles user query parsing, text preprocessing and text stats.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">OrderedDict</span> <span class="k">as</span> <span class="n">od</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">punctuation</span>
+<span class="kn">import</span> <span class="nn">subprocess</span> <span class="kn">as</span> <span class="nn">sb</span>
+<span class="kn">import</span> <span class="nn">unicodedata</span>
+<span class="kn">from</span> <span class="nn">cStringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span> <span class="nn">docx</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">hunspell</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;Agg&#39;</span><span class="p">)</span>  <span class="c1"># fixing threading issue on Windows</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="kn">as</span> <span class="nn">cmx</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="kn">as</span> <span class="nn">colors</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">stopwords</span>
+<span class="kn">from</span> <span class="nn">nltk.tag.perceptron</span> <span class="kn">import</span> <span class="n">PerceptronTagger</span>
+<span class="kn">from</span> <span class="nn">textblob</span> <span class="kn">import</span> <span class="n">TextBlob</span>
+<span class="kn">from</span> <span class="nn">pdfminer.pdfinterp</span> <span class="kn">import</span> <span class="n">PDFResourceManager</span><span class="p">,</span> <span class="n">PDFPageInterpreter</span>
+<span class="kn">from</span> <span class="nn">pdfminer.converter</span> <span class="kn">import</span> <span class="n">TextConverter</span>
+<span class="kn">from</span> <span class="nn">pdfminer.layout</span> <span class="kn">import</span> <span class="n">LAParams</span>
+<span class="kn">from</span> <span class="nn">pdfminer.pdfpage</span> <span class="kn">import</span> <span class="n">PDFPage</span>
+<span class="kn">from</span> <span class="nn">colors</span> <span class="kn">import</span> <span class="n">COLLECTION</span>
+
+
+<span class="n">NLTK_PENN</span> <span class="o">=</span> <span class="p">(</span><span class="s1">u&#39;CC&#39;</span><span class="p">,</span> <span class="s1">u&#39;CD&#39;</span><span class="p">,</span> <span class="s1">u&#39;DT&#39;</span><span class="p">,</span> <span class="s1">u&#39;EX&#39;</span><span class="p">,</span> <span class="s1">u&#39;FW&#39;</span><span class="p">,</span> <span class="s1">u&#39;IN&#39;</span><span class="p">,</span> <span class="s1">u&#39;JJ&#39;</span><span class="p">,</span> <span class="s1">u&#39;JJR&#39;</span><span class="p">,</span> <span class="s1">u&#39;JJS&#39;</span><span class="p">,</span>
+             <span class="s1">u&#39;LS&#39;</span><span class="p">,</span> <span class="s1">u&#39;MD&#39;</span><span class="p">,</span> <span class="s1">u&#39;NN&#39;</span><span class="p">,</span> <span class="s1">u&#39;NNP&#39;</span><span class="p">,</span> <span class="s1">u&#39;NNPS&#39;</span><span class="p">,</span> <span class="s1">u&#39;NNS&#39;</span><span class="p">,</span> <span class="s1">u&#39;PDT&#39;</span><span class="p">,</span> <span class="s1">u&#39;POS&#39;</span><span class="p">,</span>
+             <span class="s1">u&#39;PRP&#39;</span><span class="p">,</span> <span class="s1">u&#39;PRP$&#39;</span><span class="p">,</span> <span class="s1">u&#39;RB&#39;</span><span class="p">,</span> <span class="s1">u&#39;RBR&#39;</span><span class="p">,</span> <span class="s1">u&#39;RBS&#39;</span><span class="p">,</span> <span class="s1">u&#39;RP&#39;</span><span class="p">,</span> <span class="s1">u&#39;SYM&#39;</span><span class="p">,</span> <span class="s1">u&#39;TO&#39;</span><span class="p">,</span>
+             <span class="s1">u&#39;UH&#39;</span><span class="p">,</span> <span class="s1">u&#39;VB&#39;</span><span class="p">,</span> <span class="s1">u&#39;VBD&#39;</span><span class="p">,</span> <span class="s1">u&#39;VBG&#39;</span><span class="p">,</span> <span class="s1">u&#39;VBN&#39;</span><span class="p">,</span> <span class="s1">u&#39;VBP&#39;</span><span class="p">,</span> <span class="s1">u&#39;VBZ&#39;</span><span class="p">,</span> <span class="s1">u&#39;WDT&#39;</span><span class="p">,</span>
+             <span class="s1">u&#39;WP&#39;</span><span class="p">,</span> <span class="s1">u&#39;WP$&#39;</span><span class="p">,</span> <span class="s1">u&#39;WRB&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="pdf_read"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.pdf_read">[docs]</a><span class="k">def</span> <span class="nf">pdf_read</span><span class="p">(</span><span class="n">pdf</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use PDFMiner to extract text from pdf file.</span>
+<span class="sd">    &lt;PDFMiner even though more low-level but pretty good tool to read pdfs&gt;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        *pdf* (str) -- path to pdf file</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        *text* (str) -- a text extracted from pdf</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># initalizing objects</span>
+    <span class="n">res_manager</span> <span class="o">=</span> <span class="n">PDFResourceManager</span><span class="p">()</span>
+    <span class="n">strio</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">lps</span> <span class="o">=</span> <span class="n">LAParams</span><span class="p">()</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">TextConverter</span><span class="p">(</span><span class="n">res_manager</span><span class="p">,</span> <span class="n">strio</span><span class="p">,</span> <span class="n">codec</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">laparams</span><span class="o">=</span><span class="n">lps</span><span class="p">)</span>
+    <span class="n">interpreter</span> <span class="o">=</span> <span class="n">PDFPageInterpreter</span><span class="p">(</span><span class="n">res_manager</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+    <span class="c1"># opening a pdf file with &#39;rb&#39; mode for reading binary files</span>
+    <span class="n">pdf_file</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">PDFPage</span><span class="o">.</span><span class="n">get_pages</span><span class="p">(</span><span class="n">pdf_file</span><span class="p">,</span> <span class="n">maxpages</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                  <span class="n">caching</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">check_extractable</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">interpreter</span><span class="o">.</span><span class="n">process_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+    <span class="c1"># finishing up</span>
+    <span class="n">pdf_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">strio</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+    <span class="n">strio</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+
+<div class="viewcode-block" id="normalize_text"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.normalize_text">[docs]</a><span class="k">def</span> <span class="nf">normalize_text</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove non-utf8 characters.</span>
+<span class="sd">    Convert text to ascii.</span>
+<span class="sd">    Remove all text formatting.</span>
+
+<span class="sd">    &lt;If you throw some utf-8 text to English POS-tagger, it might fail because</span>
+<span class="sd">    even some English texts might contain weird chars, accents and diacritics.&gt;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        *chars* (str) -- strings of characters</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        *ascii_text* (str) -- text converted to ascii</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># removing some non-utf8 chars</span>
+    <span class="n">utext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">r&#39;[^\x00-\x7F]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">utext</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="c1"># file is already unicode</span>
+        <span class="k">print</span> <span class="n">err</span>
+    <span class="c1"># converting to ascii</span>
+    <span class="n">ascii_text</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s1">&#39;NFKD&#39;</span><span class="p">,</span> <span class="n">utext</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+    <span class="c1"># remove formatting</span>
+    <span class="n">stripped_text</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">r&#39;\n&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">ascii_text</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">stripped_text</span></div>
+
+
+<div class="viewcode-block" id="read_input_file"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.read_input_file">[docs]</a><span class="k">def</span> <span class="nf">read_input_file</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine the file extension and act accordingly.</span>
+<span class="sd">    Read the file and return its contents.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        *fpath* (str) -- file path</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        *contents* (str) -- file contents</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fpath</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># read docx file</span>
+    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">r&#39;.docx&#39;</span><span class="p">,</span> <span class="n">fext</span><span class="p">):</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">docx</span><span class="o">.</span><span class="n">Document</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">paragraphs</span><span class="p">:</span>
+            <span class="n">contents</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">contents</span><span class="p">,</span> <span class="n">par</span><span class="o">.</span><span class="n">text</span><span class="p">])</span>
+    <span class="c1"># read doc file</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">r&#39;.doc&#39;</span><span class="p">,</span> <span class="n">fext</span><span class="p">):</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">sb</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;antiword&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">sb</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+        <span class="n">contents</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+    <span class="c1"># read pdf file</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">r&#39;.pdf&#39;</span><span class="p">,</span> <span class="n">fext</span><span class="p">):</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">pdf_read</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="c1"># read txt of file without any extension</span>
+    <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">r&#39;.txt&#39;</span><span class="p">,</span> <span class="n">fext</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">fext</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fopened</span><span class="p">:</span>
+            <span class="n">contents</span> <span class="o">=</span> <span class="n">fopened</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="process_text"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.process_text">[docs]</a><span class="k">def</span> <span class="nf">process_text</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process loaded text with textblob toolkit.</span>
+<span class="sd">    Calculate text statistics.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        *text* (str) -- raw text data</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        | *parsed_text* (Blobber) -- Blobber obj which contains parse results</span>
+<span class="sd">        | *full_tagged_sents* (dict) -- dict of</span>
+<span class="sd">          *{send num: {word num: (word, POS-tag)}}*</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TextBlob runs POS-tagging</span>
+    <span class="n">model_queue</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="n">parsed_text</span> <span class="o">=</span> <span class="n">TextBlob</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="c1"># POS-tagging with nltk again because TextBlob sent.tags is too slow</span>
+    <span class="n">tagger</span> <span class="o">=</span> <span class="n">PerceptronTagger</span><span class="p">()</span>
+    <span class="n">tagset</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">sent_detector</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;tokenizers/punkt/english.pickle&#39;</span><span class="p">)</span>
+    <span class="n">sents_tokenized</span> <span class="o">=</span> <span class="n">sent_detector</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">tokenized</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sent</span> <span class="ow">in</span> <span class="n">sents_tokenized</span><span class="p">:</span>
+        <span class="n">tokenized</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nltk</span><span class="o">.</span><span class="n">tokenize</span><span class="o">.</span><span class="n">word_tokenize</span><span class="p">(</span><span class="n">sent</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s1">&#39;english&#39;</span><span class="p">))</span>
+    <span class="n">pos_sents</span> <span class="o">=</span> <span class="n">od</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sent_toks</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tokenized</span><span class="p">):</span>
+        <span class="n">pos_text</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">_pos_tag</span><span class="p">(</span><span class="n">sent_toks</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">tagger</span><span class="p">)</span>
+        <span class="n">joined_tags</span> <span class="o">=</span> <span class="p">[(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;PUNC&#39;</span> <span class="k">if</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NLTK_PENN</span> <span class="k">else</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pos_text</span><span class="p">)]</span>
+        <span class="n">pos_sents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">joined_tags</span>
+    <span class="n">model_queue</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">parsed_text</span><span class="p">,</span> <span class="n">pos_sents</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="get_stats"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.get_stats">[docs]</a><span class="k">def</span> <span class="nf">get_stats</span><span class="p">(</span><span class="n">model_queue</span><span class="p">,</span> <span class="n">tblob</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use TextBlob object created after text extraction to get necessary stats.</span>
+<span class="sd">    Calculate pos-tags.</span>
+<span class="sd">    Calculate lexical diversity.</span>
+<span class="sd">    Use hunspell to calculate correctness.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        | *model_queue* (Queue) -- Queue object</span>
+<span class="sd">        | *tblob* (TextBlob) --TextBlob object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        *stats* (dict) -- dictionary object containing important stats</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># get token, word and sentence count</span>
+    <span class="n">token_cnt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tblob</span><span class="o">.</span><span class="n">tokens</span><span class="p">)</span>
+    <span class="n">word_cnt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tblob</span><span class="o">.</span><span class="n">words</span><span class="p">)</span>
+    <span class="n">sent_cnt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tblob</span><span class="o">.</span><span class="n">sentences</span><span class="p">)</span>
+
+    <span class="c1"># calculate pos-tags</span>
+    <span class="n">tag_cnts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">((</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">tblob</span><span class="o">.</span><span class="n">tags</span><span class="p">))</span>
+    <span class="n">english_stopwords</span> <span class="o">=</span> <span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="s1">&#39;english&#39;</span><span class="p">)</span>
+    <span class="c1"># calculate lexical diversity, unique words / total words</span>
+    <span class="n">parsed_lower</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">tblob</span><span class="o">.</span><span class="n">words</span>
+                    <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">english_stopwords</span><span class="p">]</span>
+    <span class="n">total_tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">tblob</span><span class="o">.</span><span class="n">words</span>
+                    <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">english_stopwords</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">diversity</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">parsed_lower</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">total_tokens</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">diversity</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="c1"># get polarity [-1.0, 1.0]</span>
+    <span class="c1"># get subjectivity [0.0, 1.0], 0.0 - objective, 1.0 - subjective</span>
+    <span class="n">polarity</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">tblob</span><span class="o">.</span><span class="n">sentiment</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">subjectivity</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">tblob</span><span class="o">.</span><span class="n">sentiment</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
+        <span class="c1"># calculate text correctness</span>
+        <span class="n">hspell</span> <span class="o">=</span> <span class="n">hunspell</span><span class="o">.</span><span class="n">HunSpell</span><span class="p">(</span><span class="s1">&#39;/usr/share/hunspell/en_US.dic&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;/usr/share/hunspell/en_US.aff&#39;</span><span class="p">)</span>
+        <span class="n">correct</span> <span class="o">=</span> <span class="p">[</span><span class="n">hspell</span><span class="o">.</span><span class="n">spell</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tblob</span><span class="o">.</span><span class="n">words</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">correctness</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">correct</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span> <span class="o">/</span> <span class="n">correct</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">correctness</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">correctness</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+            <span class="n">correctness</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">correctness</span> <span class="o">=</span> <span class="s1">&#39;Unix only&#39;</span>
+
+    <span class="n">stats</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;tokens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">token_cnt</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;words&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">word_cnt</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;sents&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sent_cnt</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag_cnts</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;diversity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diversity</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;polar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polarity</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subjectivity</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;corr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">correctness</span>
+    <span class="n">model_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_penn_treebank"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.get_penn_treebank">[docs]</a><span class="k">def</span> <span class="nf">get_penn_treebank</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read NLTK Penn Treebank tags, format and return.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        *penn* (list) -- a list of two lists with Penn Treebank descriptions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;short_pos_tags.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fcsv</span><span class="p">:</span>
+        <span class="n">penn_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fcsv</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">penn</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">penn_reader</span>
+                <span class="k">if</span> <span class="n">row</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)]</span>
+    <span class="n">short_desc</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">penn</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;long_pos_tags.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fcsv</span><span class="p">:</span>
+        <span class="n">penn_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fcsv</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+        <span class="n">penn</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">penn_reader</span>
+                <span class="k">if</span> <span class="n">row</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)]</span>
+    <span class="n">long_desc</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">penn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">short_desc</span><span class="p">,</span> <span class="n">long_desc</span></div>
+
+
+<div class="viewcode-block" id="get_graphs_data"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.get_graphs_data">[docs]</a><span class="k">def</span> <span class="nf">get_graphs_data</span><span class="p">(</span><span class="n">model_queue</span><span class="p">,</span> <span class="n">tags_dic</span><span class="p">,</span> <span class="n">current_fname</span><span class="p">,</span> <span class="n">process_res</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run plot_tags() and get_ngrams()</span>
+<span class="sd">    Put results in a Queue.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        | *model_queue* (Queue) -- Queue object</span>
+<span class="sd">        | *tags_dic* (dict) -- dict with POS-tag counts</span>
+<span class="sd">        | *current_fname* (str) -- name of the loaded file</span>
+<span class="sd">        | *process_res* (TextBlob) -- TextBlob object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ioff</span><span class="p">()</span>  <span class="c1"># fixing threading on Windows</span>
+    <span class="c1"># make plots and sort POS-tags</span>
+    <span class="n">ordered_pos</span> <span class="o">=</span> <span class="n">plot_tags</span><span class="p">(</span><span class="n">tags_dic</span><span class="p">,</span> <span class="n">current_fname</span><span class="p">)</span>
+    <span class="c1"># get most frequent words/ngrams counts</span>
+    <span class="n">mostn</span><span class="p">,</span> <span class="n">ngram2</span><span class="p">,</span> <span class="n">ngram3</span> <span class="o">=</span> <span class="n">get_ngrams</span><span class="p">(</span><span class="n">process_res</span><span class="p">)</span>
+    <span class="c1"># put everything into a Queue</span>
+    <span class="n">model_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">ordered_pos</span><span class="p">)</span>
+    <span class="n">model_queue</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">mostn</span><span class="p">,</span> <span class="n">ngram2</span><span class="p">,</span> <span class="n">ngram3</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="get_ngrams"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.get_ngrams">[docs]</a><span class="k">def</span> <span class="nf">get_ngrams</span><span class="p">(</span><span class="n">txtblob_obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate word and ngram counts for Graphs option.</span>
+<span class="sd">    Calculate top n frequent words.</span>
+<span class="sd">    Calculate top n 2-grams</span>
+<span class="sd">    Calculate top n 3-grams</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        *txtblob_obj* (Blob) -- object containing parse results</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        |*mostn* (list) -- a list of n most frequent words</span>
+<span class="sd">        |*ngram2* (list) -- a list of n most frequent 2-grams</span>
+<span class="sd">        |*ngram3* (list) -- a list of n most frequent 3-grams</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">txtblob_obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">)</span>
+    <span class="n">counts_dic</span> <span class="o">=</span> <span class="n">od</span><span class="p">(</span><span class="n">counter</span><span class="o">.</span><span class="n">most_common</span><span class="p">())</span>
+    <span class="n">tags_dic</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">txtblob_obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+    <span class="c1"># POS-tags included into most frequent words list</span>
+    <span class="n">include</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;JJ&#39;</span><span class="p">,</span> <span class="s1">&#39;JJR&#39;</span><span class="p">,</span> <span class="s1">&#39;JJS&#39;</span><span class="p">,</span> <span class="s1">&#39;NN&#39;</span><span class="p">,</span> <span class="s1">&#39;NNS&#39;</span><span class="p">,</span> <span class="s1">&#39;NNP&#39;</span><span class="p">,</span> <span class="s1">&#39;NNPS&#39;</span><span class="p">,</span> <span class="s1">&#39;VB&#39;</span><span class="p">,</span> <span class="s1">&#39;VBG&#39;</span><span class="p">)</span>
+    <span class="c1"># get n most frequent words</span>
+    <span class="n">mostn</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">counts_dic</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">counts_dic</span> <span class="k">if</span> <span class="n">tags_dic</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">in</span> <span class="n">include</span><span class="p">][:</span><span class="mi">10</span><span class="p">]</span>
+    <span class="n">ngram2_cnt</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">([(</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">txtblob_obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ngrams</span><span class="p">(</span><span class="mi">2</span><span class="p">)])</span>
+    <span class="n">ngram3_cnt</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">([(</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span>
+                          <span class="ow">in</span> <span class="n">txtblob_obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ngrams</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
+    <span class="n">ngram2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ngram2_cnt</span><span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ngram2_cnt</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+    <span class="n">ngram3</span> <span class="o">=</span> <span class="p">[(</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ngram3_cnt</span><span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ngram3_cnt</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">mostn</span><span class="p">,</span> <span class="n">ngram2</span><span class="p">,</span> <span class="n">ngram3</span></div>
+
+
+<div class="viewcode-block" id="plot_tags"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.plot_tags">[docs]</a><span class="k">def</span> <span class="nf">plot_tags</span><span class="p">(</span><span class="n">tags_dic</span><span class="p">,</span> <span class="n">save_fname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create and save plots for &#39;Graphs&#39; option.</span>
+<span class="sd">    These plot files shall be grabbed and included into UI.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        | *tags_dic* (dict) -- dictionary of POS-tag occurrences</span>
+<span class="sd">        | *save_fname* (str) -- currently processed file name without extension</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        *odd* (OrderedDict) -- frequency sorted POS-tags</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">13</span><span class="p">})</span>
+    <span class="c1"># create POS-tags distribution plot</span>
+    <span class="n">odd</span> <span class="o">=</span> <span class="n">od</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tags_dic</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">bars</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">odd</span><span class="p">)),</span> <span class="n">odd</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Part-of-speech tags statistics&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">odd</span><span class="p">)),</span> <span class="n">odd</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Occurrence&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;POS-tags&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">COLLECTION</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tags_dic</span><span class="p">)):</span>
+        <span class="n">bars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">COLLECTION</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;_graphs&#39;</span><span class="p">,</span> <span class="n">save_fname</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">))</span>
+    <span class="c1"># create functional / non-fuctional words pie chart</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+    <span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">})</span>
+    <span class="n">functional</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DT&#39;</span><span class="p">,</span> <span class="s1">&#39;PDT&#39;</span><span class="p">,</span> <span class="s1">&#39;PRP&#39;</span><span class="p">,</span> <span class="s1">&#39;PRP$&#39;</span><span class="p">,</span> <span class="s1">&#39;IN&#39;</span><span class="p">,</span> <span class="s1">&#39;CC&#39;</span><span class="p">,</span> <span class="s1">&#39;UH&#39;</span><span class="p">,</span> <span class="s1">&#39;RP&#39;</span><span class="p">,</span> <span class="s1">&#39;WRB&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;WP$&#39;</span><span class="p">,</span> <span class="s1">&#39;WDT&#39;</span><span class="p">,</span> <span class="s1">&#39;WP&#39;</span><span class="p">,</span> <span class="s1">&#39;EX&#39;</span><span class="p">,</span> <span class="s1">&#39;MD&#39;</span><span class="p">,</span> <span class="s1">&#39;TO&#39;</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;JJ&#39;</span><span class="p">,</span> <span class="s1">&#39;JJR&#39;</span><span class="p">,</span> <span class="s1">&#39;JJS&#39;</span><span class="p">,</span> <span class="s1">&#39;NN&#39;</span><span class="p">,</span> <span class="s1">&#39;NNS&#39;</span><span class="p">,</span> <span class="s1">&#39;NNP&#39;</span><span class="p">,</span> <span class="s1">&#39;NNPS&#39;</span><span class="p">,</span> <span class="s1">&#39;RB&#39;</span><span class="p">,</span> <span class="s1">&#39;RBR&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;RBS&#39;</span><span class="p">,</span> <span class="s1">&#39;VB&#39;</span><span class="p">,</span> <span class="s1">&#39;VBD&#39;</span><span class="p">,</span> <span class="s1">&#39;VBG&#39;</span><span class="p">,</span> <span class="s1">&#39;VBN&#39;</span><span class="p">,</span> <span class="s1">&#39;VBP&#39;</span><span class="p">,</span> <span class="s1">&#39;VBZ&#39;</span><span class="p">)</span>
+    <span class="n">fwords</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">tags_dic</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tags_dic</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">functional</span><span class="p">])</span>
+    <span class="n">cwords</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">tags_dic</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tags_dic</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">content</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fratio</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">fwords</span> <span class="o">/</span> <span class="p">(</span><span class="n">fwords</span> <span class="o">+</span> <span class="n">cwords</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">cratio</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">cwords</span> <span class="o">/</span> <span class="p">(</span><span class="n">fwords</span> <span class="o">+</span> <span class="n">cwords</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">fratio</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">cratio</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;functional&#39;</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">]</span>
+    <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">fratio</span><span class="p">,</span> <span class="n">cratio</span><span class="p">]</span>
+    <span class="n">pie_colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;salmon&#39;</span><span class="p">,</span> <span class="s1">&#39;royalblue&#39;</span><span class="p">]</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">pie_colors</span><span class="p">,</span> <span class="n">autopct</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%1.1f%%</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">shadow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">startangle</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+    <span class="c1"># Set aspect ratio to be equal so that pie is drawn as a circle.</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="c1"># increasing fonts in a pie chart</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;_graphs&#39;</span><span class="p">,</span> <span class="n">save_fname</span> <span class="o">+</span> <span class="s1">&#39;_pie.png&#39;</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">od</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">odd</span><span class="o">.</span><span class="n">items</span><span class="p">())))</span></div>
+
+
+<div class="viewcode-block" id="get_search_stats"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.model.get_search_stats">[docs]</a><span class="k">def</span> <span class="nf">get_search_stats</span><span class="p">(</span><span class="n">model_queue</span><span class="p">,</span> <span class="n">matches</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get some search stats.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        | *matches* -- dict of matching results</span>
+<span class="sd">        | *text* -- Text widget text</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        | *mcnt* -- number of matched terms</span>
+<span class="sd">        | *mlen* -- length of matched characters</span>
+<span class="sd">        | *mratio* -- ratio of matched characters</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># get number of matches</span>
+    <span class="n">mcnt</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">matches</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">vals</span><span class="p">])</span>
+
+    <span class="c1"># get the length of matches chars</span>
+    <span class="n">mlen</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">val2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">matches</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">val1</span> <span class="ow">in</span> <span class="n">vals</span>
+                <span class="k">for</span> <span class="n">val2</span> <span class="ow">in</span> <span class="n">val1</span><span class="p">])</span>
+    <span class="c1"># calculate % of matched terms against complete text</span>
+    <span class="n">mratio</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">mlen</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">model_queue</span><span class="o">.</span><span class="n">put</span><span class="p">({</span><span class="s1">&#39;Tokens matched&#39;</span><span class="p">:</span> <span class="n">mcnt</span><span class="p">,</span> <span class="s1">&#39;Matched length&#39;</span><span class="p">:</span> <span class="n">mlen</span><span class="p">,</span>
+                     <span class="s1">&#39;Matched length ratio&#39;</span><span class="p">:</span> <span class="n">mratio</span><span class="p">})</span></div>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, tastyminerals.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nn_search2.query &mdash; nn_search2 2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="nn_search2 2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for nn_search2.query</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python2</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module handles various query operations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span> <span class="k">as</span> <span class="n">od</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+
+<div class="viewcode-block" id="preprocess_query"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.query.preprocess_query">[docs]</a><span class="k">def</span> <span class="nf">preprocess_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">short_treebank</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check user query for errors.</span>
+<span class="sd">    Convert it into ready to parse format.</span>
+<span class="sd">    Convert all punctuation tags to PUNC.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        |*short_treebank* (list) -- short POS-tags description</span>
+<span class="sd">        |*query* (str) -- user query as entered in Entry widget</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        *prequery* () -- preprocessed query</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query_lst</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="c1"># check query syntax</span>
+    <span class="n">rx</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;!?(&quot;.+&quot;([A-Z$]{2,4})?({[0-9]+})?|&#39;</span> <span class="o">+</span>
+                    <span class="s1">&#39;!?(&quot;.+&quot;)?[A-Z$]{2,4}({[0-9]+})?)&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">query_lst</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">match_gr</span> <span class="o">=</span> <span class="n">rx</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">node</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="n">node</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">match_gr</span><span class="p">):</span>
+            <span class="c1"># return code 1 with the incorrect node</span>
+            <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="n">node</span>
+
+    <span class="c1"># check POS-tags correctness</span>
+    <span class="n">penn_tags</span> <span class="o">=</span> <span class="n">short_treebank</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">ready_query</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># convert query for further processing, check POS-tags</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">query_lst</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">):</span>
+            <span class="n">not_node</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">not_node</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">r&#39;&quot;(.+)&quot;&#39;</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">None</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">r&#39;(&quot;.+&quot;)?([A-Z$]{2,4}){?&#39;</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">None</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">r&#39;}([0-9]+){&#39;</span><span class="p">,</span> <span class="n">node</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">and</span> <span class="n">tag</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">penn_tags</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">2</span><span class="p">,</span> <span class="n">tag</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">word</span><span class="p">:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">tag</span><span class="p">:</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">idx</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">ready_query</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">word</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">not_node</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ready_query</span></div>
+
+
+<div class="viewcode-block" id="find_matches"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.query.find_matches">[docs]</a><span class="k">def</span> <span class="nf">find_matches</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">sents</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Iterate over a sentence dict and find query matches for each sentence.</span>
+<span class="sd">    Decide what to highlight, single tokens or a range of tokens.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        | *query* -- a list of preprocessed query tuples</span>
+<span class="sd">        | *sents* -- a dict of sentence token tuples as returned by POS-tagger,</span>
+<span class="sd">         ``{0: [(u&#39;this&#39;, u&#39;DT&#39;, 0), (u&#39;is&#39;, u&#39;VBZ&#39;, 1), (u&#39;a&#39;, u&#39;DT&#39;, 2),</span>
+<span class="sd">            (u&#39;tree&#39;, u&#39;NN&#39;, 3)]}``</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        | *matched_lst* -- a list of matched tokens per sentence</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">query</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">matched_dic</span> <span class="o">=</span> <span class="n">od</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">sent_idx</span> <span class="ow">in</span> <span class="n">sents</span><span class="p">:</span>
+        <span class="n">matched_dic</span><span class="p">[</span><span class="n">sent_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">match_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">sents</span><span class="p">[</span><span class="n">sent_idx</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">matched_dic</span></div>
+
+
+<div class="viewcode-block" id="match_query"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.query.match_query">[docs]</a><span class="k">def</span> <span class="nf">match_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">sent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run user query through the sentence and find all matched substrings.</span>
+<span class="sd">    &lt;The function is huge, make sure you clearly understand what you&#39;re doing</span>
+<span class="sd">    before changing anything.&gt;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        | *query* -- a list of preprocessed query tuples</span>
+<span class="sd">        | *sent* -- a list of sentence token tuples as returned by POS-tagger</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        | *matched* -- a list of tuples of matched sentence substrings</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">neg</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update temp cache that accumulates successful query matches.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            | *token* -- sentence token tuple</span>
+<span class="sd">            | *qmatch* -- temp cache for successful matches</span>
+<span class="sd">            | *full_query* -- int of query lenght that gets reduced with each</span>
+<span class="sd">              successful term match</span>
+<span class="sd">            | *neg* (optional) -- True if we handle negation query term</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a list of updated parameters</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">token</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">last</span>
+        <span class="n">full_query</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">last_matched</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">negation</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">neg</span><span class="p">:</span>
+            <span class="n">negation</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">neg</span><span class="p">:</span>
+            <span class="n">qmatch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">]</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># starting idx</span>
+    <span class="n">last</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># last iterated idx</span>
+    <span class="n">negation</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sent_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sent</span><span class="p">)</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># use dummy token for first iteration</span>
+    <span class="n">last_matched</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">while</span> <span class="n">start</span> <span class="o">!=</span> <span class="n">sent_len</span><span class="p">:</span>
+        <span class="n">full_query</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>  <span class="c1"># used to check if the query fully matched</span>
+        <span class="n">qmatch</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># cache for matches, reset if the query not fully matched</span>
+        <span class="k">for</span> <span class="n">qnum</span><span class="p">,</span> <span class="n">qterm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
+            <span class="c1"># if ! negation, we must break into while and restart query loop</span>
+            <span class="k">if</span> <span class="n">negation</span><span class="p">:</span>
+                <span class="n">negation</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">break</span>
+            <span class="c1"># check if qterm idx allows any further search</span>
+            <span class="k">if</span> <span class="n">qnum</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">last</span> <span class="o">+</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span>
+                                                       <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">sent_len</span>
+                <span class="k">break</span>
+            <span class="c1"># check limit stretch</span>
+            <span class="k">if</span> <span class="n">sent_len</span> <span class="o">-</span> <span class="n">token</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">sent_len</span>
+                <span class="k">break</span>
+            <span class="c1"># True if last qterm match was found, also remember last mastch idx</span>
+            <span class="n">last_matched</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">sent</span><span class="p">[</span><span class="n">start</span><span class="p">:]:</span>
+                <span class="c1"># first check if qterm index allows further search</span>
+                <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">token</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">last</span><span class="p">:</span>
+                    <span class="c1"># if negation, we add to qmatch and break</span>
+                    <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                        <span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> \
+                            <span class="n">qmatch</span> <span class="o">=</span> <span class="n">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span> <span class="n">full_query</span><span class="p">)</span>
+                        <span class="k">break</span>
+                    <span class="n">last</span> <span class="o">=</span> <span class="n">token</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">break</span>
+                <span class="c1"># if word and there is no word match just proceed to next token</span>
+                <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">token</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> \
+                        <span class="ow">not</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="c1"># if tag and there is no tag match just proceed to next token</span>
+                <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">token</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> \
+                        <span class="ow">not</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="c1"># check ! negation and handle all options accordingly</span>
+                <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qterm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">token</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">token</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">token</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">last</span><span class="p">:</span>
+                            <span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> \
+                                <span class="n">qmatch</span> <span class="o">=</span> <span class="n">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span>
+                                                      <span class="n">full_query</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+                            <span class="k">break</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> \
+                                <span class="n">qmatch</span> <span class="o">=</span> <span class="n">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span>
+                                                      <span class="n">full_query</span><span class="p">)</span>
+                            <span class="c1"># check here if the qterm was the last in a query</span>
+                            <span class="k">if</span> <span class="n">full_query</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="c1"># incl a range between first and last matches</span>
+                                <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="p">[</span><span class="n">sent</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qmatch</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                        <span class="n">sent</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qmatch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+                                <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sent</span><span class="p">[</span><span class="n">s</span><span class="p">:</span><span class="n">e</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+                                <span class="n">last_matched</span> <span class="o">=</span> <span class="bp">True</span>
+                                <span class="k">break</span>
+                            <span class="k">break</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> \
+                            <span class="n">qmatch</span> <span class="o">=</span> <span class="n">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span>
+                                                  <span class="bp">True</span><span class="p">)</span>
+                        <span class="k">break</span>
+                <span class="c1"># if idx and there is idx match act</span>
+                <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">token</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">last</span><span class="p">:</span>
+                        <span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> \
+                            <span class="n">qmatch</span> <span class="o">=</span> <span class="n">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span> <span class="n">full_query</span><span class="p">)</span>
+                        <span class="c1"># check here if the qterm was the last in a query</span>
+                        <span class="k">if</span> <span class="n">full_query</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="c1"># if it was append, incl a range between matches</span>
+                            <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="p">[</span><span class="n">sent</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qmatch</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                    <span class="n">sent</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qmatch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+                            <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sent</span><span class="p">[</span><span class="n">s</span><span class="p">:</span><span class="n">e</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+                            <span class="n">last_matched</span> <span class="o">=</span> <span class="bp">True</span>
+                            <span class="k">break</span>
+                        <span class="k">break</span>
+                    <span class="c1"># if idx limit does not allow a match, break</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="c1"># check here for ! negation node, disallow adding to qmatch</span>
+                <span class="k">if</span> <span class="n">qterm</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                    <span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> <span class="n">qmatch</span> <span class="o">=</span> \
+                        <span class="n">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="c1"># if idx limit does not exist, add token to qmatch cache</span>
+                <span class="n">last</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">full_query</span><span class="p">,</span> <span class="n">last_matched</span><span class="p">,</span> <span class="n">negation</span><span class="p">,</span> \
+                    <span class="n">qmatch</span> <span class="o">=</span> <span class="n">update_cache</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">qmatch</span><span class="p">,</span> <span class="n">full_query</span><span class="p">)</span>
+                <span class="c1"># check again if we have fully matched the query</span>
+                <span class="k">if</span> <span class="n">full_query</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># if it was append, incl a range between matches</span>
+                    <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="p">[</span><span class="n">sent</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qmatch</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">sent</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qmatch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sent</span><span class="p">[</span><span class="n">s</span><span class="p">:</span><span class="n">e</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">break</span>
+        <span class="c1"># Check if a query term was ever matched</span>
+        <span class="c1"># We handling various cases of breaking out of the loop here.</span>
+        <span class="c1"># Check if we have any matches and see if the first qterm has no limit.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">last_matched</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">query</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="c1"># check if the last term has a limit and compare qterm sum + limit</span>
+            <span class="c1"># with the sent length, break if it is bigger</span>
+            <span class="k">if</span> <span class="n">query</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">+</span> <span class="n">query</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">sent_len</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">sent_len</span>
+                <span class="k">break</span>
+        <span class="c1"># now qterm has a limit and we need to make sure that the sent was</span>
+        <span class="c1"># fully checked by comparing the start idx with the last token idx</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">last_matched</span> <span class="ow">and</span> <span class="n">query</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="n">start</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">matches</span></div>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, tastyminerals.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
