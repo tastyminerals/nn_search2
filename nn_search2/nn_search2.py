@@ -121,7 +121,7 @@ class NNSearch(ttk.Frame):
         # print self.fully_tagged_sents
         self.query = self.Entry.get().strip()  # get query from entry widget
         # self.Entry.delete(0, 'end')  # removes query from entry widget
-        valid = query.preprocess_query(self.query)
+        valid = query.preprocess_query(self.query, self.short_treebank)
         if valid and valid[0] == 1:
             msg = 'Incorrect query syntax in: %s' % valid[1]
             self.show_message(msg, 'error.png')
@@ -1157,19 +1157,21 @@ class NNSearch(ttk.Frame):
 
     def prepare_view12(self, matched):
         """
-        Precache text data for various text views.
-        <This is done in order to stop recalculating text each time during
-        results insertion.>
+        Prepare text for various text views.
+        <Just a separate method that formats text accrodingly for each view.>
 
         Args:
             | *matched* -- dict of matched tokens
 
         """
         # prepare for view1
+        self.view1_text = model.normalize_text(self.process_results[0].raw)
+
         view1_text_pos = ''
         for key, values in self.process_results[1].items():
             text = ['_'.join([value[0], value[1]]) for value in values]
             view1_text_pos = ' '.join([view1_text_pos, ' '.join(text)])
+        print view1_text_pos
         self.view1_text_pos = view1_text_pos.lstrip(' ')
 
         # prepare for view2
@@ -1199,9 +1201,8 @@ class NNSearch(ttk.Frame):
 
     def prepare_view3(self, matched):
         """
-        Precache text data for various text views.
-        <This is done in order to stop recalculating text each time during
-        results insertion.>
+        Prepare text for various text views.
+        <Just a separate method that formats text accrodingly for each view.>
 
         Args:
             | *matched* -- Ordereddict of matched tokens
@@ -1243,7 +1244,7 @@ class NNSearch(ttk.Frame):
             if pos_tags:
                 self.insert_text(self.view1_text_pos)
             else:
-                self.insert_text(self.process_results[0])
+                self.insert_text(self.view1_text)
             # find matched token indeces for Tkinter to tag
             self.marker(matched, pos_tags)
             # highlight

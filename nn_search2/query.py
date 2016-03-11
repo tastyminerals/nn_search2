@@ -8,14 +8,15 @@ import re
 import model
 
 
-def preprocess_query(query):
+def preprocess_query(query, short_treebank):
     """
     Check user query for errors.
     Convert it into ready to parse format.
     Convert all punctuation tags to PUNC.
 
     Args:
-        *query* (str) -- user query as entered in Entry widget
+        |*short_treebank* (list) -- short POS-tags description
+        |*query* (str) -- user query as entered in Entry widget
 
     Returns:
         *prequery* () -- preprocessed query
@@ -35,7 +36,7 @@ def preprocess_query(query):
             return 1, node
 
     # check POS-tags correctness
-    penn_tags = model.get_penn_treebank()[0][1][1:]
+    penn_tags = short_treebank[1][1:]
     ready_query = []
     # convert query for further processing, check POS-tags
     for node in query_lst:
