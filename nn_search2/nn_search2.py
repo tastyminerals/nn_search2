@@ -673,7 +673,7 @@ class NNSearch(ttk.Frame):
             self.process_thread.join()
             # get the results of model processing
             self.process_results = self.model_queue.get()
-            self.fully_tagged_sents = self.process_results[-1]
+            self.fully_tagged_sents = self.process_results[1]
             self.progress_bar.stop()
             self.prog_win.destroy()
             self.lock_ui(False)
@@ -1345,25 +1345,31 @@ class NNSearch(ttk.Frame):
             | *matched* -- dict of matched results
             | *pos* -- True if add POS-tags
         """
+        # The house is black and the house is green. There is a house in the city.
         sents_matches = [toks for sent_lst in matched.values()
                          for toks in sent_lst]
         # use python re to get the match indeces instead of Text.search
         text = self.Text.get('1.0', tk.END).encode('utf-8')
-        lines = [line for line in text.split('\n')]
+        sents = [line for line in text.split('\n')]
         matches = []
-        for tokens in sents_matches:
-            if not tokens:
-                continue
-            if not pos:
-                matched_str = ' '.join([tok[0] for tok in tokens])
-            else:
-                matched_str = ' '.join(['_'.join([tok[0], tok[1]])
-                                        for tok in tokens])
-            token = handle_punct(matched_str)
-            matches.append([fnode(i, m.start(), m.end()) for i, line
-                            in enumerate(lines, 1)
-                            for m in re.finditer(token, line)])
-        matches = [m for match in matches for m in match]  # flatten list
+        for row, sent in enumerate(sents, 1):
+            start = 0
+            for tokens in sents_matches:
+                if not tokens:
+                    continue
+                if not pos:
+                    matched_str = ' '.join([tok[0] for tok in tokens])
+                else:
+                    matched_str = ' '.join(['_'.join([tok[0], tok[1]])
+                                            for tok in tokens])
+                token = handle_punct(matched_str)
+                isfound = re.search(token, sent[start:])
+                if isfound:
+                    matched = fnode(row, isfound.start() + start,
+                                    isfound.end() + start)
+                    matches.append(matched)
+                    start += isfound.end()
+
         for start_mark, end_mark in matches:
             self.Text.tag_add('style', start_mark, end_mark)
 
