@@ -19,6 +19,7 @@ import tkMessageBox
 import Queue
 from PIL import ImageTk as itk
 import shutil
+from string import punctuation as punct
 
 import model
 import query
@@ -48,8 +49,27 @@ def fnode(*args):
     return start_mark, end_mark
 
 
-class NNSearch(ttk.Frame):
+def handle_punct(matched_str):
+    """
+    Do no add \b if the token starts or ends with a punctuation sign.
 
+    <Obviously, this will not protect from incorrect highlighting in all cases,
+    but it will reduce them significantly.>
+
+    Args:
+        *matched_str* (str) -- string matched by a query
+
+    Returns:
+        (str) -- with sensitive punctuation removed
+
+    """
+    if matched_str[0] in punct or matched_str[-1] in punct:
+        return re.escape(matched_str)
+    return r'\b' + matched_str + r'\b'
+
+
+class NNSearch(ttk.Frame):
+    """UI class that handles all user interactions."""
     def __init__(self, master):
         self.query = ''  # user query
         # stats vars
@@ -139,21 +159,21 @@ class NNSearch(ttk.Frame):
             self.show_message(msg, 'sad.png')
             return
         # if POS-tags selected, add POS-tags to text
-        elif not matches and pos and view == 1:
+        elif not self.query and pos and view == 1:
             self.Text.tag_delete('style')
             self.prepare_view1()
             self.highlighter(matches)
             return
-        elif not matches and not pos and view == 1:
+        elif not self.query and not pos and view == 1:
             self.Text.tag_delete('style')
             self.prepare_view1()
             self.highlighter(matches)
-        elif not matches and view == 2:
+        elif not self.query and view == 2:
             self.Text.tag_delete('style')
             self.prepare_view2(matches)
             self.highlighter(matches)
             return
-        elif not matches and view == 3:
+        elif not self.query and view == 3:
             self.Text.tag_delete('style')
             self.prepare_view3(matches)
             self.highlighter(matches)
@@ -1331,7 +1351,6 @@ class NNSearch(ttk.Frame):
         text = self.Text.get('1.0', tk.END).encode('utf-8')
         lines = [line for line in text.split('\n')]
         matches = []
-        print sents_matches
         for tokens in sents_matches:
             if not tokens:
                 continue
@@ -1340,8 +1359,7 @@ class NNSearch(ttk.Frame):
             else:
                 matched_str = ' '.join(['_'.join([tok[0], tok[1]])
                                         for tok in tokens])
-            # token = ''.join([r'\b', re.escape(matched_str), r'\b'])
-            token = re.escape(matched_str)
+            token = handle_punct(matched_str)
             matches.append([fnode(i, m.start(), m.end()) for i, line
                             in enumerate(lines, 1)
                             for m in re.finditer(token, line)])

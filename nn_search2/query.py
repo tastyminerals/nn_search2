@@ -5,7 +5,6 @@ This module handles various query operations.
 """
 from collections import OrderedDict as od
 import re
-import model
 
 
 def preprocess_query(query, short_treebank):
@@ -133,6 +132,7 @@ def match_query(query, sent):
     matches = []
     sent_len = len(sent)
     token = [None, None, 0]  # use dummy token for first iteration
+    last_matched = False
     while start != sent_len:
         full_query = len(query)  # used to check if the query fully matched
         qmatch = []  # cache for matches, reset if the query not fully matched
