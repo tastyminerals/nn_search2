@@ -103,7 +103,7 @@ class NNSearch(ttk.Frame):
         master.minsize(height=300, width=400)
         self._build_gui()
         # read Penn Treebank tags description
-        self.penn_treebank = model.get_penn_treebank()
+        self.short_treebank, self.longer_treebank = model.get_penn_treebank()
 
     def press_return(self, *args):
         """
@@ -643,7 +643,7 @@ class NNSearch(ttk.Frame):
         """
         self.prog_win = tk.Toplevel()
         # set custom window icon
-        set_win_icon(self.prog_win, self.img_path('cup.png'))
+        set_win_icon(self.prog_win, self.img_path('proc.png'))
         self.prog_win.wm_attributes('-topmost', 1)  # keep window topmost
         self.prog_win.title('Processing')
         self.prog_win.resizable(0, 0)
@@ -802,12 +802,27 @@ class NNSearch(ttk.Frame):
         self.stats_win_butt.grid(sticky='ns')
         self.centrify_widget(self.stats_win)
 
-    def show_tags_help(self):
+    def pos_tags_long(self):
         """
-        Show a pop-up window with Penn Treebank POS-tags description.
+        Read short pos-tags description and build a Toplevel window.
         """
-        # TODO! use nltk.help.upenn_tagset()
-        ids, tags, desc = self.penn_treebank
+
+        self._tags_help(self.longer_treebank)
+
+    def pos_tags_short(self):
+        """
+        Read long pos-tags description and build a Toplevel window.
+        """
+        self._tags_help(self.short_treebank)
+
+    def _tags_help(self, postags):
+        """
+        Show a pop-up window with POS-tag descriptions.
+
+        Args:
+            *postags* (list) -- POS-tag descriptions
+        """
+        ids, tags, desc = postags
         header = ids[0], tags[0], desc[0]
         penn_win = tk.Toplevel()
         # set custom window icon
@@ -898,7 +913,7 @@ class NNSearch(ttk.Frame):
         self.pos_img = itk.PhotoImage(file=self.img_path('info.png'))
         tag_help = ttk.Button(graphFr0, padding=(0, 0),
                               text='POS-tags help', image=self.pos_img,
-                              compound='left', command=self.show_tags_help)
+                              compound='left', command=self.pos_tags_short)
         tag_help.grid(row=0, sticky='we')
         # add Close button
         close_butt = ttk.Button(graphFr, padding=(0, 0), text='Close',
@@ -1416,7 +1431,7 @@ class NNSearch(ttk.Frame):
                                command=None)
         self.about = itk.PhotoImage(file=self.img_path('info.png'))
         self.Menu3.add_command(label="POS-tags", image=self.about,
-                               compound='left', command=self.show_tags_help)
+                               compound='left', command=self.pos_tags_long)
         self.Menu3.add_command(label="About", image=self.about,
                                compound='left', command=self.show_about)
         put_resizable(self.MenuButton3, 0, 3, 1, 1, 'n')

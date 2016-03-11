@@ -1,4 +1,4 @@
-# Alphabetical list of part-of-speech tags used in the Penn Treebank Project
+# Short description of part-of-speech tags provided by NLTK POS-tagger
 
 Id,Tag,Description
 1,CC,Coordinating conjunction

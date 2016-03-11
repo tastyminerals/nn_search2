@@ -233,17 +233,23 @@ def get_stats(model_queue, tblob):
 
 def get_penn_treebank():
     """
-    Read Penn Treebank tags, format and return.
+    Read NLTK Penn Treebank tags, format and return.
 
     Returns:
         *penn* (list) -- a list of two lists with Penn Treebank descriptions
 
     """
-    with open(os.path.join('data', 'penn_tags.csv'), 'rb') as fcsv:
+    with open(os.path.join('data', 'short_pos_tags.csv'), 'rb') as fcsv:
         penn_reader = csv.reader(fcsv, delimiter=',')
         penn = [row for row in penn_reader
                 if row and not row[0].startswith('#')]
-    return zip(*penn)
+    short_desc = zip(*penn)
+    with open(os.path.join('data', 'long_pos_tags.csv'), 'rb') as fcsv:
+        penn_reader = csv.reader(fcsv, delimiter=':')
+        penn = [row for row in penn_reader
+                if row and not row[0].startswith('#')]
+    long_desc = zip(*penn)
+    return short_desc, long_desc
 
 
 def get_graphs_data(model_queue, tags_dic, current_fname, process_res):
