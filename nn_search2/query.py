@@ -35,7 +35,7 @@ def preprocess_query(query):
             return 1, node
 
     # check POS-tags correctness
-    penn_tags = model.get_penn_treebank()[1][1:] + ('PUNC',)
+    penn_tags = model.get_penn_treebank()[0][1][1:]
     ready_query = []
     # convert query for further processing, check POS-tags
     for node in query_lst:
