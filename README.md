@@ -5,6 +5,7 @@ ranges such that you can find chains of nouns, verbs, adjectives and fixed expre
 
 ### What does it do?
 Here is the main window with some loaded text.
+
 ![0](https://i.imgur.com/AbJMvwZ.png)
 
 Imagine you want to find a sequence of ANY determiner (like "a", "an" or "the") and ANY noun in range of max 2 any other [tokens](https://en.wikipedia.org/wiki/Lexical_analysis#Token).
