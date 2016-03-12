@@ -35,6 +35,9 @@ else:
     TKFONT = 'TkDefaultFont 10'
     TKTEXT_FONT = 'Sans 10'
 
+# remove the underscore from punctuation var
+PUNCT = re.sub('_', '', punct)
+
 
 def set_win_icon(window, icon_path):
     """Set a custom icon for a given window."""
@@ -52,6 +55,7 @@ def fnode(*args):
 def handle_punct(matched_str):
     """
     Do no add \b if the token starts or ends with a punctuation sign.
+    Also escape any sensitive punctuation.
 
     <Obviously, this will not protect from incorrect highlighting in all cases,
     but it will reduce them significantly.>
@@ -63,7 +67,16 @@ def handle_punct(matched_str):
         (str) -- with sensitive punctuation removed
 
     """
-    if matched_str[0] in punct or matched_str[-1] in punct:
+    # handle sensitive punctuation
+    esc_matched = []
+    for char in matched_str:
+        if char in PUNCT:
+            esc_matched.append('\\'+char)
+        else:
+            esc_matched.append(char)
+    matched_str = ''.join(esc_matched)
+    # handle word boundaries
+    if matched_str[0] in PUNCT or matched_str[-1] in PUNCT:
         return re.escape(matched_str)
     return r'\b' + matched_str + r'\b'
 
