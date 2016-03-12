@@ -64,16 +64,14 @@ Also, be patient, the bigger your text and the shorter your search query the mor
 
 ### How to install?
 #### Linux
-Execute the steps below if you're running some Linux flavour.
+
+##### Using `setup.py`
+`python2 setup.py install`
+
+##### Manual installation
 * Install Python 2.7
-* Install the remaining Python 2 dependencies:
-
-`sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
-
-* Download a few NLTK resources:
-
-`python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger`
-
+* Install the remaining Python 2 dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
+* Download a few NLTK resources: `python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger`
 * Finally, run the app `python2 nn_search2.py`
 
 #### Windows
