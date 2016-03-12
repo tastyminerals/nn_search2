@@ -76,4 +76,4 @@ You can either use `setup.py` which will automatically install all the dependenc
 4. Finally, run the app `python2 nn_search2.py`
 
 #### Windows
-Here is a [windows instraller]().
+Here is a [windows instraller](win_deps/nn_search2.exe).
