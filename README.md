@@ -64,6 +64,7 @@ Also, be patient, the bigger your text and the shorter your search query the mor
 
 ### How to install?
 #### Linux
+You can either use `setup.py` which will automatically install all the dependencies or do it manually, installing everything on your own. See the details below.
 
 ##### Using `setup.py`
 `sudo python2 setup.py install`
