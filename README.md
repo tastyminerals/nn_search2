@@ -24,7 +24,7 @@ In addition to your search results default text *view 1*, there are 2 alternativ
 
 Also, **nn-search2** provides some text and search results statistics which you can access via right panel buttons.
 
-![4](https://i.imgur.com/qUIz9xQ.png)
+![4](https://i.imgur.com/IZMRoFx.png)
 
 There is also a separate POS-tagger for batch processing one or more text files.
 
