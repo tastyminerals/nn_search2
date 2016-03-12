@@ -34,7 +34,7 @@ Standalone POS-tagger is also available via console.
 
 ![6](https://i.imgur.com/yU8ImAy.png)
 
-### Why do I need it?
+### Why would I need it?
 Ok, why would somebody need to search parts-of-speech?
 Well, imagine you have a story e.g. "Alice in Wonderland" and for some crazy reason you decided to find out what kind and how many unique names have been used by Lewis Carrol. Naive approach would be searching for words with first character capitalized, but then you'd have to filter out a lot of false positives, by hand, which can be tedious and even impossible in some cases. You can use part-of-speech tagger which could tag your text and then using some [regular expressions](en.wikipedia.org/wiki/Regular_expression) you'd probably get what you want, but the accuracy would still be not great because it will not only depend on your POS-tagger implementation, it would be matching text patterns not part-of-speech categories also.
 To do this task in **nn_search2** requires only the knowledge of available [part-of-speech tags](www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html) and some simple syntax.
