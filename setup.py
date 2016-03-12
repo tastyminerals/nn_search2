@@ -4,22 +4,32 @@
 Setup script for nn_search2.
 
 Usage:
-    python setup.py install
+    python2 setup.py install
 
 """
-# always prefer setuptools over distutils
-from setuptools import setup, find_packages
+import os
+import subprocess as sb
+from distutils.core import setup
 # To use a consistent encoding
-from codecs import open
+import codecs
 from os import path
+from setuptools.command.install import install
 
 
 HERE = path.abspath(path.dirname(__file__))
 
 
+class post_install(install):
+    def run(self):
+        """Run default install with pos-install script"""
+        install.run(self)
+        script_path = os.path.join(os.getcwd(), 'post_install.sh')
+        sb.call([script_path])
+
+
 # Get the long description from the README file
-with open(path.join(HERE, 'nn_search2/README'), encoding='utf-8') as f:
-          long_description = f.read()
+with codecs.open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
+                 long_description = f.read()
 
 setup(
     name='nn_search2',
@@ -92,5 +102,5 @@ setup(
             'data/icons/*.ico'],
         },
 
-    scripts=['bin/nn_start.py'],
+    cmdclass={'install': post_install},
 )
