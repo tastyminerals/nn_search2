@@ -168,7 +168,7 @@ def process_text(*args):
     model_queue.put([parsed_text, pos_sents])
 
 
-def get_stats(model_queue, tblob):
+def get_stats(tblob):
     """
     Use TextBlob object created after text extraction to get necessary stats.
     Calculate pos-tags.
@@ -176,8 +176,7 @@ def get_stats(model_queue, tblob):
     Use hunspell to calculate correctness.
 
     Args:
-        | *model_queue* (Queue) -- Queue object
-        | *tblob* (TextBlob) --TextBlob object
+        | *tblob* (TextBlob) -- TextBlob object
 
     Returns:
         *stats* (dict) -- dictionary object containing important stats
@@ -206,15 +205,7 @@ def get_stats(model_queue, tblob):
     polarity = round(tblob.sentiment[0], 2)
     subjectivity = round(tblob.sentiment[1], 2)
 
-    # calculate text correctness
-    hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
-                               '/usr/share/hunspell/en_US.aff')
-    correct = [hspell.spell(token) for token in tblob.words]
-    try:
-        correctness = 1 - correct.count(False) / correct.count(True)
-        correctness = round(correctness, 2)
-    except ZeroDivisionError:
-        correctness = 0.0
+    correctness = 'Unix only'
 
     stats = {}
     stats['tokens'] = token_cnt
@@ -225,7 +216,7 @@ def get_stats(model_queue, tblob):
     stats['polar'] = polarity
     stats['subj'] = subjectivity
     stats['corr'] = correctness
-    model_queue.put(stats)
+    return stats
 
 
 def get_penn_treebank():

@@ -1,6 +1,10 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
+Windows version. It does not spawn a separate thread for "Numbers"
+Toplevel window which causes freeze on window due to threading.
+<I might need to fix it someday.>
+
 Created on Fri Nov 06 20:00:00 2015
 @author: tastyminerals@gmail.com
 """
@@ -20,15 +24,16 @@ import shutil
 from string import punctuation as punct
 from PIL import ImageTk as itk
 
-import model
+import model_win
 import query
 import pos_tagger
 
 
 # Set interface fonts
 # Helvetica, Times, Arial, Georgia, Tahoma, Verdana
-TKFONT = 'TkDefaultFont 10'
-TKTEXT_FONT = 'Sans 10'
+TKFONT = 'Helvetica 10'
+TKTEXT_FONT = 'Verdana 10'
+
 
 # remove the underscore from punctuation var
 PUNCT = re.sub('_', '', punct)
@@ -131,7 +136,7 @@ class NNSearch(ttk.Frame):
         master.minsize(height=300, width=400)
         self._build_gui()
         # read Penn Treebank tags description
-        self.short_treebank, self.longer_treebank = model.get_penn_treebank()
+        self.short_treebank, self.longer_treebank = model_win.get_penn_treebank()
 
     def press_return(self, *args):
         """
@@ -345,7 +350,7 @@ class NNSearch(ttk.Frame):
                  ("All files", "*.*"))
         self.pos_fpath = tkf.askopenfilename(filetypes=types)
         try:
-            loaded_text = model.read_input_file(self.pos_fpath)
+            loaded_text = model_win.read_input_file(self.pos_fpath)
         except TypeError:  # when clicked Load and didn't choose any file
             return
         except (OSError, IOError):
@@ -446,7 +451,7 @@ class NNSearch(ttk.Frame):
             in_dir_data = {}
             for text_file in files:
                 fname = os.path.basename(text_file)
-                loaded_text = model.read_input_file(text_file)
+                loaded_text = model_win.read_input_file(text_file)
                 in_dir_data[fname] = loaded_text
             args = [None, in_dir_data, out_dir]
             # spawn a new process
@@ -647,7 +652,7 @@ class NNSearch(ttk.Frame):
             if fsize > 10:
                 self.show_message("The file is too big!", 'warning.png')
                 return None
-            self.loaded_text = model.read_input_file(fpath)
+            self.loaded_text = model_win.read_input_file(fpath)
             fname = os.path.basename(fpath)
             if len(fname) > 20:
                 fname = fname[:17] + '...'
@@ -735,7 +740,7 @@ class NNSearch(ttk.Frame):
         self.lock_ui(True)
         self.run_progressbar()
         # now handle the Process button command
-        self.process_thread = thr.Thread(target=model.process_text,
+        self.process_thread = thr.Thread(target=model_win.process_text,
                                          args=(self.model_queue, loaded_text))
         self.process_thread.start()
         # check if model_thread finished
@@ -747,7 +752,7 @@ class NNSearch(ttk.Frame):
 
     def check_nums_thread_save_results(self):
         """
-        Check every 50ms if model thread is alive.
+        Check every 10ms if model thread is alive.
         While displaying waiting label in Toplevel.
         Unlock UI widgets.
         """
@@ -791,17 +796,8 @@ class NNSearch(ttk.Frame):
         checks whenever Thread is done, updates the Numbers pop-up window>
         """
         if self.processed and not self.stats_ready:
-            self.model_queue = Queue.PriorityQueue()
-            # now handle the Process button command
-            self.stats_thread = thr.Thread(target=model.get_stats,
-                                           args=(self.model_queue,
-                                                 self.process_results[0]))
-            self.stats_thread.start()
-            stats = ('tokens', 'words', 'sents', 'diversity', 'subj', 'polar',
-                     'corr')
-            self.textstats = dict((stat, 'Wait...') for stat in stats)
-            # check if model_thread finished
-            self.after(10, self.check_nums_thread_save_results)
+            # wait until model returns back the results
+            self.textstats = model_win.get_stats(self.process_results[0])
         elif not self.processed and (self.is_file_loaded or
                                      self.Text.edit_modified()):
             self.show_message('Please click "Process!" button',
@@ -920,7 +916,7 @@ class NNSearch(ttk.Frame):
         Unlock UI widgets.
         """
         if self.graphs_thread.is_alive():
-            self.after(100, self.check_graphs_thread_save_results)
+            self.after(10, self.check_graphs_thread_save_results)
         else:
             self.graphs_thread.join()
             # get the results of model processing
@@ -1086,13 +1082,13 @@ class NNSearch(ttk.Frame):
             tags_dic = Counter((tup[1] for tup
                                 in self.process_results[0].tags))
             # now handle the Process button command
-            self.graphs_thread = thr.Thread(target=model.get_graphs_data,
+            self.graphs_thread = thr.Thread(target=model_win.get_graphs_data,
                                             args=(self.model_queue, tags_dic,
                                                   self.current_fname,
                                                   self.process_results))
             self.graphs_thread.start()
             # check if model_thread finished
-            self.after(100, self.check_graphs_thread_save_results)
+            self.after(10, self.check_graphs_thread_save_results)
         elif not self.processed and (self.is_file_loaded
                                      or self.Text.edit_modified()):
             self.graphs_win.destroy()
@@ -1153,7 +1149,7 @@ class NNSearch(ttk.Frame):
             self.model_queue = Queue.PriorityQueue()
             # now handle the Process button command
             text = self.Text.get('1.0', tk.END)
-            self.sstats_thread = thr.Thread(target=model.get_search_stats,
+            self.sstats_thread = thr.Thread(target=model_win.get_search_stats,
                                             args=(self.model_queue,
                                                   self.matches, text))
             self.sstats_thread.start()
@@ -1210,7 +1206,7 @@ class NNSearch(ttk.Frame):
         <Just a separate method that formats text accrodingly for each view.>
         """
         # prepare for view1
-        self.view1_text = model.normalize_text(self.process_results[0].raw)
+        self.view1_text = model_win.normalize_text(self.process_results[0].raw)
 
         # prepare for view1 with POS-tags
         view1_text_pos = ''
