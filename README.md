@@ -8,7 +8,7 @@ Here is the main window with loaded text.
 <add image>
 
 Imagine you want to find a sequence of ANY determiner (like "a", "an" or "the") and ANY noun in range of max 2 any other [tokens](https://en.wikipedia.org/wiki/Lexical_analysis#Token).
-You do the following.
+You enter the following search query ``DT NN{2}``.
 
 ![1](http://i.imgur.com/cHgVFN2.png)
 
