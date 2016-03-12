@@ -66,7 +66,7 @@ Also, be patient, the bigger your text and the shorter your search query the mor
 #### Linux
 Execute the steps below if you're running some Linux flavour.
 * Install Python 2.7
-* Install remaining Python 2 dependencies:
+* Install the remaining Python 2 dependencies:
 
 `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
 
@@ -78,9 +78,3 @@ Execute the steps below if you're running some Linux flavour.
 
 #### Windows
 Here is a [windows instraller]().
-
-
-
-python -m nltk.downloader punkt
-python -m nltk.downloader stopwords
-python -m nltk.downloader averaged_perceptron_tagger
