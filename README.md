@@ -9,23 +9,29 @@ Here is the main window with loaded text.
 
 Imagine you want to find a sequence of ANY determiner (like "a", "an" or "the") and ANY noun in range of max 2 any other [tokens](https://en.wikipedia.org/wiki/Lexical_analysis#Token).
 You do the following.
-[Search query example](docs/github_readme_images/dt_nn2_main.png)
+
+![1](http://i.imgur.com/cHgVFN2.png)
 
 In addition to your search results default text *view 1*, there are 2 alternative text *views*.
-View 2, shows the search results per sentence number.
-<add image>
+**View 2**, shows the search results per sentence number.
 
-View 3, shows explicitly only the numbered results of your search query.
-<add image>
+![2](http://i.imgur.com/UD7b2VY.png)
+
+**View 3**, shows explicitly only the numbered results of your search query.
+
+![3](https://i.imgur.com/4uKelpH.png)
 
 Also, **nn-search2** provides some text and search results statistics which you can access via right panel buttons.
-<add image>
+
+![4](https://i.imgur.com/qUIz9xQ.png)
 
 There is also a separate POS-tagger for batch processing one or more text files.
-<add image>
+
+![5](https://i.imgur.com/9OQCMJo.png)
 
 Standalone POS-tagger is also available via console.
-<add image>
+
+![6](https://i.imgur.com/yU8ImAy.png)
 
 ### How it works?
 
