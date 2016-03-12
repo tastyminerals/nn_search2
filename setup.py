@@ -46,9 +46,9 @@ setup(
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
-        # Development Status :: 3 - Alpha
-        # Development Status :: 4 - Beta
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 3 - Alpha',
+        # 'Development Status :: 4 - Beta',
+        # 'Development Status :: 5 - Production/Stable',
         # Development Status :: 6 - Mature
         # Indicate who your project is intended for
         'Intended Audience :: Education',
