@@ -56,7 +56,7 @@ Well, what if you also want to know what all these *guys* did and to whom? Use t
 
 ![9](http://i.imgur.com/2fGB8mY.png)
 
-I think you got the picture. As you've noticed, not all found `NNP` are named entities, most of those words are just plain nouns which were incorrectly tagged. Unfortunately NLTK's tagger makes mistakes even though it has a fairly good accuracy (no perfect taggers exist).
+I think you got the picture. As you've noticed, not all found results are correct. Unfortunately NLTK's tagger makes mistakes even though it has a fairly good accuracy (no perfect taggers exist).
 Also, be patient, the bigger your text and the shorter your search query the more time it will be required to display the results.
 
 ### How it works?
@@ -65,8 +65,15 @@ Also, be patient, the bigger your text and the shorter your search query the mor
 ### How to install?
 #### Linux
 **Dependencies**
+Execute the following steps if you're running some Linux.
+* Install Python 2.7
+* Install remaining Python 2 dependencies
+`sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
 
+* Download a few NLTK resources
+`python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger`
 
+* Finally, run the app `python2 nn_search2.py`
 
 #### Windows
 Here is a [windows instraller]().
