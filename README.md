@@ -13,11 +13,11 @@ You enter the following search query ``DT NN{2}``.
 ![1](http://i.imgur.com/cHgVFN2.png)
 
 In addition to your search results default text *view 1*, there are 2 alternative text *views*.
-**View 2**, shows the search results per sentence number.
+**View 2**, shows the search results per sentence.
 
 ![2](http://i.imgur.com/UD7b2VY.png)
 
-**View 3**, shows explicitly only the numbered results of your search query.
+**View 3**, shows explicitly only the results of your search query.
 
 ![3](https://i.imgur.com/4uKelpH.png)
 
