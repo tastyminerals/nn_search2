@@ -1352,6 +1352,7 @@ class NNSearch(ttk.Frame):
         text = self.Text.get('1.0', tk.END).encode('utf-8')
         sents = [line for line in text.split('\n')]
         matches = []
+        print self.process_results[1]
         for row, sent in enumerate(sents, 1):
             start = 0
             for tokens in sents_matches:
