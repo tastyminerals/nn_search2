@@ -9,7 +9,7 @@ Here is the main window with loaded text.
 
 Imagine you want to find a sequence of ANY determiner (like "a", "an" or "the") and ANY noun in range of max 2 any other [tokens](https://en.wikipedia.org/wiki/Lexical_analysis#Token).
 You do the following.
-<add image>
+[Search query example](docs/github_readme_images/dt_nn2_main.png)
 
 In addition to your search results default text *view 1*, there are 2 alternative text *views*.
 View 2, shows the search results per sentence number.
