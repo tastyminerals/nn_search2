@@ -170,9 +170,8 @@ def main(args, ui_call=False):
 
 if __name__ == '__main__':
     prs = argparse.ArgumentParser(description="""
-                                  Standalone TexBlob's PerceptronTagger --
-    a part-of-speech tagger based on the Averaged Perceptron algorithm which is
-    faster and more accurate than NLTK's and pattern's default implementations.
+                                  Standalone POS-tagger using NLTK's Averaged
+                                  Perceptron.
     """)
     prs.add_argument('-d', '--dir',
                      help='Specify a directory with text files to process.',
