@@ -1405,7 +1405,7 @@ class NNSearch(ttk.Frame):
         email_str = tk.StringVar()
         email_str.set(email)
         contact = tk.Entry(aboutFrInn0, state='readonly', relief='flat',
-                           fg='#0000FF', width=22, textvariable=email_str)
+                           fg='#0000FF', width=25, textvariable=email_str)
         contact.grid()
         about_butt = ttk.Button(aboutFr, padding=(0, 0), text='Close',
                                 command=about_win.destroy)
