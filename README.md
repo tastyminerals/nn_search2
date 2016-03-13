@@ -11,7 +11,7 @@ Here is the main window with some loaded text.
 Imagine you want to find a sequence of ANY determiner (like "a", "an" or "the") and ANY noun in range of max 2 other [tokens](https://en.wikipedia.org/wiki/Lexical_analysis#Token) or words.
 You enter the following search query ``DT NN{2}``. Press `"Process"` and then `"Search"`.
 
-![1](http://i.imgur.com/lv9DB2y.png)
+![1](http://i.imgur.com/gU6WV36.png)
 
 In addition to your search results default text *view 1*, there are 2 alternative text *views*.
 **View 2**, shows the search results per sentence.
