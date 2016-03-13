@@ -6,33 +6,33 @@ ranges such that you can find chains of nouns, verbs, adjectives and fixed expre
 ### How it looks?
 Here is the main window with some loaded text.
 
-![0](https://i.imgur.com/AbJMvwZ.png)
+![0](http://i.imgur.com/AfHKPHZ.png)
 
 Imagine you want to find a sequence of ANY determiner (like "a", "an" or "the") and ANY noun in range of max 2 other [tokens](https://en.wikipedia.org/wiki/Lexical_analysis#Token) or words.
 You enter the following search query ``DT NN{2}``. Press `"Process"` and then `"Search"`.
 
-![1](http://i.imgur.com/cHgVFN2.png)
+![1](http://i.imgur.com/lv9DB2y.png)
 
 In addition to your search results default text *view 1*, there are 2 alternative text *views*.
 **View 2**, shows the search results per sentence.
 
-![2](http://i.imgur.com/UD7b2VY.png)
+![2](http://i.imgur.com/KUzNUKy.png)
 
 **View 3**, shows explicitly only the matched results of your search query.
 
-![3](https://i.imgur.com/4uKelpH.png)
+![3](http://i.imgur.com/cMXK5bB.png)
 
 Also, **nn-search2** provides some text and search results statistics which you can access via right panel buttons.
 
-![4](https://i.imgur.com/IZMRoFx.png)
+![4](http://i.imgur.com/32otmrf.png)
 
 There is also a separate POS-tagger for batch processing one or more text files.
 
-![5](https://i.imgur.com/9OQCMJo.png)
+![5](http://i.imgur.com/eVlfpg8.png)
 
 Standalone POS-tagger is also available via console.
 
-![6](https://i.imgur.com/yU8ImAy.png)
+![6](http://i.imgur.com/GdLxGNO.png)
 
 ### Why would I need it?
 Ok, why would somebody need to search parts-of-speech?
