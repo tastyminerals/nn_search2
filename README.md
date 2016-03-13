@@ -37,7 +37,7 @@ Standalone POS-tagger is also available via console.
 ### Why would I need it?
 Ok, why would somebody need to search parts-of-speech?
 Well, imagine you have a story e.g. "Alice in Wonderland" and for some crazy reason you decided to find out what kind and how many unique names have been used by Lewis Carrol. Naive approach would be searching for words with first character capitalized, but then you'd have to filter out a lot of false positives, by hand, which can be tedious and even impossible in some cases. You can use part-of-speech tagger which could tag your text and then using some [regular expressions](en.wikipedia.org/wiki/Regular_expression) you'd probably get what you want, but the accuracy would still be not great because it will not only depend on your POS-tagger implementation, it would be matching text patterns not part-of-speech categories.
-To accomplish this task **nn_search2** requires only the knowledge of available [part-of-speech tags](www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html) and some simple syntax.
+To accomplish the same task with higher accuracy **nn_search2** requires only the knowledge of available [part-of-speech tags](http://faculty.washington.edu/dillon/GramResources/penntable.html) and some simple syntax.
 
 Let's do it!
 
@@ -59,8 +59,9 @@ Well, what if you also want to know what all these *guys* did and to whom? Use t
 I think you got the picture. As you've noticed, not all found results are correct. Unfortunately NLTK's tagger makes mistakes even though it has a fairly good accuracy (no perfect taggers exist).
 Also, be patient, the bigger your text and the shorter your search query the more time it will be required to display the results.
 
-### How it works?
-**nn_search2** uses your query to search only within one sentence. So, ``NNP VB`` will be searched within the limits of a single sentence not a paragraph or a whole text. If you want to know more details, take a look at the [docs]().
+### How to make a search query?
+**nn_search2** uses your query to search only within one sentence. So, ``NNP VB`` will be searched within the limits of a single sentence not a paragraph or a whole text.
+(to be added...)
 
 ### How to install?
 #### Linux
