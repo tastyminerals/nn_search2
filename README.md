@@ -76,6 +76,6 @@ You can either use `setup.py` which will automatically install all the dependenc
 4. Finally, run the app `python2 nn_search2.py`
 
 #### Windows
-Make sure you have [Python2.7](https://www.python.org/downloads/) installed and set a default Python interpreter in the system.
+Make sure you have [Python2.7](https://www.python.org/downloads/) installed and set as default Python interpreter in the system.
 
 Here is a [windows instraller](win_deps/nn_search2.exe).
