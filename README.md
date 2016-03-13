@@ -59,8 +59,9 @@ Well, what if you also want to know what all these *guys* did and to whom? Use t
 I think you got the picture. As you've noticed, not all found results are correct. Unfortunately NLTK's tagger makes mistakes even though it has a fairly good accuracy (no perfect taggers exist).
 Also, be patient, the bigger your text and the shorter your search query the more time it will be required to display the results.
 
-### How it works?
-**nn_search2** uses your query to search only within one sentence. So, ``NNP VB`` will be searched within the limits of a single sentence not a paragraph or a whole text. If you want to know more details, take a look at the [docs]().
+### How to make a search query?
+**nn_search2** uses your query to search only within one sentence. So, ``NNP VB`` will be searched within the limits of a single sentence not a paragraph or a whole text.
+(to be added...)
 
 ### How to install?
 #### Linux
