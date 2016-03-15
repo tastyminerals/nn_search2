@@ -8,7 +8,7 @@
     
     <title>nn_search2.nn_search2 &mdash; nn_search2 2.0.0 documentation</title>
     
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -24,19 +24,23 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <link rel="top" title="nn_search2 2.0.0 documentation" href="../../index.html" />
-    <link rel="up" title="Module code" href="../index.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="up" title="Module code" href="../index.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
+          <span>nn_search2 2.0.0 documentation</span></a></h1>
+        <h2 class="heading"><span>nn_search2.nn_search2</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../index.html">Contents</a>
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+      </div>
+      <div class="content">
+        
+        
   <h1>Source code for nn_search2.nn_search2</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python2</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
@@ -46,9 +50,8 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">threading</span> <span class="kn">as</span> <span class="nn">thr</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="kn">as</span> <span class="nn">mproc</span>
@@ -57,23 +60,22 @@
 <span class="kn">import</span> <span class="nn">tkFileDialog</span> <span class="kn">as</span> <span class="nn">tkf</span>
 <span class="kn">import</span> <span class="nn">tkMessageBox</span>
 <span class="kn">import</span> <span class="nn">Queue</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">ImageTk</span> <span class="k">as</span> <span class="n">itk</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">punctuation</span> <span class="k">as</span> <span class="n">punct</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">ImageTk</span> <span class="k">as</span> <span class="n">itk</span>
 
 <span class="kn">import</span> <span class="nn">model</span>
 <span class="kn">import</span> <span class="nn">query</span>
 <span class="kn">import</span> <span class="nn">pos_tagger</span>
 
 
-<span class="c1"># Set various platform dependent variables.</span>
-<span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
-    <span class="c1"># Helvetica, Times, Arial, Georgia, Tahoma, Verdana</span>
-    <span class="n">TKFONT</span> <span class="o">=</span> <span class="s1">&#39;Helvetica 10&#39;</span>
-    <span class="n">TKTEXT_FONT</span> <span class="o">=</span> <span class="s1">&#39;Verdana 10&#39;</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">TKFONT</span> <span class="o">=</span> <span class="s1">&#39;TkDefaultFont 10&#39;</span>
-    <span class="n">TKTEXT_FONT</span> <span class="o">=</span> <span class="s1">&#39;Sans 10&#39;</span>
+<span class="c1"># Set interface fonts</span>
+<span class="c1"># Helvetica, Times, Arial, Georgia, Tahoma, Verdana</span>
+<span class="n">TKFONT</span> <span class="o">=</span> <span class="s1">&#39;TkDefaultFont 10&#39;</span>
+<span class="n">TKTEXT_FONT</span> <span class="o">=</span> <span class="s1">&#39;Sans 10&#39;</span>
+
+<span class="c1"># remove the underscore from punctuation var</span>
+<span class="n">PUNCT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">punct</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="set_win_icon"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.set_win_icon">[docs]</a><span class="k">def</span> <span class="nf">set_win_icon</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">icon_path</span><span class="p">):</span>
@@ -92,6 +94,7 @@
 <div class="viewcode-block" id="handle_punct"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.handle_punct">[docs]</a><span class="k">def</span> <span class="nf">handle_punct</span><span class="p">(</span><span class="n">matched_str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Do no add \b if the token starts or ends with a punctuation sign.</span>
+<span class="sd">    Also escape any sensitive punctuation.</span>
 
 <span class="sd">    &lt;Obviously, this will not protect from incorrect highlighting in all cases,</span>
 <span class="sd">    but it will reduce them significantly.&gt;</span>
@@ -103,7 +106,16 @@
 <span class="sd">        (str) -- with sensitive punctuation removed</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">matched_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">punct</span> <span class="ow">or</span> <span class="n">matched_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">punct</span><span class="p">:</span>
+    <span class="c1"># handle sensitive punctuation</span>
+    <span class="n">esc_matched</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">matched_str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">PUNCT</span><span class="p">:</span>
+            <span class="n">esc_matched</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">char</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">esc_matched</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+    <span class="n">matched_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">esc_matched</span><span class="p">)</span>
+    <span class="c1"># handle word boundaries</span>
+    <span class="k">if</span> <span class="n">matched_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">PUNCT</span> <span class="ow">or</span> <span class="n">matched_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">PUNCT</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">matched_str</span><span class="p">)</span>
     <span class="k">return</span> <span class="s1">r&#39;\b&#39;</span> <span class="o">+</span> <span class="n">matched_str</span> <span class="o">+</span> <span class="s1">r&#39;\b&#39;</span></div>
 
@@ -429,7 +441,7 @@
 <span class="sd">        Checking if the thread is alive and informing the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_tagger_proc</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pos_tagger_save_results</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pos_tagger_save_results</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_tagger_proc</span><span class="o">.</span><span class="n">exitcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pos_run_butt</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Process&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_runic</span><span class="p">,</span>
                                      <span class="n">state</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">)</span>
@@ -471,7 +483,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">pos_tagger_proc</span> <span class="o">=</span> <span class="n">mproc</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">pos_tagger</span><span class="o">.</span><span class="n">main</span><span class="p">,</span>
                                                  <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="bp">True</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pos_tagger_proc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pos_tagger_save_results</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pos_tagger_save_results</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_dir_path</span><span class="p">:</span>
             <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_dir_path</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span> <span class="k">for</span> <span class="n">fname</span>
                      <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_dir_path</span><span class="p">)]</span>
@@ -486,7 +498,7 @@
                                                  <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="bp">True</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pos_tagger_proc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="c1"># lock and change Process button</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pos_tagger_save_results</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pos_tagger_save_results</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NNSearch.pos_tagger_win"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.pos_tagger_win">[docs]</a>    <span class="k">def</span> <span class="nf">pos_tagger_win</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -777,16 +789,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_graphs_ready</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_search_stats_ready</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NNSearch.check_stats_thread_save_results"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.check_stats_thread_save_results">[docs]</a>    <span class="k">def</span> <span class="nf">check_stats_thread_save_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NNSearch.check_nums_thread_save_results"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.check_nums_thread_save_results">[docs]</a>    <span class="k">def</span> <span class="nf">check_nums_thread_save_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check every 10ms if model thread is alive.</span>
+<span class="sd">        Check every 50ms if model thread is alive.</span>
 <span class="sd">        While displaying waiting label in Toplevel.</span>
 <span class="sd">        Unlock UI widgets.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock_toplevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats_win_butt</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats_butt1</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s1">&#39;disabled&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_stats_thread_save_results</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_nums_thread_save_results</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stats_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
             <span class="c1"># get the results of model processing</span>
@@ -809,7 +821,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">stats_butt1</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rtext</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stats_text</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NNSearch.show_stats_win"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.show_stats_win">[docs]</a>    <span class="k">def</span> <span class="nf">show_stats_win</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NNSearch.show_nums_win"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.show_nums_win">[docs]</a>    <span class="k">def</span> <span class="nf">show_nums_win</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new TopLevel window.</span>
 <span class="sd">        Calculate text stats and insert them as Label widgets.</span>
@@ -819,7 +831,7 @@
 <span class="sd">        &lt;Numbers stats calculation is done in a separate Thread in order to</span>
 <span class="sd">        leave UI responsive. This, however, makes the code that handles</span>
 <span class="sd">        Numbers pop-up window look ugly and confusing.</span>
-<span class="sd">        show_stats_win() invokes self.check_stats_thread_save_results() which</span>
+<span class="sd">        show_nums_win() invokes self.check_nums_thread_save_results() which</span>
 <span class="sd">        checks whenever Thread is done, updates the Numbers pop-up window&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">processed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats_ready</span><span class="p">:</span>
@@ -833,7 +845,7 @@
                      <span class="s1">&#39;corr&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">textstats</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">stat</span><span class="p">,</span> <span class="s1">&#39;Wait...&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">)</span>
             <span class="c1"># check if model_thread finished</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_stats_thread_save_results</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_nums_thread_save_results</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">processed</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_file_loaded</span> <span class="ow">or</span>
                                      <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">edit_modified</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">show_message</span><span class="p">(</span><span class="s1">&#39;Please click &quot;Process!&quot; button&#39;</span><span class="p">,</span>
@@ -1441,7 +1453,7 @@
         <span class="n">email_str</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
         <span class="n">email_str</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
         <span class="n">contact</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">aboutFrInn0</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="s1">&#39;readonly&#39;</span><span class="p">,</span> <span class="n">relief</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span>
-                           <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;#0000FF&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="n">email_str</span><span class="p">)</span>
+                           <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;#0000FF&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="n">email_str</span><span class="p">)</span>
         <span class="n">contact</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
         <span class="n">about_butt</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">aboutFr</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Close&#39;</span><span class="p">,</span>
                                 <span class="n">command</span><span class="o">=</span><span class="n">about_win</span><span class="o">.</span><span class="n">destroy</span><span class="p">)</span>
@@ -1661,7 +1673,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stats_butt1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">InnerRightFrm2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                                       <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Numbers&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">simg1</span><span class="p">,</span>
                                       <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
-                                      <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_stats_win</span><span class="p">)</span>
+                                      <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_nums_win</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats_butt1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nwe&#39;</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">simg2</span> <span class="o">=</span> <span class="n">itk</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">(</span><span class="s1">&#39;stats2.png&#39;</span><span class="p">))</span>
@@ -1843,47 +1855,18 @@
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../index.html">Contents</a>
+        </p>
+
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2016, tastyminerals.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
-      
-    </div>
 
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, tastyminerals.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
   </body>
 </html>

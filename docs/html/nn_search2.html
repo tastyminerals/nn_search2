@@ -8,7 +8,7 @@
     
     <title>nn_search2 package &mdash; nn_search2 2.0.0 documentation</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,19 +23,23 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="nn_search2 2.0.0 documentation" href="index.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="top" title="nn_search2 2.0.0 documentation" href="index.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
+          <span>nn_search2 2.0.0 documentation</span></a></h1>
+        <h2 class="heading"><span>nn_search2 package</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="index.html">Contents</a>
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+      </div>
+      <div class="content">
+        
+        
   <div class="section" id="nn-search2-package">
 <h1>nn_search2 package<a class="headerlink" href="#nn-search2-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="subpackages">
@@ -197,7 +201,7 @@ These plot files shall be grabbed and included into UI.</p>
 Calculate text statistics.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><em>text</em> (str) &#8211; raw text data</dd>
+<dd><em>args</em> (list) &#8211; PriorityQueue and raw text data</dd>
 <dt>Returns:</dt>
 <dd><div class="first last line-block">
 <div class="line"><em>parsed_text</em> (Blobber) &#8211; Blobber obj which contains parse results</div>
@@ -250,6 +254,14 @@ Unlock UI widgets.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nn_search2.nn_search2.NNSearch.check_nums_thread_save_results">
+<code class="descname">check_nums_thread_save_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#NNSearch.check_nums_thread_save_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.NNSearch.check_nums_thread_save_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check every 50ms if model thread is alive.
+While displaying waiting label in Toplevel.
+Unlock UI widgets.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nn_search2.nn_search2.NNSearch.check_pos_tagger_save_results">
 <code class="descname">check_pos_tagger_save_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#NNSearch.check_pos_tagger_save_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.NNSearch.check_pos_tagger_save_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checking if the thread is alive and informing the user.</p>
@@ -266,14 +278,6 @@ Unlock UI widgets.</p>
 <dl class="method">
 <dt id="nn_search2.nn_search2.NNSearch.check_search_stats_thread_save_results">
 <code class="descname">check_search_stats_thread_save_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#NNSearch.check_search_stats_thread_save_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.NNSearch.check_search_stats_thread_save_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check every 10ms if model thread is alive.
-While displaying waiting label in Toplevel.
-Unlock UI widgets.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nn_search2.nn_search2.NNSearch.check_stats_thread_save_results">
-<code class="descname">check_stats_thread_save_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#NNSearch.check_stats_thread_save_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.NNSearch.check_stats_thread_save_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check every 10ms if model thread is alive.
 While displaying waiting label in Toplevel.
 Unlock UI widgets.</p>
@@ -644,6 +648,20 @@ a separate thread&gt;.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nn_search2.nn_search2.NNSearch.show_nums_win">
+<code class="descname">show_nums_win</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#NNSearch.show_nums_win"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.NNSearch.show_nums_win" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new TopLevel window.
+Calculate text stats and insert them as Label widgets.
+Add &#8220;Close&#8221; button. Check if we already calculated stats, if yes then
+reuse instead of recalculating.</p>
+<p>&lt;Numbers stats calculation is done in a separate Thread in order to
+leave UI responsive. This, however, makes the code that handles
+Numbers pop-up window look ugly and confusing.
+show_nums_win() invokes self.check_nums_thread_save_results() which
+checks whenever Thread is done, updates the Numbers pop-up window&gt;</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nn_search2.nn_search2.NNSearch.show_search_stats_win">
 <code class="descname">show_search_stats_win</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#NNSearch.show_search_stats_win"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.NNSearch.show_search_stats_win" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show a window with statistics for a query search.
@@ -652,20 +670,6 @@ Search stats:</p>
 <div>number of matched terms
 length of all matched strings
 % of matched data to all search corpus</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="nn_search2.nn_search2.NNSearch.show_stats_win">
-<code class="descname">show_stats_win</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#NNSearch.show_stats_win"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.NNSearch.show_stats_win" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a new TopLevel window.
-Calculate text stats and insert them as Label widgets.
-Add &#8220;Close&#8221; button. Check if we already calculated stats, if yes then
-reuse instead of recalculating.</p>
-<p>&lt;Numbers stats calculation is done in a separate Thread in order to
-leave UI responsive. This, however, makes the code that handles
-Numbers pop-up window look ugly and confusing.
-show_stats_win() invokes self.check_stats_thread_save_results() which
-checks whenever Thread is done, updates the Numbers pop-up window&gt;</p>
 </dd></dl>
 
 </dd></dl>
@@ -679,7 +683,8 @@ checks whenever Thread is done, updates the Numbers pop-up window&gt;</p>
 <dl class="function">
 <dt id="nn_search2.nn_search2.handle_punct">
 <code class="descclassname">nn_search2.nn_search2.</code><code class="descname">handle_punct</code><span class="sig-paren">(</span><em>matched_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/nn_search2.html#handle_punct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.nn_search2.handle_punct" title="Permalink to this definition">¶</a></dt>
-<dd><p>Do no add  if the token starts or ends with a punctuation sign.</p>
+<dd><p>Do no add  if the token starts or ends with a punctuation sign.
+Also escape any sensitive punctuation.</p>
 <p>&lt;Obviously, this will not protect from incorrect highlighting in all cases,
 but it will reduce them significantly.&gt;</p>
 <dl class="docutils">
@@ -905,71 +910,18 @@ Convert all punctuation tags to PUNC.</p>
 </div>
 
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">nn_search2 package</a><ul>
-<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-nn_search2.colors">nn_search2.colors module</a></li>
-<li><a class="reference internal" href="#module-nn_search2.model">nn_search2.model module</a></li>
-<li><a class="reference internal" href="#module-nn_search2.nn_search2">nn_search2.nn_search2 module</a></li>
-<li><a class="reference internal" href="#module-nn_search2.pos_tagger">nn_search2.pos_tagger module</a></li>
-<li><a class="reference internal" href="#module-nn_search2.query">nn_search2.query module</a></li>
-<li><a class="reference internal" href="#module-nn_search2.query_temp">nn_search2.query_temp module</a></li>
-<li><a class="reference internal" href="#module-nn_search2">Module contents</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/nn_search2.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="index.html">Contents</a>
+        </p>
+
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2016, tastyminerals.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
-      
-      |
-      <a href="_sources/nn_search2.txt"
-          rel="nofollow">Page source</a>
-    </div>
 
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, tastyminerals.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
   </body>
 </html>

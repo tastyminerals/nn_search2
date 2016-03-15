@@ -9,8 +9,10 @@ Welcome to nn_search2's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
 
+  installation.rst
+  howto.rst
+  statistics.rst
 
 
 Indices and tables
