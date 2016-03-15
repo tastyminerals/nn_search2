@@ -83,12 +83,12 @@ That's nice but can I just search for some words? To do this, type a word and su
 #### Linux
 You can either use `setup.py` which will automatically install all the dependencies or do it manually, installing everything on your own. See the details below.
 
-##### Using `setup.py`
+##### Via **setup.py**
 `sudo python2 setup.py install`
 
 ##### Manual installation
-1. Install Python 2.7
-2. Install the remaining Python 2 dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
+1. Install [Python2.7](https://www.python.org/downloads/)
+2. Install the remaining Python dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
 3. Download a few NLTK resources: `python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger`
 4. Finally, run the app `python2 nn_search2.py`
 
