@@ -60,6 +60,14 @@ I think you got the picture. As you've noticed, not all found results are correc
 Also, be patient, the bigger your text and the shorter your search query the more time it will be required to display the results.
 
 ### How to make a search query?
+####Examples:
+
+**`DT NN`**
+**`DT NN{1} VB`**
+**`"the" "Aesir"NNP`**
+**`TO "produce" "thunder"NN{1}`**
+**`"The"{0} NNP{0} "are" NN{3}`**
+
 In order to use **nn_search2** you need to know how to write a search query. The syntax is simple, by default **nn_search2** assumes that you are searching for [part-of-speech tags](http://faculty.washington.edu/dillon/GramResources/penntable.html) (POS-tags).
 Make sure you know at least the most basic ones. **nn_search2** uses your query to search only within one sentence. So, ``NNP VB`` will be searched within the limits of a single sentence not a paragraph or a whole text.
 
