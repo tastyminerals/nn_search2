@@ -63,9 +63,13 @@ Also, be patient, the bigger your text and the shorter your search query the mor
 ####Examples:
 
 **`DT NN`**
+
 **`DT NN{1} VB`**
+
 **`"the" "Aesir"NNP`**
+
 **`TO "produce" "thunder"NN{1}`**
+
 **`"The"{0} NNP{0} "are" NN{3}`**
 
 In order to use **nn_search2** you need to know how to write a search query. The syntax is simple, by default **nn_search2** assumes that you are searching for [part-of-speech tags](http://faculty.washington.edu/dillon/GramResources/penntable.html) (POS-tags).
