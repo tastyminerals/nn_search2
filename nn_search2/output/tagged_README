@@ -1,3 +1,0 @@
-**nn-search2**_NN is_VBZ a_DT part-of-speech_JJ tagging_NN and_CC text_JJ search_NN application_NN ._PUNC
-It_PRP uses_VBZ state-of-the-art_JJ pos-tagger_NN based_VBN on_IN Averaged_NNP Perceptron_NNP which_WDT provides_VBZ fast_NN and_CC accurate_JJ results_NNS ._PUNC
-Above_IN that_DT ,_PUNC one_CD of_IN the_DT main_JJ **nn-search2**_JJ features_NNS is_VBZ full_JJ text_IN part-of-speech_JJ search_NN extended_VBN with_IN word_NN ranges_NNS such_JJ that_IN you_PRP can_MD find_VB chains_NNS of_IN nouns_NNS ,_PUNC verbs_NNS ,_PUNC adjectives_NNS and_CC phrases_NNS or_CC even_RB fixed_JJ expressions_NNS ._PUNC
