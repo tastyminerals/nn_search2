@@ -6,9 +6,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>nn_search2 package &mdash; nn_search2 2.0.0 documentation</title>
+    <title>Code &mdash; nn_search2 2.0.0 documentation</title>
     
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,211 +23,35 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="nn_search2 2.0.0 documentation" href="index.html" /> 
+    <link rel="top" title="nn_search2 2.0.0 documentation" href="index.html" />
+    <link rel="prev" title="Text statistics" href="statistics.html" /> 
   </head>
   <body role="document">
-      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
-          <span>nn_search2 2.0.0 documentation</span></a></h1>
-        <h2 class="heading"><span>nn_search2 package</span></h2>
-      </div>
-      <div class="topnav" role="navigation" aria-label="top navigation">
-      
-        <p>
-        <a class="uplink" href="index.html">Contents</a>
-        </p>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="statistics.html" title="Text statistics"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nn_search2 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
 
-      </div>
-      <div class="content">
-        
-        
-  <div class="section" id="nn-search2-package">
-<h1>nn_search2 package<a class="headerlink" href="#nn-search2-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="nn_search2.data.html">nn_search2.data package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="nn_search2.data.html#module-nn_search2.data">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-nn_search2.colors">
-<span id="nn-search2-colors-module"></span><h2>nn_search2.colors module<a class="headerlink" href="#module-nn_search2.colors" title="Permalink to this headline">¶</a></h2>
-<p>Colors collection for plots</p>
-</div>
-<div class="section" id="module-nn_search2.model">
-<span id="nn-search2-model-module"></span><h2>nn_search2.model module<a class="headerlink" href="#module-nn_search2.model" title="Permalink to this headline">¶</a></h2>
-<p>A collection of text processing methods used by nn-search.
-This module also handles user query parsing, text preprocessing and text stats.</p>
-<dl class="function">
-<dt id="nn_search2.model.get_graphs_data">
-<code class="descclassname">nn_search2.model.</code><code class="descname">get_graphs_data</code><span class="sig-paren">(</span><em>model_queue</em>, <em>tags_dic</em>, <em>current_fname</em>, <em>process_res</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_graphs_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_graphs_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run plot_tags() and get_ngrams()
-Put results in a Queue.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>model_queue</em> (Queue) &#8211; Queue object</div>
-<div class="line"><em>tags_dic</em> (dict) &#8211; dict with POS-tag counts</div>
-<div class="line"><em>current_fname</em> (str) &#8211; name of the loaded file</div>
-<div class="line"><em>process_res</em> (TextBlob) &#8211; TextBlob object</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.get_ngrams">
-<code class="descclassname">nn_search2.model.</code><code class="descname">get_ngrams</code><span class="sig-paren">(</span><em>txtblob_obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_ngrams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_ngrams" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate word and ngram counts for Graphs option.
-Calculate top n frequent words.
-Calculate top n 2-grams
-Calculate top n 3-grams</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><em>txtblob_obj</em> (Blob) &#8211; object containing parse results</dd>
-<dt>Returns:</dt>
-<dd><a href="#id1"><span class="problematic" id="id2">|</span></a><em>mostn</em> (list) &#8211; a list of n most frequent words
-<a href="#id3"><span class="problematic" id="id4">|</span></a><em>ngram2</em> (list) &#8211; a list of n most frequent 2-grams
-<a href="#id5"><span class="problematic" id="id6">|</span></a><em>ngram3</em> (list) &#8211; a list of n most frequent 3-grams</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.get_penn_treebank">
-<code class="descclassname">nn_search2.model.</code><code class="descname">get_penn_treebank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_penn_treebank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_penn_treebank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read NLTK Penn Treebank tags, format and return.</p>
-<dl class="docutils">
-<dt>Returns:</dt>
-<dd><em>penn</em> (list) &#8211; a list of two lists with Penn Treebank descriptions</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.get_search_stats">
-<code class="descclassname">nn_search2.model.</code><code class="descname">get_search_stats</code><span class="sig-paren">(</span><em>model_queue</em>, <em>matches</em>, <em>text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_search_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_search_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get some search stats.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>matches</em> &#8211; dict of matching results</div>
-<div class="line"><em>text</em> &#8211; Text widget text</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>mcnt</em> &#8211; number of matched terms</div>
-<div class="line"><em>mlen</em> &#8211; length of matched characters</div>
-<div class="line"><em>mratio</em> &#8211; ratio of matched characters</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.get_stats">
-<code class="descclassname">nn_search2.model.</code><code class="descname">get_stats</code><span class="sig-paren">(</span><em>model_queue</em>, <em>tblob</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use TextBlob object created after text extraction to get necessary stats.
-Calculate pos-tags.
-Calculate lexical diversity.
-Use hunspell to calculate correctness.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>model_queue</em> (Queue) &#8211; Queue object</div>
-<div class="line"><em>tblob</em> (TextBlob) &#8211;TextBlob object</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd><em>stats</em> (dict) &#8211; dictionary object containing important stats</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.normalize_text">
-<code class="descclassname">nn_search2.model.</code><code class="descname">normalize_text</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#normalize_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.normalize_text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove non-utf8 characters.
-Convert text to ascii.
-Remove all text formatting.</p>
-<p>&lt;If you throw some utf-8 text to English POS-tagger, it might fail because
-even some English texts might contain weird chars, accents and diacritics.&gt;</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><em>chars</em> (str) &#8211; strings of characters</dd>
-<dt>Returns:</dt>
-<dd><em>ascii_text</em> (str) &#8211; text converted to ascii</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.pdf_read">
-<code class="descclassname">nn_search2.model.</code><code class="descname">pdf_read</code><span class="sig-paren">(</span><em>pdf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#pdf_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.pdf_read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use PDFMiner to extract text from pdf file.
-&lt;PDFMiner even though more low-level but pretty good tool to read pdfs&gt;</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><em>pdf</em> (str) &#8211; path to pdf file</dd>
-<dt>Returns:</dt>
-<dd><em>text</em> (str) &#8211; a text extracted from pdf</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.plot_tags">
-<code class="descclassname">nn_search2.model.</code><code class="descname">plot_tags</code><span class="sig-paren">(</span><em>tags_dic</em>, <em>save_fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#plot_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.plot_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create and save plots for &#8216;Graphs&#8217; option.
-These plot files shall be grabbed and included into UI.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>tags_dic</em> (dict) &#8211; dictionary of POS-tag occurrences</div>
-<div class="line"><em>save_fname</em> (str) &#8211; currently processed file name without extension</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd><em>odd</em> (OrderedDict) &#8211; frequency sorted POS-tags</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.process_text">
-<code class="descclassname">nn_search2.model.</code><code class="descname">process_text</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#process_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.process_text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Process loaded text with textblob toolkit.
-Calculate text statistics.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><em>args</em> (list) &#8211; PriorityQueue and raw text data</dd>
-<dt>Returns:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>parsed_text</em> (Blobber) &#8211; Blobber obj which contains parse results</div>
-<div class="line"><em>full_tagged_sents</em> (dict) &#8211; dict of
-<em>{send num: {word num: (word, POS-tag)}}</em></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.model.read_input_file">
-<code class="descclassname">nn_search2.model.</code><code class="descname">read_input_file</code><span class="sig-paren">(</span><em>fpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#read_input_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.read_input_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine the file extension and act accordingly.
-Read the file and return its contents.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><em>fpath</em> (str) &#8211; file path</dd>
-<dt>Returns:</dt>
-<dd><em>contents</em> (str) &#8211; file contents</dd>
-</dl>
-</dd></dl>
-
-</div>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="code">
+<h1>Code<a class="headerlink" href="#code" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-nn_search2.nn_search2">
-<span id="nn-search2-nn-search2-module"></span><h2>nn_search2.nn_search2 module<a class="headerlink" href="#module-nn_search2.nn_search2" title="Permalink to this headline">¶</a></h2>
+<span id="nn-search2"></span><h2>nn_search2<a class="headerlink" href="#module-nn_search2.nn_search2" title="Permalink to this headline">¶</a></h2>
 <p>Created on Fri Nov 06 20:00:00 2015
 &#64;author: <a class="reference external" href="mailto:tastyminerals&#37;&#52;&#48;gmail&#46;com">tastyminerals<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 <dl class="class">
@@ -442,8 +266,8 @@ file loading operation. This reduces query search response time.&gt;</p>
 <dd><p>Lock Toplevel widgets in order to prevent a user from closing it.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><a href="#id7"><span class="problematic" id="id8">|</span></a><em>toplevel_win_widget</em> (ttk.Button) &#8211; Toplevel Button widget
-<a href="#id9"><span class="problematic" id="id10">|</span></a><em>lock</em> (bool) &#8211; disable widgets if True</dd>
+<dd><a href="#id1"><span class="problematic" id="id2">|</span></a><em>toplevel_win_widget</em> (ttk.Button) &#8211; Toplevel Button widget
+<a href="#id3"><span class="problematic" id="id4">|</span></a><em>lock</em> (bool) &#8211; disable widgets if True</dd>
 </dl>
 </dd></dl>
 
@@ -707,8 +531,174 @@ but it will reduce them significantly.&gt;</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-nn_search2.model">
+<span id="model"></span><h2>model<a class="headerlink" href="#module-nn_search2.model" title="Permalink to this headline">¶</a></h2>
+<p>A collection of text processing methods used by nn-search.
+This module also handles user query parsing, text preprocessing and text stats.</p>
+<dl class="function">
+<dt id="nn_search2.model.get_graphs_data">
+<code class="descclassname">nn_search2.model.</code><code class="descname">get_graphs_data</code><span class="sig-paren">(</span><em>model_queue</em>, <em>tags_dic</em>, <em>current_fname</em>, <em>process_res</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_graphs_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_graphs_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plot_tags() and get_ngrams()
+Put results in a Queue.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><div class="first last line-block">
+<div class="line"><em>model_queue</em> (Queue) &#8211; Queue object</div>
+<div class="line"><em>tags_dic</em> (dict) &#8211; dict with POS-tag counts</div>
+<div class="line"><em>current_fname</em> (str) &#8211; name of the loaded file</div>
+<div class="line"><em>process_res</em> (TextBlob) &#8211; TextBlob object</div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.get_ngrams">
+<code class="descclassname">nn_search2.model.</code><code class="descname">get_ngrams</code><span class="sig-paren">(</span><em>txtblob_obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_ngrams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_ngrams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate word and ngram counts for Graphs option.
+Calculate top n frequent words.
+Calculate top n 2-grams
+Calculate top n 3-grams</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><em>txtblob_obj</em> (Blob) &#8211; object containing parse results</dd>
+<dt>Returns:</dt>
+<dd><a href="#id5"><span class="problematic" id="id6">|</span></a><em>mostn</em> (list) &#8211; a list of n most frequent words
+<a href="#id7"><span class="problematic" id="id8">|</span></a><em>ngram2</em> (list) &#8211; a list of n most frequent 2-grams
+<a href="#id9"><span class="problematic" id="id10">|</span></a><em>ngram3</em> (list) &#8211; a list of n most frequent 3-grams</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.get_penn_treebank">
+<code class="descclassname">nn_search2.model.</code><code class="descname">get_penn_treebank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_penn_treebank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_penn_treebank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read NLTK Penn Treebank tags, format and return.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd><em>penn</em> (list) &#8211; a list of two lists with Penn Treebank descriptions</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.get_search_stats">
+<code class="descclassname">nn_search2.model.</code><code class="descname">get_search_stats</code><span class="sig-paren">(</span><em>model_queue</em>, <em>matches</em>, <em>text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_search_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_search_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get some search stats.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><div class="first last line-block">
+<div class="line"><em>matches</em> &#8211; dict of matching results</div>
+<div class="line"><em>text</em> &#8211; Text widget text</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd><div class="first last line-block">
+<div class="line"><em>mcnt</em> &#8211; number of matched terms</div>
+<div class="line"><em>mlen</em> &#8211; length of matched characters</div>
+<div class="line"><em>mratio</em> &#8211; ratio of matched characters</div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.get_stats">
+<code class="descclassname">nn_search2.model.</code><code class="descname">get_stats</code><span class="sig-paren">(</span><em>model_queue</em>, <em>tblob</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#get_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.get_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use TextBlob object created after text extraction to get necessary stats.
+Calculate pos-tags.
+Calculate lexical diversity.
+Use hunspell to calculate correctness.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><div class="first last line-block">
+<div class="line"><em>model_queue</em> (Queue) &#8211; Queue object</div>
+<div class="line"><em>tblob</em> (TextBlob) &#8211;TextBlob object</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd><em>stats</em> (dict) &#8211; dictionary object containing important stats</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.normalize_text">
+<code class="descclassname">nn_search2.model.</code><code class="descname">normalize_text</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#normalize_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.normalize_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove non-utf8 characters.
+Convert text to ascii.
+Remove all text formatting.</p>
+<p>&lt;If you throw some utf-8 text to English POS-tagger, it might fail because
+even some English texts might contain weird chars, accents and diacritics.&gt;</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><em>chars</em> (str) &#8211; strings of characters</dd>
+<dt>Returns:</dt>
+<dd><em>ascii_text</em> (str) &#8211; text converted to ascii</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.pdf_read">
+<code class="descclassname">nn_search2.model.</code><code class="descname">pdf_read</code><span class="sig-paren">(</span><em>pdf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#pdf_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.pdf_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use PDFMiner to extract text from pdf file.
+&lt;PDFMiner even though more low-level but pretty good tool to read pdfs&gt;</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><em>pdf</em> (str) &#8211; path to pdf file</dd>
+<dt>Returns:</dt>
+<dd><em>text</em> (str) &#8211; a text extracted from pdf</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.plot_tags">
+<code class="descclassname">nn_search2.model.</code><code class="descname">plot_tags</code><span class="sig-paren">(</span><em>tags_dic</em>, <em>save_fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#plot_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.plot_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and save plots for &#8216;Graphs&#8217; option.
+These plot files shall be grabbed and included into UI.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><div class="first last line-block">
+<div class="line"><em>tags_dic</em> (dict) &#8211; dictionary of POS-tag occurrences</div>
+<div class="line"><em>save_fname</em> (str) &#8211; currently processed file name without extension</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd><em>odd</em> (OrderedDict) &#8211; frequency sorted POS-tags</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.process_text">
+<code class="descclassname">nn_search2.model.</code><code class="descname">process_text</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#process_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.process_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process loaded text with textblob toolkit.
+Calculate text statistics.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><em>args</em> (list) &#8211; PriorityQueue and raw text data</dd>
+<dt>Returns:</dt>
+<dd><div class="first last line-block">
+<div class="line"><em>parsed_text</em> (Blobber) &#8211; Blobber obj which contains parse results</div>
+<div class="line"><em>full_tagged_sents</em> (dict) &#8211; dict of
+<em>{send num: {word num: (word, POS-tag)}}</em></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="nn_search2.model.read_input_file">
+<code class="descclassname">nn_search2.model.</code><code class="descname">read_input_file</code><span class="sig-paren">(</span><em>fpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/model.html#read_input_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.model.read_input_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the file extension and act accordingly.
+Read the file and return its contents.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><em>fpath</em> (str) &#8211; file path</dd>
+<dt>Returns:</dt>
+<dd><em>contents</em> (str) &#8211; file contents</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="module-nn_search2.pos_tagger">
-<span id="nn-search2-pos-tagger-module"></span><h2>nn_search2.pos_tagger module<a class="headerlink" href="#module-nn_search2.pos_tagger" title="Permalink to this headline">¶</a></h2>
+<span id="pos-tagger"></span><h2>pos_tagger<a class="headerlink" href="#module-nn_search2.pos_tagger" title="Permalink to this headline">¶</a></h2>
 <p>Standalone POS-tagger using NLTK&#8217;s Averaged Perceptron.</p>
 <dl class="function">
 <dt id="nn_search2.pos_tagger.main">
@@ -782,7 +772,7 @@ even some English texts might contain weird chars, accents and diacritics.&gt;</
 
 </div>
 <div class="section" id="module-nn_search2.query">
-<span id="nn-search2-query-module"></span><h2>nn_search2.query module<a class="headerlink" href="#module-nn_search2.query" title="Permalink to this headline">¶</a></h2>
+<span id="query"></span><h2>query<a class="headerlink" href="#module-nn_search2.query" title="Permalink to this headline">¶</a></h2>
 <p>This module handles various query operations.</p>
 <dl class="function">
 <dt id="nn_search2.query.find_matches">
@@ -843,82 +833,67 @@ Convert all punctuation tags to PUNC.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-nn_search2.query_temp">
-<span id="nn-search2-query-temp-module"></span><h2>nn_search2.query_temp module<a class="headerlink" href="#module-nn_search2.query_temp" title="Permalink to this headline">¶</a></h2>
-<p>This module handles various query operations.</p>
-<dl class="function">
-<dt id="nn_search2.query_temp.find_matches">
-<code class="descclassname">nn_search2.query_temp.</code><code class="descname">find_matches</code><span class="sig-paren">(</span><em>query</em>, <em>sents</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/query_temp.html#find_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.query_temp.find_matches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over a sentence dict and find query matches for each sentence.
-Decide what to highlight, single tokens or a range of tokens.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>query</em> &#8211; a list of preprocessed query tuples</div>
-<div class="line"><em>sents</em> &#8211; a dict of sentence token tuples as returned by POS-tagger,
-<code class="docutils literal"><span class="pre">{0:</span> <span class="pre">[(u'this',</span> <span class="pre">u'DT',</span> <span class="pre">0),</span> <span class="pre">(u'is',</span> <span class="pre">u'VBZ',</span> <span class="pre">1),</span> <span class="pre">(u'a',</span> <span class="pre">u'DT',</span> <span class="pre">2),</span>
-&nbsp;&nbsp; <span class="pre">(u'tree',</span> <span class="pre">u'NN',</span> <span class="pre">3)]}</span></code></div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>matched_lst</em> &#8211; a list of matched tokens per sentence</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.query_temp.match_query">
-<code class="descclassname">nn_search2.query_temp.</code><code class="descname">match_query</code><span class="sig-paren">(</span><em>query</em>, <em>sent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/query_temp.html#match_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.query_temp.match_query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run user query through the sentence and find all matched substrings.
-&lt;The function is huge, make sure you clearly understand what you&#8217;re doing
-before changing anything.&gt;</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>query</em> &#8211; a list of preprocessed query tuples</div>
-<div class="line"><em>sent</em> &#8211; a list of sentence token tuples as returned by POS-tagger</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd><div class="first last line-block">
-<div class="line"><em>matched</em> &#8211; a list of tuples of matched sentence substrings</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="nn_search2.query_temp.preprocess_query">
-<code class="descclassname">nn_search2.query_temp.</code><code class="descname">preprocess_query</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nn_search2/query_temp.html#preprocess_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nn_search2.query_temp.preprocess_query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check user query for errors.
-Convert it into ready to parse format.
-Convert all punctuation tags to PUNC.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><em>query</em> (str) &#8211; user query as entered in Entry widget</dd>
-<dt>Returns:</dt>
-<dd><em>prequery</em> () &#8211; preprocessed query</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="module-nn_search2">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nn_search2" title="Permalink to this headline">¶</a></h2>
-</div>
 </div>
 
 
+          </div>
+        </div>
       </div>
-      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
-      
-        <p>
-        <a class="uplink" href="index.html">Contents</a>
-        </p>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Code</a><ul>
+<li><a class="reference internal" href="#module-nn_search2.nn_search2">nn_search2</a></li>
+<li><a class="reference internal" href="#module-nn_search2.model">model</a></li>
+<li><a class="reference internal" href="#module-nn_search2.pos_tagger">pos_tagger</a></li>
+<li><a class="reference internal" href="#module-nn_search2.query">query</a></li>
+</ul>
+</li>
+</ul>
 
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="statistics.html"
+                        title="previous chapter">Text statistics</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/nn_search2.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
       </div>
-
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="statistics.html" title="Text statistics"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nn_search2 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
     <div class="footer" role="contentinfo">
         &copy; Copyright 2016, tastyminerals.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.

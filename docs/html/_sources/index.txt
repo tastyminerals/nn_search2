@@ -13,6 +13,7 @@ Contents:
   installation.rst
   howto.rst
   statistics.rst
+  nn_search2.rst
 
 
 Indices and tables

@@ -95,4 +95,4 @@ You can either use `setup.py` which will automatically install all the dependenc
 #### Windows
 Make sure you have [Python2.7](https://www.python.org/downloads/) installed and set as default Python interpreter in the system.
 
-Here is the [Windows instraller](win_deps/nn_search2.exe).
+Here is the [Windows instraller](win_install/nn_search2.exe).
