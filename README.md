@@ -22,7 +22,7 @@ In addition to your search results default text *view 1*, there are 2 alternativ
 
 ![3](http://i.imgur.com/cMXK5bB.png)
 
-Also, **nn-search2** provides some text and search results statistics which you can access via right panel buttons.
+Also, **nn-search2** provides some text and search results [statistics](docs/html/index.html) which you can access via right panel buttons.
 
 ![4](http://i.imgur.com/32otmrf.png)
 
