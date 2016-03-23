@@ -144,7 +144,7 @@ class NNSearch(ttk.Frame):
             return
         elif not self.processed and (not self.Text.edit_modified() and
                                      not self.is_file_loaded):
-            self.show_message('No data provided!', 'error.png')
+            self.show_message('No text data provided!', 'error.png')
             return
         # print self.fully_tagged_sents
         self.query = self.Entry.get().strip()  # get query from entry widget
@@ -165,6 +165,8 @@ class NNSearch(ttk.Frame):
         if matches and not any([m for m in matches.values() if m]):
             msg = 'No matches found \n revise you query'
             self.show_message(msg, 'sad.png')
+            # reset highighting
+            self.Text.tag_delete('style')
             return
         # if POS-tags selected, add POS-tags to text
         elif not self.query and pos and view == 1:
@@ -583,16 +585,16 @@ class NNSearch(ttk.Frame):
         """
         message = tk.Toplevel()
         # set custom window icon
-        set_win_icon(message, self.img_path('warning.png'))
-        message.title('Warning!')
+        set_win_icon(message, self.img_path('info.png'))
+        message.title('')
         if top:
             message.wm_attributes('-topmost', 1)
         message.resizable(0, 0)
         warnFr0 = ttk.Frame(message, borderwidth=2, relief='groove')
         warnFr0.grid(sticky='nsew')
-        warnFr1 = ttk.Frame(warnFr0, borderwidth=2, relief='groove')
+        warnFr1 = ttk.Frame(warnFr0, borderwidth=2, relief='flat')
         warnFr1.grid(sticky='nsew')
-        ttk.Label(warnFr1, font='TkDefaultFont 12', text=msg).grid()
+        ttk.Label(warnFr1, font='TkDefaultFont 11', anchor=tk.CENTER, text=msg).grid()
         self.err_img = itk.PhotoImage(file=self.img_path(icon))
         ttk.Label(warnFr1, image=self.err_img).grid()
         ttk.Button(warnFr0, padding=(0, 2), text='OK',
@@ -728,7 +730,7 @@ class NNSearch(ttk.Frame):
             self.stats1.config(text="Size: {0}kb".format(acc_size))
             # reset Text precaching
         else:
-            self.show_message('No data provided!', 'error.png')
+            self.show_message('No text data provided!', 'error.png')
             self.set_processed(False)
             return
 
@@ -809,7 +811,7 @@ class NNSearch(ttk.Frame):
             return
         elif not self.processed and not (self.is_file_loaded or
                                          self.Text.edit_modified()):
-            self.show_message('No data provided!', 'error.png')
+            self.show_message('No text data provided!', 'error.png')
             return
         # update the information to calculated stats
         stats_text = self.num_rlabl.format(self.textstats.get('tokens'),
@@ -1102,7 +1104,7 @@ class NNSearch(ttk.Frame):
         elif not self.processed and not (self.is_file_loaded
                                          or self.Text.edit_modified()):
             self.graphs_win.destroy()
-            self.show_message('No data provided!', 'error.png')
+            self.show_message('No text data provided!', 'error.png')
             return
         else:
             # self.graphs_win.resizable(0, 0)
@@ -1168,7 +1170,7 @@ class NNSearch(ttk.Frame):
             return
         elif not self.processed and (not self.Text.edit_modified() and
                                      not self.is_file_loaded):
-            self.show_message('No data provided!', 'error.png')
+            self.show_message('No text data provided!', 'error.png')
             return
         ss_text = self.ss_rlabl.format(self.sstats.get('Tokens matched'),
                                        self.sstats.get('Matched length'),
@@ -1416,6 +1418,12 @@ class NNSearch(ttk.Frame):
         about_butt.grid()
         self.centrify_widget(about_win)
 
+    def _open_html(self):
+        """Open docs index.html with the default browser."""
+        index = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                             'docs', 'html', 'index.html')
+        webbrowser.open('file://' + index)
+
     def _build_gui(self):
         """
         Create user interface including all necessary components like Frames,
@@ -1506,7 +1514,7 @@ class NNSearch(ttk.Frame):
                                           menu=self.Menu3)
         self.help = itk.PhotoImage(file=self.img_path('help.png'))
         self.Menu3.add_command(label="Help", image=self.help, compound='left',
-                               command=None)
+                               command=self._open_html)
         self.about = itk.PhotoImage(file=self.img_path('info.png'))
         self.Menu3.add_command(label="POS-tags", image=self.about,
                                compound='left', command=self.pos_tags_long)
