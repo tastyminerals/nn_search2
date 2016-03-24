@@ -85,7 +85,7 @@ That's nice but can I just search for some words? To do this, type a word and su
 
 ##### Running from source
 1. Install [Python2.7](https://www.python.org/downloads/)
-2. Install the remaining Python dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
+2. Install Python2 dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
 3. Download a few NLTK resources: `python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger`
 4. Finally, run the app `python2 nn_search2.py`
 
