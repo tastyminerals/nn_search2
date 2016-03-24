@@ -236,12 +236,14 @@ def get_penn_treebank():
         *penn* (list) -- a list of two lists with Penn Treebank descriptions
 
     """
-    with open(os.path.join('data', 'short_pos_tags.csv'), 'rb') as fcsv:
+    with open(os.path.join('nn_search2', 'data', 'short_pos_tags.csv'),
+              'rb') as fcsv:
         penn_reader = csv.reader(fcsv, delimiter=',')
         penn = [row for row in penn_reader
                 if row and not row[0].startswith('#')]
     short_desc = zip(*penn)
-    with open(os.path.join('data', 'long_pos_tags.csv'), 'rb') as fcsv:
+    with open(os.path.join('nn_search2', 'data', 'long_pos_tags.csv'),
+              'rb') as fcsv:
         penn_reader = csv.reader(fcsv, delimiter=':')
         penn = [row for row in penn_reader
                 if row and not row[0].startswith('#')]

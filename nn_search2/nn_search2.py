@@ -1741,7 +1741,7 @@ class NNSearch(ttk.Frame):
             *icon_name* (str) -- icon name
 
         """
-        return os.path.join('data', 'icons', icon_name)
+        return os.path.join('nn_search2', 'data', 'icons', icon_name)
 
     def set_stats_ready(self, state):
         """
@@ -1793,7 +1793,7 @@ def main():
     root = tk.Tk()
     root.title('nn-search2')
     # set a custom window icon
-    win_icon_path = os.path.join('data', 'icons', 'nn-search.ico')
+    win_icon_path = os.path.join('nn_search2', 'data', 'icons', 'nn-search.ico')
     set_win_icon(root, win_icon_path)
     # root.geometry("1000x630")  # gui size at startup
     root.columnconfigure(0, weight=1)

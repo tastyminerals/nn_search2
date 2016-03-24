@@ -9,14 +9,12 @@ Usage:
 """
 import os
 import subprocess as sb
-from distutils.core import setup
-# To use a consistent encoding
 import codecs
-from os import path
+from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 
-HERE = path.abspath(path.dirname(__file__))
+HERE = os.path.abspath(os.path.dirname(__file__))
 
 
 class post_install(install):
@@ -28,7 +26,7 @@ class post_install(install):
 
 
 # Get the long description from the README file
-with codecs.open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
+with codecs.open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
                  long_description = f.read()
 
 setup(
@@ -93,11 +91,17 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     # packages=find_packages(exclude=['contrib', 'docs', 'unittests']),
-    packages=['nn_search2'],
+    packages=find_packages(),
+
+    #entry_points={
+    #    'console_scripts': [
+    #        'nn_search2 = nn_search2:main',
+    #    ],
+    #},
 
     package_data={
         'nn_search2': [
-            'data/penn_tags.csv',
+            'data/*.csv',
             'data/icons/*.png',
             'data/icons/*.ico'],
         },
