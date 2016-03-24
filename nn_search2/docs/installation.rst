@@ -8,7 +8,7 @@ Follow these steps::
 
   $ git clone http://www.github.com/tastyminerals/nn_search2.git
   $ cd nn_search2
-  $ sudo python2 setup.py install
+  $ sudo linux_install.sh
 
 
 Windows
