@@ -1,0 +1,3 @@
+[console_scripts]
+nn_search2 = nn_search2:main
+

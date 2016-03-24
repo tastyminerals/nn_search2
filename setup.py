@@ -17,7 +17,7 @@ from setuptools.command.install import install
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 
-class post_install(install):
+class PostInstall(install):
     def run(self):
         """Run default install with pos-install script"""
         install.run(self)
@@ -93,11 +93,11 @@ setup(
     # packages=find_packages(exclude=['contrib', 'docs', 'unittests']),
     packages=find_packages(),
 
-    #entry_points={
-    #    'console_scripts': [
-    #        'nn_search2 = nn_search2:main',
-    #    ],
-    #},
+    entry_points={
+        'console_scripts': [
+            'nn_search2 = nn_search2:main',
+        ],
+    },
 
     package_data={
         'nn_search2': [
@@ -106,5 +106,5 @@ setup(
             'data/icons/*.ico'],
         },
 
-    cmdclass={'install': post_install},
+    cmdclass={'install': PostInstall},
 )

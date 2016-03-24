@@ -34,10 +34,6 @@ from pdfminer.pdfpage import PDFPage
 from colors import COLLECTION
 
 
-# setting resources dir
-RESDIR = os.path.join(os.path.dirname(__file__))
-
-
 NLTK_PENN = (u'CC', u'CD', u'DT', u'EX', u'FW', u'IN', u'JJ', u'JJR', u'JJS',
              u'LS', u'MD', u'NN', u'NNP', u'NNPS', u'NNS', u'PDT', u'POS',
              u'PRP', u'PRP$', u'RB', u'RBR', u'RBS', u'RP', u'SYM', u'TO',
@@ -172,7 +168,7 @@ def process_text(*args):
     model_queue.put([parsed_text, pos_sents])
 
 
-def get_stats(model_queue, tblob):
+def get_stats(tblob):
     """
     Use TextBlob object created after text extraction to get necessary stats.
     Calculate pos-tags.
@@ -180,8 +176,7 @@ def get_stats(model_queue, tblob):
     Use hunspell to calculate correctness.
 
     Args:
-        | *model_queue* (Queue) -- Queue object
-        | *tblob* (TextBlob) --TextBlob object
+        | *tblob* (TextBlob) -- TextBlob object
 
     Returns:
         *stats* (dict) -- dictionary object containing important stats
@@ -210,15 +205,7 @@ def get_stats(model_queue, tblob):
     polarity = round(tblob.sentiment[0], 2)
     subjectivity = round(tblob.sentiment[1], 2)
 
-    # calculate text correctness
-    hspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic',
-                               '/usr/share/hunspell/en_US.aff')
-    correct = [hspell.spell(token) for token in tblob.words]
-    try:
-        correctness = 1 - correct.count(False) / correct.count(True)
-        correctness = round(correctness, 2)
-    except ZeroDivisionError:
-        correctness = 0.0
+    correctness = 'Unix only'
 
     stats = {}
     stats['tokens'] = token_cnt
@@ -229,7 +216,7 @@ def get_stats(model_queue, tblob):
     stats['polar'] = polarity
     stats['subj'] = subjectivity
     stats['corr'] = correctness
-    model_queue.put(stats)
+    return stats
 
 
 def get_penn_treebank():
@@ -240,14 +227,12 @@ def get_penn_treebank():
         *penn* (list) -- a list of two lists with Penn Treebank descriptions
 
     """
-    with open(os.path.join(RESDIR, 'data', 'short_pos_tags.csv'),
-              'rb') as fcsv:
+    with open(os.path.join('data', 'short_pos_tags.csv'), 'rb') as fcsv:
         penn_reader = csv.reader(fcsv, delimiter=',')
         penn = [row for row in penn_reader
                 if row and not row[0].startswith('#')]
     short_desc = zip(*penn)
-    with open(os.path.join(RESDIR, 'data', 'long_pos_tags.csv'),
-              'rb') as fcsv:
+    with open(os.path.join('data', 'long_pos_tags.csv'), 'rb') as fcsv:
         penn_reader = csv.reader(fcsv, delimiter=':')
         penn = [row for row in penn_reader
                 if row and not row[0].startswith('#')]
