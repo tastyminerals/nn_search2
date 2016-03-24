@@ -1,0 +1,34 @@
+Code
+====
+
+nn_search2
+----------
+
+.. automodule:: nn_search2.nn_search2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+model
+-----
+
+.. automodule:: nn_search2.model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pos_tagger
+----------
+
+.. automodule:: nn_search2.pos_tagger
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+query
+-----
+
+.. automodule:: nn_search2.query
+    :members:
+    :undoc-members:
+    :show-inheritance:

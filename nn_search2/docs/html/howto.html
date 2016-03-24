@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Search query &mdash; nn_search2 2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="nn_search2 2.0.0 documentation" href="index.html" />
+    <link rel="next" title="Text statistics" href="statistics.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="statistics.html" title="Text statistics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nn_search2 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="search-query">
+<h1>Search query<a class="headerlink" href="#search-query" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="how-to-make-a-search-query">
+<h2>How to make a search query?<a class="headerlink" href="#how-to-make-a-search-query" title="Permalink to this headline">¶</a></h2>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>DT NN
+DT NN{1} VB
+&quot;the&quot; &quot;Aesir&quot;NNP
+TO &quot;produce&quot; &quot;thunder&quot;NN{1}
+&quot;The&quot;{0} NNP{0} &quot;are&quot; NN{3}
+</pre></div>
+</div>
+<p>In order to use <strong>nn_search2</strong> you need to know how to write a search query. The syntax is simple, by default <strong>nn_search2</strong> assumes that you are searching for part-of-speech tags (POS-tags).
+Make sure you know at least the most basic ones. <strong>nn_search2</strong> uses your query to search only within one sentence. So, <code class="docutils literal"><span class="pre">NNP</span> <span class="pre">VB</span></code> will be searched within the limits of a single sentence not a paragraph or a whole text.</p>
+<p>If you want to search for occurrences of nouns you enter <code class="docutils literal"><span class="pre">NN</span></code>, that&#8217;s it! Say, you want to find only nouns that appear in a range of 5 words from the beginning of the sentence, you type <code class="docutils literal"><span class="pre">NN{5}</span></code>. Range syntax is <code class="docutils literal"><span class="pre">NN{number}</span></code> where <code class="docutils literal"><span class="pre">number</span></code> means the number of words before the current tag. So, you can as well create chain queries like <code class="docutils literal"><span class="pre">NN</span> <span class="pre">RB{2}</span> <span class="pre">VB{1}</span></code>, which basically will attempt to find occurences of a noun, an adverb with 2 words before the adverb and a verb with one word before the verb. Again, the number stands for the number of words before the query tag (<code class="docutils literal"><span class="pre">RB</span></code>) after the last successful match (<code class="docutils literal"><span class="pre">NN</span></code>), so if <code class="docutils literal"><span class="pre">NN</span></code> is not matched <code class="docutils literal"><span class="pre">RB</span></code> and <code class="docutils literal"><span class="pre">VB</span></code> will never be matched as well. If you try <code class="docutils literal"><span class="pre">DT</span> <span class="pre">NN</span></code> query without any numbers, <strong>nn_search2</strong> will attempt to find the longest match within a sentence, therefore it&#8217;s a good practice to use word ranges.</p>
+<p>That&#8217;s nice but can I just search for some words? To do this, type a word and surround it with double quotes <code class="docutils literal"><span class="pre">&quot;viking&quot;</span></code>. If you want to specify a range <code class="docutils literal"><span class="pre">&quot;viking&quot;{3}</span></code>, <code class="docutils literal"><span class="pre">&quot;merry&quot;</span> <span class="pre">&quot;viking&quot;{1}</span></code>. Pretty simple. You can as well combine POS-tags, words and ranges <code class="docutils literal"><span class="pre">&quot;Valhalla&quot;NNP</span> <span class="pre">VBZ{0}</span> <span class="pre">DT{0}</span> <span class="pre">&quot;place&quot;NN{2}</span></code>. If your search query is incorrect and can not be processed <strong>nn_search2</strong> will display a warning message. That&#8217;s it, now you know the query syntax.
+.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Search query</a><ul>
+<li><a class="reference internal" href="#how-to-make-a-search-query">How to make a search query?</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="statistics.html"
+                        title="next chapter">Text statistics</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/howto.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="statistics.html" title="Text statistics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nn_search2 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, tastyminerals.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+  </body>
+</html>

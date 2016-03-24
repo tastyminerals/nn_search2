@@ -22,7 +22,7 @@ In addition to your search results default text *view 1*, there are 2 alternativ
 
 ![3](http://i.imgur.com/cMXK5bB.png)
 
-Also, **nn-search2** provides some text and search results statistics which you can access via right panel buttons.
+Also, **nn-search2** provides some text and search results statistics (see docs/html/index.html) which you can access via right panel buttons.
 
 ![4](http://i.imgur.com/32otmrf.png)
 
@@ -60,23 +60,39 @@ I think you got the picture. As you've noticed, not all found results are correc
 Also, be patient, the bigger your text and the shorter your search query the more time it will be required to display the results.
 
 ### How to make a search query?
-**nn_search2** uses your query to search only within one sentence. So, ``NNP VB`` will be searched within the limits of a single sentence not a paragraph or a whole text.
-(to be added...)
+####Examples:
+
+**`DT NN`**
+
+**`DT NN{1} VB`**
+
+**`"the" "Aesir"NNP`**
+
+**`TO "produce" "thunder"NN{1}`**
+
+**`"The"{0} NNP{0} "are" NN{3}`**
+
+In order to use **nn_search2** you need to know how to write a search query. The syntax is simple, by default **nn_search2** assumes that you are searching for [part-of-speech tags](http://faculty.washington.edu/dillon/GramResources/penntable.html) (POS-tags).
+Make sure you know at least the most basic ones. **nn_search2** uses your query to search only within one sentence. So, ``NNP VB`` will be searched within the limits of a single sentence not a paragraph or a whole text.
+
+If you want to search for occurrences of nouns you enter `NN`, that's it! Say, you want to find only nouns that appear in a range of 5 words from the beginning of the sentence, you type `NN{5}`. Range syntax is `NN{number}` where `number` means the number of words before the current tag. So, you can as well create chain queries like `NN RB{2} VB{1}`, which basically will attempt to find occurences of a noun, an adverb with 2 words before the adverb and a verb with one word before the verb. Again, the number stands for the number of words before the query tag (`RB`) after the last successful match (`NN`), so if `NN` is not matched `RB` and `VB` will never be matched as well. If you try `DT NN` query without any numbers, **nn_search2** will attempt to find the longest match within a sentence, therefore it's a good practice to use word ranges.
+
+That's nice but can I just search for some words? To do this, type a word and surround it with double quotes `"viking"`. If you want to specify a range `"viking"{3}`, `"merry" "viking"{1}`. Pretty simple. You can as well combine POS-tags, words and ranges `"Valhalla"NNP VBZ{0} DT{0} "place"NN{2}`. If your search query is incorrect and can not be processed **nn_search2** will display a warning message. That's it, now you know the query syntax.
 
 ### How to install?
 #### Linux
 You can either use `setup.py` which will automatically install all the dependencies or do it manually, installing everything on your own. See the details below.
 
-##### Using `setup.py`
+##### Via **setup.py**
 `sudo python2 setup.py install`
 
 ##### Manual installation
-1. Install Python 2.7
-2. Install the remaining Python 2 dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
+1. Install [Python2.7](https://www.python.org/downloads/)
+2. Install the remaining Python dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
 3. Download a few NLTK resources: `python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger`
 4. Finally, run the app `python2 nn_search2.py`
 
 #### Windows
 Make sure you have [Python2.7](https://www.python.org/downloads/) installed and set as default Python interpreter in the system.
 
-Here is the [Windows instraller](win_deps/nn_search2.exe).
+Here is the [Windows instraller](win_install/nn_search2.exe).
