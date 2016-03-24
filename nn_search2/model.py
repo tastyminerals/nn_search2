@@ -16,8 +16,7 @@ import subprocess as sb
 import unicodedata
 from cStringIO import StringIO
 import docx
-if not platform.system() == 'Windows':
-    import hunspell
+import hunspell
 import matplotlib
 matplotlib.use('Agg')  # fixing threading issue on Windows
 import matplotlib.pyplot as plt
@@ -35,7 +34,7 @@ from colors import COLLECTION
 
 
 # setting resources dir
-RESDIR = os.path.join(os.path.dirname(__file__))
+RESDIR = os.path.dirname(os.path.realpath(__file__))
 
 
 NLTK_PENN = (u'CC', u'CD', u'DT', u'EX', u'FW', u'IN', u'JJ', u'JJR', u'JJS',
@@ -335,7 +334,7 @@ def plot_tags(tags_dic, save_fname):
     random.shuffle(COLLECTION)
     for i in range(len(tags_dic)):
         bars[i].set_color(COLLECTION[i])
-    plt.savefig(os.path.join('_graphs', save_fname + '.png'))
+    plt.savefig(os.path.join(RESDIR, '_graphs', save_fname + '.png'))
     # create functional / non-fuctional words pie chart
     plt.clf()
     matplotlib.rc('font', **{'size': 16})
@@ -359,7 +358,7 @@ def plot_tags(tags_dic, save_fname):
     # Set aspect ratio to be equal so that pie is drawn as a circle.
     plt.axis('equal')
     # increasing fonts in a pie chart
-    plt.savefig(os.path.join('_graphs', save_fname + '_pie.png'))
+    plt.savefig(os.path.join(RESDIR, '_graphs', save_fname + '_pie.png'))
     plt.clf()
     return od(reversed(list(odd.items())))
 
