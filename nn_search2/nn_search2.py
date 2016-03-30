@@ -19,11 +19,14 @@ import Queue
 import shutil
 from string import punctuation as punct
 from PIL import ImageTk as itk
+import webbrowser
 
 import model
 import query
 import pos_tagger
 
+# setting resources dir
+RESDIR = os.path.dirname(os.path.realpath(__file__))
 
 # Set interface fonts
 # Helvetica, Times, Arial, Georgia, Tahoma, Verdana
@@ -115,7 +118,7 @@ class NNSearch(ttk.Frame):
         # pos-tagger vars
         self.pos_fpath = ''
         self.pos_loaded_text = ''
-        self.pos_dir_path = ''
+        self.pos_dir_path = RESDIR
         self.pos_out_dir_path = ''
         # build UI
         self.clean_up()
@@ -429,7 +432,7 @@ class NNSearch(ttk.Frame):
         """
         Run pos-tagger on the specified files.
         """
-        out_dir = self.pos_out_dir_path or os.path.join(os.getcwd(), 'output')
+        out_dir = self.pos_out_dir_path or os.path.join(RESDIR, 'output')
         self.thunder = itk.PhotoImage(file=self.img_path('thunder.png'))
         self.pos_run_butt.config(text='Working...', image=self.thunder,
                                  state='disabled')
@@ -990,7 +993,7 @@ class NNSearch(ttk.Frame):
         ttk.Label(graphFr0Inn2, font=TKFONT,
                   text=self.ratios).grid()
         # insert POS-tags plot
-        plot1_path = os.path.join('_graphs', self.current_fname + '.png')
+        plot1_path = os.path.join(RESDIR, '_graphs', self.current_fname+'.png')
         image = itk.Image.open(plot1_path)
         image = image.resize((550, 500), itk.Image.ANTIALIAS)
         self.plot1 = itk.PhotoImage(image)
@@ -998,7 +1001,7 @@ class NNSearch(ttk.Frame):
         plot1Label = ttk.Label(graphFr1, image=self.plot1)
         plot1Label.grid(row=0, column=0, sticky="nsew")
         # insert functional/content words pie chart
-        pie_path = os.path.join('_graphs', self.current_fname + '_pie.png')
+        pie_path = os.path.join(RESDIR, '_graphs', self.current_fname+'_pie.png')
         pie_image = itk.Image.open(pie_path)
         pie_image = pie_image.resize((400, 300), itk.Image.ANTIALIAS)
         self.pie_plot = itk.PhotoImage(pie_image)
@@ -1726,11 +1729,11 @@ class NNSearch(ttk.Frame):
         Remove all plot files in '_graphs' dir upon initialization.
         """
         try:
-            shutil.rmtree('_graphs')
+            shutil.rmtree(os.path.join(RESDIR, '_graphs'))
         except (OSError, IOError):
             print "WARNING: Cannot remove '_graphs' directory!"
         try:
-            shutil.os.mkdir('_graphs')
+            shutil.os.mkdir(os.path.join(RESDIR, '_graphs'))
         except (OSError, IOError):
             print "WARNING: Cannot create '_graphs' directory!"
             sys.exit(1)
@@ -1749,7 +1752,7 @@ class NNSearch(ttk.Frame):
             *icon_name* (str) -- icon name
 
         """
-        return os.path.join('data', 'icons', icon_name)
+        return os.path.join(RESDIR, 'data', 'icons', icon_name)
 
     def set_stats_ready(self, state):
         """
@@ -1801,7 +1804,7 @@ def main():
     root = tk.Tk()
     root.title('nn-search2')
     # set a custom window icon
-    win_icon_path = os.path.join('data', 'icons', 'nn-search.ico')
+    win_icon_path = os.path.join(RESDIR, 'data', 'icons', 'nn-search.ico')
     set_win_icon(root, win_icon_path)
     # root.geometry("1000x630")  # gui size at startup
     root.columnconfigure(0, weight=1)
