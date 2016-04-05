@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 NN_DIR=$HOME/.nn_search2
 NN_SLINK=/usr/local/bin/nn_search2
 
