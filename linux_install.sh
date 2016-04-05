@@ -16,4 +16,13 @@ fi
 sudo ln -s $HOME/.nn_search2/nn_search2/nn_search2.py /usr/local/bin/nn_search2
 
 # install python2 dependencies
+sudo pip2 install nltk
+sudo pip2 install textblob
+sudo pip2 install numpy
+sudo pip2 install matplotlib
+sudo pip2 install Pillow
+sudo pip2 install docx
+sudo pip2 install pdfminer
+sudo pip2 install hunspell
+    
 python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger

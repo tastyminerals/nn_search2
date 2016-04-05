@@ -330,6 +330,14 @@ class NNSearch(ttk.Frame):
             tkMessageBox.showinfo('nn-search 2.0', 'Can not run "Process".')
             return
 
+    def ctrl_f(self, callback=False):
+        """
+        Display text find window.
+        """
+        if self.Text is self.focus_get():
+            self.show_find()
+        return 'break'
+
     def insert_text(self, text, plain=False):
         """
         Insert given text into the Text widget.
@@ -1204,6 +1212,35 @@ class NNSearch(ttk.Frame):
         self.sstats_win_butt.grid(sticky='ns')
         self.centrify_widget(self.sstats_win)
 
+    def find(self):
+        """
+        Go to search query in text field.
+        """
+        find_query = self.findEnt.get().strip()
+
+
+    def show_find(self):
+        """
+        Display a simple text search toplevel window.
+        """
+        # create a Toplevel first, we will update it later
+        find_win = tk.Toplevel()
+        find_win.wm_attributes('-topmost', True)
+        find_win.resizable(0, 0)
+        # set custom window icon
+        set_win_icon(find_win, self.img_path('nn-search.png'))
+        find_win.title('')
+        findFr = ttk.Frame(find_win, borderwidth=2, relief='groove')
+        findFr.grid()
+        self.findEnt = ttk.Entry(findFr, font='TkDefaultFont 11')
+        self.findEnt.grid(row=0, column=0)
+        find_butt = ttk.Button(findFr, padding=(0, 0),
+                               text='Find', image=self.find,
+                               compound='left', command=find_win.destroy)
+        find_butt.grid(row=0, column=1, sticky='nwe', padx=1, pady=1)
+        self.centrify_widget(find_win)
+
+
     def prepare_view1(self):
         """
         Prepare text for various text views.
@@ -1480,6 +1517,9 @@ class NNSearch(ttk.Frame):
         self.MenuButton1 = ttk.Menubutton(self.MenuFrm, text='Edit',
                                           direction='below',
                                           menu=self.Menu1)
+        self.find = itk.PhotoImage(file=self.img_path('find.png'))
+        self.Menu1.add_command(label="Find (Ctrl-f)", image=self.find,
+                               compound='left', command=self.show_find)
         self.copy = itk.PhotoImage(file=self.img_path('copy.png'))
         self.Menu1.add_command(label="Copy (Ctrl-c)", image=self.copy,
                                compound='left', command=self.ctrl_c)
