@@ -282,7 +282,7 @@ def get_ngrams(txtblob_obj):
     counts_dic = od(counter.most_common())
     tags_dic = dict(txtblob_obj[0].tags)
     # POS-tags included into most frequent words list
-    include = ('JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'VB', 'VBG')
+    include = ('JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'VBG')
     # get n most frequent words
     mostn = [(k, counts_dic[k])
              for k in counts_dic if tags_dic.get(k) in include][:10]

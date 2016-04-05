@@ -135,6 +135,10 @@ class NNSearch(ttk.Frame):
         self._build_gui()
         # read Penn Treebank tags description
         self.short_treebank, self.longer_treebank = model.get_penn_treebank()
+        # init found strings for find window
+        self.ffound = ''
+        # init found strings cache for find window
+        self.prev_found_cache = []
 
     def press_return(self, *args):
         """
@@ -326,6 +330,14 @@ class NNSearch(ttk.Frame):
         except (tk.TclError, AttributeError):
             tkMessageBox.showinfo('nn-search 2.0', 'Can not run "Process".')
             return
+
+    def ctrl_f(self, callback=False):
+        """
+        Display text find window.
+        """
+        if self.Text is self.focus_get():
+            self.show_find()
+        return 'break'
 
     def insert_text(self, text, plain=False):
         """
@@ -1209,6 +1221,123 @@ class NNSearch(ttk.Frame):
         self.sstats_win_butt.grid(sticky='ns')
         self.centrify_widget(self.sstats_win)
 
+    def highlight_find(self):
+        """Turn on highlighting for found strings."""
+        self.Text.tag_configure('find', foreground='#000000',
+                                background="#FFD417",
+                                font='TkDefaultFont 10 bold')
+
+    def find_query(self):
+        """
+        Find the search query. Highlight and auto scroll to the matched string.
+        """
+        # set cache for keeping the indeces of matched strings
+        self.prev_found_cache = []
+        # index to access self.prev_found_cache
+        self.last = -1
+        self.Text.tag_delete('find', '1.0', tk.END)
+        find_query = self.findEnt.get().strip()
+        text = self.Text.get('1.0', tk.END).encode('utf-8')
+        # get current mouse cursor position in text field
+        row, col = self.Text.index(tk.INSERT).split('.')
+        self.ffound = re.search(find_query, text[int(col):])
+        if self.ffound:
+            start_found = int(col) + self.ffound.start()
+            prev_found = int(col) + self.ffound.end()
+            start_mark, end_mark = fnode(row, start_found, prev_found)
+            self.Text.tag_add('find', start_mark, end_mark)
+            self.highlight_find()
+            # auto scroll to found string
+            self.Text.see(end_mark)
+            self.Text.focus_set()
+            self.prev_found_cache.append((row, start_mark, end_mark))
+        else:
+            msg = "Nothing found!"
+            self.show_message(msg, 'info.png', True)
+
+    def find_next(self):
+        """Find next matching string if exists."""
+        if not self.ffound:
+            self.find_query()
+            return
+        if not self.prev_found_cache:
+            return
+
+        self.Text.tag_delete('find', '1.0', tk.END)
+        find_query = self.findEnt.get().strip()
+        text = self.Text.get('1.0', tk.END).encode('utf-8')
+        row, start_found, prev_found = self.prev_found_cache[self.last]
+        col = prev_found.split('.')[1]
+        self.ffound = re.search(find_query, text[int(col):])
+        if self.ffound:
+            start_found = int(col) + self.ffound.start()
+            prev_found = int(col) + self.ffound.end()
+            start_mark, end_mark = fnode(row, start_found, prev_found)
+            self.Text.tag_add('find', start_mark, end_mark)
+            self.highlight_find()
+            # auto scroll to found string
+            self.Text.see(end_mark)
+            self.Text.focus_set()
+            self.prev_found_cache.append((row, start_mark, end_mark))
+        else:
+            msg = "Nothing found!"
+            self.show_message(msg, 'info.png', True)
+
+    def find_prev(self):
+        """Find previous matching string if exists."""
+        if not self.prev_found_cache:
+            return
+        self.Text.tag_delete('find', '1.0', tk.END)
+        find_query = self.findEnt.get().strip()
+        text = self.Text.get('1.0', tk.END).encode('utf-8')
+        if abs(self.last - 1) <= len(self.prev_found_cache):
+            self.last -= 1
+        row, start_found, prev_found = self.prev_found_cache[self.last]
+        if self.ffound:
+            self.Text.tag_add('find', start_found, prev_found)
+            self.highlight_find()
+            # auto scroll to found string
+            self.Text.see(prev_found)
+            self.Text.focus_set()
+        else:
+            msg = "Nothing found!"
+            self.show_message(msg, 'info.png', True)
+
+    def show_find(self):
+        """
+        Display a simple text search toplevel window.
+        """
+        # create a Toplevel first, we will update it later
+        find_win = tk.Toplevel()
+        find_win.wm_attributes('-topmost', True)
+        find_win.resizable(0, 0)
+        # set custom window icon
+        set_win_icon(find_win, self.img_path('nn-search.png'))
+        find_win.title('')
+        findEntFr = ttk.Frame(find_win, borderwidth=2, relief='groove')
+        findEntFr.grid(row=0, sticky='nsew')
+        findFr = ttk.Frame(find_win, borderwidth=2, relief='groove')
+        findFr.grid(row=1, sticky='nsew')
+        self.findEnt = ttk.Entry(findEntFr, font='TkDefaultFont 11', width=30)
+        self.findEnt.grid()
+        close_butt = ttk.Button(findFr, padding=(-10, 0),
+                                text='Close', command=find_win.destroy)
+        close_butt.grid(row=1, column=0, sticky='w', padx=1, pady=1)
+        self.prev = itk.PhotoImage(file=self.img_path('find_prev.png'))
+        prev_butt = ttk.Button(findFr, padding=(-10, 0),
+                               text='Previous', image=self.prev,
+                               compound='left', command=self.find_prev)
+        prev_butt.grid(row=1, column=1, sticky='nwe', padx=1, pady=1)
+        self.next = itk.PhotoImage(file=self.img_path('find_next.png'))
+        next_butt = ttk.Button(findFr, padding=(-10, 0),
+                               text='Next', image=self.next,
+                               compound='left', command=self.find_next)
+        next_butt.grid(row=1, column=2, sticky='nwe', padx=1, pady=1)
+        find_butt = ttk.Button(findFr, padding=(0, 0),
+                               text='Find', image=self.find,
+                               compound='left', command=self.find_query)
+        find_butt.grid(row=1, column=3, sticky='nwe', padx=1, pady=1)
+        self.centrify_widget(find_win)
     def prepare_view1(self):
         """
         Prepare text for various text views.
@@ -1485,6 +1614,9 @@ class NNSearch(ttk.Frame):
         self.MenuButton1 = ttk.Menubutton(self.MenuFrm, text='Edit',
                                           direction='below',
                                           menu=self.Menu1)
+        self.find = itk.PhotoImage(file=self.img_path('find.png'))
+        self.Menu1.add_command(label="Find (Ctrl-f)", image=self.find,
+                               compound='left', command=self.show_find)
         self.copy = itk.PhotoImage(file=self.img_path('copy.png'))
         self.Menu1.add_command(label="Copy (Ctrl-c)", image=self.copy,
                                compound='left', command=self.ctrl_c)
@@ -1559,6 +1691,7 @@ class NNSearch(ttk.Frame):
         self.Text.bind('<Control-z>', self.ctrl_z)
         self.Text.bind('<Control-u>', self.ctrl_u)
         self.Text.bind('<Control-r>', self.ctrl_r)
+        self.Text.bind('<Control-f>', self.ctrl_f)
         self.Text.edit_modified(False)  # set Text widget -- not modified
         # make a scrollbar for text widget
         self.scroll = ttk.Scrollbar(self.TextFrm, command=self.Text.yview)
