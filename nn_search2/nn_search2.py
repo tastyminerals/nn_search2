@@ -1225,7 +1225,7 @@ class NNSearch(ttk.Frame):
         """Turn on highlighting for found strings."""
         self.Text.tag_configure('find', foreground='#000000',
                                 background="#FFD417",
-                                font='TkDefaultFont 10 bold')
+                                font='TkDefaultFont 10')
 
     def find_query(self):
         """
@@ -1237,20 +1237,23 @@ class NNSearch(ttk.Frame):
         self.last = -1
         self.Text.tag_delete('find', '1.0', tk.END)
         find_query = self.findEnt.get().strip()
-        text = self.Text.get('1.0', tk.END).encode('utf-8')
         # get current mouse cursor position in text field
-        row, col = self.Text.index(tk.INSERT).split('.')
-        self.ffound = re.search(find_query, text[int(col):])
+        start = self.Text.index(tk.INSERT)
+        self.ffound = self.Text.search(find_query, start, stopindex=tk.END,
+                                       regexp=True)
+        # in case a user put mouse cursor somewhere in the end
+        if not self.ffound:
+            start = '1.0'
+            self.ffound = self.Text.search(find_query, start, stopindex=tk.END,
+                                           regexp=True)
         if self.ffound:
-            start_found = int(col) + self.ffound.start()
-            prev_found = int(col) + self.ffound.end()
-            start_mark, end_mark = fnode(row, start_found, prev_found)
-            self.Text.tag_add('find', start_mark, end_mark)
+            end_mark = '%s+%dc' % (self.ffound, len(find_query))
+            self.Text.tag_add('find', self.ffound, end_mark)
             self.highlight_find()
             # auto scroll to found string
             self.Text.see(end_mark)
             self.Text.focus_set()
-            self.prev_found_cache.append((row, start_mark, end_mark))
+            self.prev_found_cache.append((self.ffound, end_mark))
         else:
             msg = "Nothing found!"
             self.show_message(msg, 'info.png', True)
@@ -1265,20 +1268,18 @@ class NNSearch(ttk.Frame):
 
         self.Text.tag_delete('find', '1.0', tk.END)
         find_query = self.findEnt.get().strip()
-        text = self.Text.get('1.0', tk.END).encode('utf-8')
-        row, start_found, prev_found = self.prev_found_cache[self.last]
-        col = prev_found.split('.')[1]
-        self.ffound = re.search(find_query, text[int(col):])
+        start_mark, end_mark = self.prev_found_cache[self.last]
+        # self.ffound = re.search(find_query, text[int(col):])
+        self.ffound = self.Text.search(find_query, end_mark, stopindex=tk.END,
+                                       regexp=True)
         if self.ffound:
-            start_found = int(col) + self.ffound.start()
-            prev_found = int(col) + self.ffound.end()
-            start_mark, end_mark = fnode(row, start_found, prev_found)
-            self.Text.tag_add('find', start_mark, end_mark)
+            end_mark = '%s+%dc' % (self.ffound, len(find_query))
+            self.Text.tag_add('find', self.ffound, end_mark)
             self.highlight_find()
             # auto scroll to found string
             self.Text.see(end_mark)
             self.Text.focus_set()
-            self.prev_found_cache.append((row, start_mark, end_mark))
+            self.prev_found_cache.append((self.ffound, end_mark))
         else:
             msg = "Nothing found!"
             self.show_message(msg, 'info.png', True)
@@ -1288,11 +1289,9 @@ class NNSearch(ttk.Frame):
         if not self.prev_found_cache:
             return
         self.Text.tag_delete('find', '1.0', tk.END)
-        find_query = self.findEnt.get().strip()
-        text = self.Text.get('1.0', tk.END).encode('utf-8')
         if abs(self.last - 1) <= len(self.prev_found_cache):
             self.last -= 1
-        row, start_found, prev_found = self.prev_found_cache[self.last]
+        start_found, prev_found = self.prev_found_cache[self.last]
         if self.ffound:
             self.Text.tag_add('find', start_found, prev_found)
             self.highlight_find()
