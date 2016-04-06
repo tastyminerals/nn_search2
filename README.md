@@ -3,7 +3,7 @@ It uses state-of-the-art pos-tagger based on [Averaged Perceptron](http://www.sp
 Above that, one of the main **nn-search2** features is full text part-of-speech search extended with word
 ranges such that you can find chains of nouns, verbs, adjectives and fixed expressions.
 
-### How it looks?
+### How does it look?
 Here is the main window with some loaded text.
 
 ![0](http://i.imgur.com/AfHKPHZ.png)
