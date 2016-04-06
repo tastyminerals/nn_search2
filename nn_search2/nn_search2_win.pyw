@@ -610,7 +610,7 @@ class NNSearch(ttk.Frame):
         message.resizable(0, 0)
         warnFr0 = ttk.Frame(message, borderwidth=2, relief='groove')
         warnFr0.grid(sticky='nsew')
-        warnFr1 = ttk.Frame(warnFr0, borderwidth=2, relief='flat')
+        warnFr1 = ttk.Frame(warnFr0, borderwidth=2, width=20, relief='flat')
         warnFr1.grid(sticky='nsew')
         ttk.Label(warnFr1, font='TkDefaultFont 11', anchor=tk.CENTER, text=msg).grid()
         self.err_img = itk.PhotoImage(file=self.img_path(icon))
@@ -1220,7 +1220,7 @@ class NNSearch(ttk.Frame):
         """Turn on highlighting for found strings."""
         self.Text.tag_configure('find', foreground='#000000',
                                 background="#FFD417",
-                                font='TkDefaultFont 10')
+                                font=TKTEXT_FONT)
 
     def find_query(self):
         """
@@ -1250,7 +1250,7 @@ class NNSearch(ttk.Frame):
             self.Text.focus_set()
             self.prev_found_cache.append((self.ffound, end_mark))
         else:
-            msg = "Nothing found!"
+            msg = "   Nothing found!   "
             self.show_message(msg, 'info.png', True)
 
     def find_next(self):
@@ -1276,7 +1276,7 @@ class NNSearch(ttk.Frame):
             self.Text.focus_set()
             self.prev_found_cache.append((self.ffound, end_mark))
         else:
-            msg = "Nothing found!"
+            msg = "   Nothing found!   "
             self.show_message(msg, 'info.png', True)
 
     def find_prev(self):
@@ -1293,8 +1293,8 @@ class NNSearch(ttk.Frame):
             # auto scroll to found string
             self.Text.see(prev_found)
             self.Text.focus_set()
-        else:
-            msg = "Nothing found!"
+        else:  
+            msg = "   Nothing found!   "
             self.show_message(msg, 'info.png', True)
 
     def show_find(self):
