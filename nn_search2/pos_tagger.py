@@ -165,7 +165,8 @@ def main(args, ui_call=False):
     else:
         print 'Please provide a directory or a filename to process!'
         sys.exit(1)
-    print 'POS-tagging complete!'
+    print '\n', tagged_text, '\n'
+    print 'The text above was successfully saved: %s' % out_path
 
 
 if __name__ == '__main__':
