@@ -92,4 +92,4 @@ That's nice but can I just search for some words? To do this, type a word and su
 #### Windows
 Make sure you have [Python2.7](https://www.python.org/downloads/) installed and set as default Python interpreter in the system.
 
-Here is the [Windows instraller](win_install/nn_search2.exe).
+Here is the [Windows installer](win_install/nn_search2.exe).
