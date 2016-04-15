@@ -26,7 +26,7 @@ Also, **nn-search2** provides some text and search results statistics (see docs/
 
 ![4](http://i.imgur.com/32otmrf.png)
 
-There is also a separate POS-tagger for batch processing one or more text files.
+There is also a separate POS-tagger for batch processing of one or more text files.
 
 ![5](http://i.imgur.com/eVlfpg8.png)
 
