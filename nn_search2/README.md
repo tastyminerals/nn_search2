@@ -3,6 +3,11 @@ It uses state-of-the-art pos-tagger based on [Averaged Perceptron](http://www.sp
 Above that, one of the main **nn-search2** features is full text part-of-speech search extended with word
 ranges such that you can find chains of nouns, verbs, adjectives and fixed expressions.
 
+**nn-search2** does additional analysis of some text properties like **lexical diversity**, **subjectivity**, **polarity** and **correctness** (available only on Linux).
+It also computes some basic text statistics.
+
+And this is not all, **nn-search2** creates some *nice-looking* POS-tag distribution plots (see the screenshots below).
+
 ### How it looks?
 Here is the main window with some loaded text.
 

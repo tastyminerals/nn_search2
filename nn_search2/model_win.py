@@ -16,8 +16,6 @@ import subprocess as sb
 import unicodedata
 from cStringIO import StringIO
 import docx
-if not platform.system() == 'Windows':
-    import hunspell
 import matplotlib
 matplotlib.use('Agg')  # fixing threading issue on Windows
 import matplotlib.pyplot as plt
@@ -39,6 +37,7 @@ NLTK_PENN = (u'CC', u'CD', u'DT', u'EX', u'FW', u'IN', u'JJ', u'JJR', u'JJS',
              u'PRP', u'PRP$', u'RB', u'RBR', u'RBS', u'RP', u'SYM', u'TO',
              u'UH', u'VB', u'VBD', u'VBG', u'VBN', u'VBP', u'VBZ', u'WDT',
              u'WP', u'WP$', u'WRB')
+
 
 
 def pdf_read(pdf):

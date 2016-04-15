@@ -767,7 +767,7 @@ class NNSearch(ttk.Frame):
 
     def check_nums_thread_save_results(self):
         """
-        Check every 10ms if model thread is alive.
+        Check every 50ms if model thread is alive.
         While displaying waiting label in Toplevel.
         Unlock UI widgets.
         """
@@ -932,7 +932,7 @@ class NNSearch(ttk.Frame):
         Unlock UI widgets.
         """
         if self.graphs_thread.is_alive():
-            self.after(10, self.check_graphs_thread_save_results)
+            self.after(100, self.check_graphs_thread_save_results)
         else:
             self.graphs_thread.join()
             # get the results of model processing
@@ -1273,7 +1273,7 @@ class NNSearch(ttk.Frame):
             self.highlight_find()
             # auto scroll to found string
             self.Text.see(end_mark)
-            self.Text.focus_set()
+            # self.Text.focus_set()
             self.prev_found_cache.append((self.ffound, end_mark))
         else:
             msg = "   Nothing found!   "
@@ -1292,7 +1292,7 @@ class NNSearch(ttk.Frame):
             self.highlight_find()
             # auto scroll to found string
             self.Text.see(prev_found)
-            self.Text.focus_set()
+            # self.Text.focus_set()
         else:  
             msg = "   Nothing found!   "
             self.show_message(msg, 'info.png', True)
@@ -1305,6 +1305,8 @@ class NNSearch(ttk.Frame):
         find_win = tk.Toplevel()
         find_win.wm_attributes('-topmost', True)
         find_win.resizable(0, 0)
+        # bind <Return>
+        find_win.bind('<Return>', self.find_next, '+')
         # set custom window icon
         set_win_icon(find_win, self.img_path('nn-search.png'))
         find_win.title('')
@@ -1314,6 +1316,7 @@ class NNSearch(ttk.Frame):
         findFr.grid(row=1, sticky='nsew')
         self.findEnt = ttk.Entry(findEntFr, font='TkDefaultFont 11', width=30)
         self.findEnt.grid()
+        self.findEnt.focus_set()
         close_butt = ttk.Button(findFr, padding=(-10, 0),
                                 text='Close', command=find_win.destroy)
         close_butt.grid(row=1, column=0, sticky='w', padx=1, pady=1)
