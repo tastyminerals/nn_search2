@@ -303,6 +303,7 @@ def get_ngrams(txtblob_obj):
     ngram2_cnt = Counter([(n[0], n[1]) for n in txtblob_obj[0].ngrams(2)])
     ngram3_cnt = Counter([(n[0], n[1], n[2]) for n
                           in txtblob_obj[0].ngrams(3)])
+    # TODO: do not count the ngrams with prep+determiner
     ngram2 = [(n[0], ngram2_cnt[n[0]]) for n in ngram2_cnt.most_common(10)]
     ngram3 = [(n[0], ngram3_cnt[n[0]]) for n in ngram3_cnt.most_common(10)]
     return mostn, ngram2, ngram3
