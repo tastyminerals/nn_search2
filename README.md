@@ -83,16 +83,18 @@ If you want to search for occurrences of nouns, you enter `NN`, that's it! Say, 
 That's nice but can I just search for some words? To do this, type a word and surround it with double quotes `"viking"`. If you want to specify a range `"viking"{3}`, `"merry" "viking"{1}`. Pretty simple. You can as well combine POS-tags, words and ranges `"Valhalla"NNP VBZ{0} DT{0} "place"NN{2}`. If your search query is incorrect and can not be processed **nn_search2** will display a warning message. That's it, now you know the query syntax.
 
 ### How to install?
-#### Linux
-`sudo linux_install.sh`
+#### Linux binary
+Download and extract [this archive](bins/nn_search2.0.1.tar.gz).
+Run `./nn_search2`.
 
-##### Running from source
-1. Install [Python2.7](https://www.python.org/downloads/)
-2. Install Python2 dependencies: `sudo pip2 install matplotlib pdfminer docx hunspell Pillow nltk textblob`
-3. Download a few NLTK resources: `python2 -m nltk.downloader punkt stopwords averaged_perceptron_tagger`
-4. Finally, run the app `python2 nn_search2.py`
+##### Installing and running from source on Linux
+1. install [Python2.7](https://www.python.org/downloads/)
+2. git clone https://github.com/tastyminerals/nn_search2.git
+3. cd nn_search2
+4. run `linux_install.sh`
+5. start the app `nn_search2`
 
 #### Windows
 Make sure you have [Python2.7](https://www.python.org/downloads/) installed and set as default Python interpreter in the system.
 
-Here is the [Windows installer](win_install/nn_search2.exe).
+Here is the [Windows installer](bins/nn_search2.exe).
