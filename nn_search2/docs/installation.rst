@@ -16,4 +16,4 @@ Windows
 
 Make sure you have `Python2.7 <https://www.python.org/downloads/>`_ installed and set as default Python interpreter in the system.
 
-You can find **nn_search2.exe** installer in ``win_install`` folder.
+You can find **nn_search2.exe** installer in ``bins`` folder.
