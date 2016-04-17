@@ -85,12 +85,13 @@ That's nice but can I just search for some words? To do this, type a word and su
 ### How to install?
 #### Linux binary
 Download and extract [this archive](bins/nn_search2.0.1.tar.gz).
+
 Run `./nn_search2`.
 
 ##### Installing and running from source on Linux
 1. install [Python2.7](https://www.python.org/downloads/)
-2. git clone https://github.com/tastyminerals/nn_search2.git
-3. cd nn_search2
+2. `git clone https://github.com/tastyminerals/nn_search2.git`
+3. cd `nn_search2`
 4. run `linux_install.sh`
 5. start the app `nn_search2`
 
