@@ -1,7 +1,11 @@
 **nn-search2** is a [part-of-speech](https://en.wikipedia.org/wiki/Part_of_speech) tagging and text search utility based on [NLTK](www.nltk.org), [TextBlob](textblob.readthedocs.org/en/dev/) and [matplotlib](matplotlib.org).
 It uses state-of-the-art pos-tagger based on [Averaged Perceptron](http://www.spacy.io/blog/part-of-speech-POS-tagger-in-python) which provides fast and accurate results.
-One of the main **nn-search2** features is full text part-of-speech search and text analysis such as determining lexical diversity, subjectivity and polarity of the given text.
-Above that, part-of-speech search query can include word ranges such that you can find chains of nouns, verbs, adjectives and fixed expressions using fairly simple query syntax: `"the"DT "old"JJ{2} "oak"NN{1}`.
+One of the main **nn-search2** features is full text part-of-speech search and text analysis such as determining **lexical diversity**, **subjectivity** and **polarity** of the given text.
+Basically, you can search text using word's part-of-speech tag like (`NN` -- noun, `VB` -- verb, `JJ` -- adjective, etc.).
+Part-of-speech search query can include word ranges such that you can find chains of nouns, verbs, adjectives and fixed expressions using fairly simple query syntax: `"the"DT "old"JJ{2} "oak"NN{1}`.
+**nn-search2** is also able to generate a *nice-looking* POS-tag distribution plots (see the screenshots below).
+
+
 
 ### How does it look?
 Here is the main window with some loaded text.
