@@ -3,7 +3,7 @@ It uses state-of-the-art POS-tagger based on [Averaged Perceptron](http://www.sp
 One of the main **nn-search2** features is full text part-of-speech search.
 Basically, you can search text using word's part-of-speech tag like (`NN` -- noun, `VB` -- verb, `JJ` -- adjective, etc.).
 Part-of-speech search query can include word ranges such that you can find chains of nouns, verbs, adjectives and fixed expressions using fairly simple query syntax: `"the"DT "old"JJ{2} "oak"NN{1}`.
-In addition, **nn-search2** can do basic text analysis such as determining **lexical diversity**, **subjectivity** and **polarity** of the given text and generate a *nice-looking* POS-tag distribution plots (see the screenshots below).
+In addition, **nn-search2** can do basic text analysis such as determining **lexical diversity**, **subjectivity** and **polarity** of the given text and generate *nice-looking* POS-tag distribution plots (see the screenshots below).
 
 
 ### How does it look?
