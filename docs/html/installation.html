@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Text statistics &mdash; nn_search2 2.0.0 documentation</title>
+    <title>Installation &mdash; nn_search2 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,8 +24,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="nn_search2 2.0.0 documentation" href="index.html" />
-    <link rel="next" title="Code" href="nn_search2.html" />
-    <link rel="prev" title="Search query" href="howto.html" /> 
+    <link rel="next" title="Search query" href="howto.html" />
+    <link rel="prev" title="Welcome to nn_search2’s documentation!" href="index.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -35,10 +35,13 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="nn_search2.html" title="Code"
-             accesskey="N">next</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="howto.html" title="Search query"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to nn_search2’s documentation!"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">nn_search2 2.0.0 documentation</a> &raquo;</li> 
       </ul>
@@ -49,20 +52,22 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="text-statistics">
-<h1>Text statistics<a class="headerlink" href="#text-statistics" title="Permalink to this headline">¶</a></h1>
-<p><strong>nn_search2</strong> can display some useful text statistics.
-For example, the number of tokens, sentences, most common ngrams, POS-tags distribution, lexical diversity (how many unique words are used), sentiment polarity (how positive or negative is the text), subjectivity and correctness.
-Statistic properties have a scale of <strong>[0, 1]</strong> or <strong>[-1, 1]</strong> where 0 and 1 are min and max values.
-For example &#8220;polarity&#8221; of 0.65 means the text is rather positive than negative and vice versa.</p>
-<p>Statistics panel is represented by 3 buttons: &#8220;Numbers&#8221;, &#8220;Graphs&#8221; and &#8220;Search stats&#8221;.</p>
-<p>&#8220;Numbers&#8221; displays the information about the number of tokens, words, sentences, subjectivity, lexical diversity, polarity and correctness.
-This button uses the output of <strong>TextBlob</strong> library which unfortunately appeared to be rather slow.
-It might take a while to calculate all this info so be patient.</p>
-<p>&#8220;Graphs&#8221; displays POS-tags distribution, functional vs normal word plots.
-It also displays most frequent ngram counts. <strong>nn_search2</strong> does not count 1-grams like &#8220;be&#8221;, &#8220;the&#8221;, &#8220;a&#8221;, etc.
-Only contentful words are included all functional are excluded from ngram calculations.</p>
-<p>&#8220;Search stats&#8221; displays the number of matches found by the search query and the ratio of matched text length / total text length.</p>
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="linux">
+<h2>Linux<a class="headerlink" href="#linux" title="Permalink to this headline">¶</a></h2>
+<p>Follow these steps:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git clone http://www.github.com/tastyminerals/nn_search2.git
+$ cd nn_search2
+$ sudo linux_install.sh
+</pre></div>
+</div>
+</div>
+<div class="section" id="windows">
+<h2>Windows<a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h2>
+<p>Make sure you have <a class="reference external" href="https://www.python.org/downloads/">Python2.7</a> installed and set as default Python interpreter in the system.</p>
+<p>You can find <strong>nn_search2.exe</strong> installer in <code class="docutils literal"><span class="pre">bins</span></code> folder.</p>
+</div>
 </div>
 
 
@@ -71,16 +76,25 @@ Only contentful words are included all functional are excluded from ngram calcul
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#linux">Linux</a></li>
+<li><a class="reference internal" href="#windows">Windows</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
-  <p class="topless"><a href="howto.html"
-                        title="previous chapter">Search query</a></p>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to nn_search2&#8217;s documentation!</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="nn_search2.html"
-                        title="next chapter">Code</a></p>
+  <p class="topless"><a href="howto.html"
+                        title="next chapter">Search query</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/statistics.txt"
+      <li><a href="_sources/installation.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -105,10 +119,13 @@ Only contentful words are included all functional are excluded from ngram calcul
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="nn_search2.html" title="Code"
-             >next</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="howto.html" title="Search query"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to nn_search2’s documentation!"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">nn_search2 2.0.0 documentation</a> &raquo;</li> 
       </ul>

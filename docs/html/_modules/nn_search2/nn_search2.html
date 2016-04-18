@@ -184,6 +184,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_build_gui</span><span class="p">()</span>
         <span class="c1"># read Penn Treebank tags description</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">short_treebank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">longer_treebank</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_penn_treebank</span><span class="p">()</span>
+        <span class="c1"># init found strings for find window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="c1"># init found strings cache for find window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="NNSearch.press_return"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.press_return">[docs]</a>    <span class="k">def</span> <span class="nf">press_return</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -375,6 +379,14 @@
         <span class="k">except</span> <span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">TclError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
             <span class="n">tkMessageBox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s1">&#39;nn-search 2.0&#39;</span><span class="p">,</span> <span class="s1">&#39;Can not run &quot;Process&quot;.&#39;</span><span class="p">)</span>
             <span class="k">return</span></div>
+
+<div class="viewcode-block" id="NNSearch.ctrl_f"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.ctrl_f">[docs]</a>    <span class="k">def</span> <span class="nf">ctrl_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display text find window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Text</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">focus_get</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_find</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s1">&#39;break&#39;</span></div>
 
 <div class="viewcode-block" id="NNSearch.insert_text"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.insert_text">[docs]</a>    <span class="k">def</span> <span class="nf">insert_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">plain</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -801,14 +813,14 @@
 
 <div class="viewcode-block" id="NNSearch.check_nums_thread_save_results"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.check_nums_thread_save_results">[docs]</a>    <span class="k">def</span> <span class="nf">check_nums_thread_save_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check every 50ms if model thread is alive.</span>
+<span class="sd">        Check every 10ms if model thread is alive.</span>
 <span class="sd">        While displaying waiting label in Toplevel.</span>
 <span class="sd">        Unlock UI widgets.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock_toplevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats_win_butt</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats_butt1</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s1">&#39;disabled&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_nums_thread_save_results</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_nums_thread_save_results</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stats_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
             <span class="c1"># get the results of model processing</span>
@@ -969,12 +981,12 @@
 
 <div class="viewcode-block" id="NNSearch.check_graphs_thread_save_results"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.check_graphs_thread_save_results">[docs]</a>    <span class="k">def</span> <span class="nf">check_graphs_thread_save_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check every 100ms if model thread is alive.</span>
+<span class="sd">        Check every 10ms if model thread is alive.</span>
 <span class="sd">        While displaying waiting label in Toplevel.</span>
 <span class="sd">        Unlock UI widgets.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphs_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_graphs_thread_save_results</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_graphs_thread_save_results</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">graphs_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
             <span class="c1"># get the results of model processing</span>
@@ -1258,6 +1270,127 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sstats_win_butt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;ns&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">centrify_widget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sstats_win</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="NNSearch.highlight_find"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.highlight_find">[docs]</a>    <span class="k">def</span> <span class="nf">highlight_find</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Turn on highlighting for found strings.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">tag_configure</span><span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;#000000&#39;</span><span class="p">,</span>
+                                <span class="n">background</span><span class="o">=</span><span class="s2">&quot;#FFD417&quot;</span><span class="p">,</span>
+                                <span class="n">font</span><span class="o">=</span><span class="s1">&#39;TkDefaultFont 10&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NNSearch.find_query"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.find_query">[docs]</a>    <span class="k">def</span> <span class="nf">find_query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the search query. Highlight and auto scroll to the matched string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># set cache for keeping the indeces of matched strings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># index to access self.prev_found_cache</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">tag_delete</span><span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
+        <span class="n">find_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findEnt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="c1"># get current mouse cursor position in text field</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">INSERT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">find_query</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stopindex</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span>
+                                       <span class="n">regexp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c1"># in case a user put mouse cursor somewhere in the end</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">find_query</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stopindex</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span>
+                                           <span class="n">regexp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">:</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%d</span><span class="s1">c&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">find_query</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">tag_add</span><span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">highlight_find</span><span class="p">()</span>
+            <span class="c1"># auto scroll to found string</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="n">end_mark</span><span class="p">)</span>
+            <span class="c1"># self.Text.focus_set()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Nothing found!&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_message</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s1">&#39;info.png&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NNSearch.find_next"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.find_next">[docs]</a>    <span class="k">def</span> <span class="nf">find_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dummy_arg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find next matching string if exists.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">find_query</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">tag_delete</span><span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
+        <span class="n">find_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findEnt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">start_mark</span><span class="p">,</span> <span class="n">end_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">last</span><span class="p">]</span>
+        <span class="c1"># self.ffound = re.search(find_query, text[int(col):])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">find_query</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">,</span> <span class="n">stopindex</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span>
+                                       <span class="n">regexp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">:</span>
+            <span class="n">end_mark</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%d</span><span class="s1">c&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">find_query</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">tag_add</span><span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">highlight_find</span><span class="p">()</span>
+            <span class="c1"># auto scroll to found string</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="n">end_mark</span><span class="p">)</span>
+            <span class="c1"># self.Text.focus_set()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">,</span> <span class="n">end_mark</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;   Nothing found!   &quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_message</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s1">&#39;info.png&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NNSearch.find_prev"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.find_prev">[docs]</a>    <span class="k">def</span> <span class="nf">find_prev</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find previous matching string if exists.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">tag_delete</span><span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">start_found</span><span class="p">,</span> <span class="n">prev_found</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_found_cache</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">last</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffound</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">tag_add</span><span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="n">start_found</span><span class="p">,</span> <span class="n">prev_found</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">highlight_find</span><span class="p">()</span>
+            <span class="c1"># auto scroll to found string</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="n">prev_found</span><span class="p">)</span>
+            <span class="c1"># self.Text.focus_set()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;   Nothing found!   &quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_message</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s1">&#39;info.png&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NNSearch.show_find"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.show_find">[docs]</a>    <span class="k">def</span> <span class="nf">show_find</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display a simple text search toplevel window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create a Toplevel first, we will update it later</span>
+        <span class="n">find_win</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Toplevel</span><span class="p">()</span>
+        <span class="n">find_win</span><span class="o">.</span><span class="n">wm_attributes</span><span class="p">(</span><span class="s1">&#39;-topmost&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">find_win</span><span class="o">.</span><span class="n">resizable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># bind &lt;Return&gt;</span>
+        <span class="n">find_win</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Return&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_next</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)</span>
+
+        <span class="c1"># set custom window icon</span>
+        <span class="n">set_win_icon</span><span class="p">(</span><span class="n">find_win</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">(</span><span class="s1">&#39;nn-search.png&#39;</span><span class="p">))</span>
+        <span class="n">find_win</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">findEntFr</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">find_win</span><span class="p">,</span> <span class="n">borderwidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">relief</span><span class="o">=</span><span class="s1">&#39;groove&#39;</span><span class="p">)</span>
+        <span class="n">findEntFr</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nsew&#39;</span><span class="p">)</span>
+        <span class="n">findFr</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">find_win</span><span class="p">,</span> <span class="n">borderwidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">relief</span><span class="o">=</span><span class="s1">&#39;groove&#39;</span><span class="p">)</span>
+        <span class="n">findFr</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nsew&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">findEnt</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">findEntFr</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s1">&#39;TkDefaultFont 11&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">findEnt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">findEnt</span><span class="o">.</span><span class="n">focus_set</span><span class="p">()</span>
+        <span class="n">close_butt</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">findFr</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                                <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Close&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">find_win</span><span class="o">.</span><span class="n">destroy</span><span class="p">)</span>
+        <span class="n">close_butt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev</span> <span class="o">=</span> <span class="n">itk</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">(</span><span class="s1">&#39;find_prev.png&#39;</span><span class="p">))</span>
+        <span class="n">prev_butt</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">findFr</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                               <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Previous&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prev</span><span class="p">,</span>
+                               <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">find_prev</span><span class="p">)</span>
+        <span class="n">prev_butt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nwe&#39;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">itk</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">(</span><span class="s1">&#39;find_next.png&#39;</span><span class="p">))</span>
+        <span class="n">next_butt</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">findFr</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                               <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Next&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">next</span><span class="p">,</span>
+                               <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">find_next</span><span class="p">)</span>
+        <span class="n">next_butt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nwe&#39;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">find_butt</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">findFr</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                               <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Find&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">,</span>
+                               <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">find_query</span><span class="p">)</span>
+        <span class="n">find_butt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nwe&#39;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centrify_widget</span><span class="p">(</span><span class="n">find_win</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="NNSearch.prepare_view1"><a class="viewcode-back" href="../../nn_search2.html#nn_search2.nn_search2.NNSearch.prepare_view1">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_view1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prepare text for various text views.</span>
@@ -1534,6 +1667,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">MenuButton1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Menubutton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MenuFrm</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Edit&#39;</span><span class="p">,</span>
                                           <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;below&#39;</span><span class="p">,</span>
                                           <span class="n">menu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Menu1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">find</span> <span class="o">=</span> <span class="n">itk</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">(</span><span class="s1">&#39;find.png&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Menu1</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Find (Ctrl-f)&quot;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">,</span>
+                               <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_find</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">copy</span> <span class="o">=</span> <span class="n">itk</span><span class="o">.</span><span class="n">PhotoImage</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">(</span><span class="s1">&#39;copy.png&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Menu1</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Copy (Ctrl-c)&quot;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">,</span>
                                <span class="n">compound</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrl_c</span><span class="p">)</span>
@@ -1608,6 +1744,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-z&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_z</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-u&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_u</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-r&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_r</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s1">&#39;&lt;Control-f&gt;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_f</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">edit_modified</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>  <span class="c1"># set Text widget -- not modified</span>
         <span class="c1"># make a scrollbar for text widget</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scroll</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Scrollbar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TextFrm</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">yview</span><span class="p">)</span>
@@ -1884,9 +2021,6 @@
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -1908,7 +2042,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &copy; Copyright 2016, tastyminerals.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>
