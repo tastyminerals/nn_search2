@@ -84,7 +84,7 @@ That's nice but can I just search for some words? To do this, type a word and su
 
 ### How to install?
 #### Linux binary
-Download and extract [nn_search2.0.1.tar.gz](bins/nn_search2.0.1.tar.gz).
+Download and extract [nn_search2.1.tar.gz](bins/nn_search2.1.tar.gz).
 
 Run `./nn_search2`.
 
