@@ -6,11 +6,17 @@ Standalone POS-tagger using NLTK's Averaged Perceptron.
 import argparse
 import codecs
 import os
+# set current dir
+CURDIR = os.path.dirname(os.path.realpath(__file__))
+
 import re
 import sys
 from string import punctuation
 import unicodedata
 import nltk
+# set nltk data source dir
+nltk.data.path.append(os.path.join(CURDIR, 'nltk_data'))
+
 from nltk.tag.perceptron import PerceptronTagger
 
 

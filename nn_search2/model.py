@@ -8,6 +8,9 @@ from __future__ import division
 from collections import Counter, OrderedDict as od
 import csv
 import os
+# set current dir
+CURDIR = os.path.dirname(os.path.realpath(__file__))
+
 import platform
 import random
 import re
@@ -23,6 +26,9 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import matplotlib.colors as colors
 import nltk
+# set nltk data source dir
+nltk.data.path.append(os.path.join(CURDIR, 'nltk_data'))
+
 from nltk.corpus import stopwords
 from nltk.tag.perceptron import PerceptronTagger
 from textblob import TextBlob

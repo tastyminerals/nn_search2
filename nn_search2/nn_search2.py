@@ -1556,8 +1556,7 @@ class NNSearch(ttk.Frame):
 
     def _open_html(self):
         """Open docs index.html with the default browser."""
-        index = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             'docs', 'html', 'index.html')
+        index = os.path.join('docs', 'index.html')
         webbrowser.open('file://' + index)
 
     def _build_gui(self):
@@ -1652,7 +1651,7 @@ class NNSearch(ttk.Frame):
                                           direction='below',
                                           menu=self.Menu3)
         self.help = itk.PhotoImage(file=self.img_path('help.png'))
-        self.Menu3.add_command(label="Help", image=self.help, compound='left',
+        self.Menu3.add_command(label="Documentation", image=self.help, compound='left',
                                command=self._open_html)
         self.about = itk.PhotoImage(file=self.img_path('info.png'))
         self.Menu3.add_command(label="POS-tags", image=self.about,
