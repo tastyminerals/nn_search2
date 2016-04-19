@@ -91,6 +91,5 @@ That's nice but can I just search for some words? To do this, type a word and su
 5. start the app `nn_search2`
 
 #### Windows binary
-Download [nn_search2_win32.exe](https://raw.githubusercontent.com/tastyminerals/nn_search2/master/pyinstaller_builds/dists/nn_search2_win32.exe).
-
-Download [nn_search2_win32_portable.zip portable](https://raw.githubusercontent.com/tastyminerals/nn_search2/master/pyinstaller_builds/dists/nn_search2_win32_portable.zip)
+* Download [nn_search2_win32.exe](https://raw.githubusercontent.com/tastyminerals/nn_search2/master/pyinstaller_builds/dists/nn_search2_win32.exe).
+* Download [nn_search2_win32_portable.zip portable](https://raw.githubusercontent.com/tastyminerals/nn_search2/master/pyinstaller_builds/dists/nn_search2_win32_portable.zip)
