@@ -83,11 +83,6 @@ If you want to search for occurrences of nouns, you enter `NN`, that's it! Say, 
 That's nice but can I just search for some words? To do this, type a word and surround it with double quotes `"viking"`. If you want to specify a range `"viking"{3}`, `"merry" "viking"{1}`. Pretty simple. You can as well combine POS-tags, words and ranges `"Valhalla"NNP VBZ{0} DT{0} "place"NN{2}`. If your search query is incorrect and can not be processed **nn_search2** will display a warning message. That's it, now you know the query syntax.
 
 ### How to install?
-#### Linux binary
-Download and extract [nn_search2.1.tar.gz](bins/nn_search2.1.tar.gz).
-
-Run `./nn_search2`.
-
 ##### Installing and running from source on Linux
 1. install [Python2.7](https://www.python.org/downloads/)
 2. `git clone https://github.com/tastyminerals/nn_search2.git`
@@ -95,7 +90,5 @@ Run `./nn_search2`.
 4. run `linux_install.sh`
 5. start the app `nn_search2`
 
-#### Windows
-Make sure you have [Python2.7](https://www.python.org/downloads/) installed and set as default Python interpreter in the system.
-
-Here is the [Windows installer](bins/nn_search2.exe).
+#### Windows binary
+Here is the [Windows installer](/pyinstaller_builds/dists/nn_search2_win32.exe).
