@@ -1,0 +1,8 @@
+# using pyinstaller to create one-click installations for unix and win32
+# make sure you have all the deps installed on the machine
+pyinstaller --onefile --windowed -i data/icons/nn_search2.ico nn_search2.py
+# works faster
+pyinstaller --windowed -i data/icons/nn_search2.ico nn_search2.py 
+
+# for debugging, will open up a console
+pyinstaller --console nn_search2.py 
