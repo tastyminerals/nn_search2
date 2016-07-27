@@ -661,7 +661,7 @@ class NNSearch(ttk.Frame):
         try:
             # limit the file size to 10 mb
             fsize = os.path.getsize(fpath) / (1024 * 1024)
-            if fsize > 10:
+            if fsize > 15:
                 self.show_message("The file is too big!", 'warning.png')
                 return None
             self.loaded_text = model.read_input_file(fpath)
