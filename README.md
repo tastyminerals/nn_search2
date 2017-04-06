@@ -63,7 +63,7 @@ I think you got the picture. As you've noticed, not all found results are correc
 Also, be patient, the bigger your text and the shorter your search query the more time it will be required to display the results.
 
 ### How to make a search query?
-####Examples:
+#### Examples:
 
 **`DT NN`**
 
